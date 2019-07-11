@@ -1,0 +1,12 @@
+{
+    "name": "thaikolja/polylang-pro",
+    "description": "",
+    "type": "wordpress-plugin",
+	"version": "2.6.1",
+	"homepage": "",
+	"time": "2019-06-04",
+    "require": {
+        "composer/installers": ">=1.0"
+    },
+    "license": "GPLv2 or later"
+}
