@@ -15,7 +15,7 @@ class PLL_Pro {
 	public function __construct() {
 		load_plugin_textdomain( 'polylang-pro', false, basename( POLYLANG_DIR ) . '/languages' );
 		new PLL_License( POLYLANG_FILE, 'Polylang Pro', POLYLANG_VERSION, 'WP SYNTEX' );
-		new PLL_T15S( 'polylang-pro', 'https://translationspress.com/translate/api/translations/wp-syntex/polylang-pro/' );
+		new PLL_T15S( 'polylang-pro', 'https://s3.eu-central-1.amazonaws.com/api.translationspress.com/wp-syntex/polylang-pro/polylang-pro.json' );
 
 		// Download Polylang language packs.
 		add_filter( 'http_request_args', array( $this, 'http_request_args' ), 10, 2 );

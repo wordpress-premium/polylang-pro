@@ -77,6 +77,36 @@ class PLL_ACF {
 	}
 
 	/**
+	 * Returns an array containing all the field data for a given field name
+	 * Unlike the original ACF function, it works for clone fields
+	 *
+	 * @since 2.6.2
+	 *
+	 * @param string     $key     The field name or key.
+	 * @param string|int $post_id The post_id of which the value is saved against.
+	 * @return array|bool
+	 */
+	protected function get_field_object( $key, $post_id ) {
+		$field = get_field_object( $key, $post_id );
+
+		if ( $field ) {
+			return $field;
+		}
+
+		$post_id   = acf_get_valid_post_id( $post_id );
+		$field_key = acf_get_reference( $key, $post_id );
+		$field     = acf_get_field( substr( $field_key, -19 ) ); // Keep the last key in field_xxx_field_yyy for clone fields.
+
+		if ( $field ) {
+			$field['value'] = acf_get_value( $post_id, $field );
+			$field['value'] = acf_format_value( $field['value'], $post_id, $field );
+			return $field;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Recursively searches a field by its name in an array of fields
 	 *
 	 * @since 2.3
@@ -375,7 +405,7 @@ class PLL_ACF {
 	 * @return mixed
 	 */
 	public function translate_meta( $value, $key, $lang, $from, $to = 0 ) {
-		if ( ! empty( $value ) && $field = isset( $this->fields[ $key ] ) ? $this->fields[ $key ] : get_field_object( $key, $from ) ) {
+		if ( ! empty( $value ) && $field = isset( $this->fields[ $key ] ) ? $this->fields[ $key ] : $this->get_field_object( $key, $from ) ) {
 			$create_if_not_exists = false;
 
 			// Check if we should create translations if they don't exist
@@ -526,7 +556,8 @@ class PLL_ACF {
 		foreach ( $value as $row => $sub_fields ) {
 			$sub = array();
 			foreach ( $sub_fields as $id => $sub_value ) {
-				if ( $field = acf_get_field( substr( $id, -19 ) ) ) {
+				$field = acf_get_field( substr( $id, -19 ) ); // Keep the last key in field_xxx_field_yyy for clone fields.
+				if ( $field ) {
 					$sub[ $id ] = $this->translate_fields( $r, $sub_value, $name . '_' . $row . '_' . $field['name'], $field, $lang );
 				} else {
 					$sub[ $id ] = $sub_value;
