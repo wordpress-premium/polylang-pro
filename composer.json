@@ -1,10 +1,8 @@
 {
     "name": "wordpress-premium/polylang-pro",
-    "description": "",
     "type": "wordpress-plugin",
-	"version": "2.6.1",
-	"homepage": "",
-	"time": "2019-06-04",
+	"version": "2.6.3",
+	"time": "2019-08-06",
     "require": {
         "composer/installers": ">=1.0"
     },

@@ -191,6 +191,17 @@ class PLL_Sync_Post_Model {
 		$wpdb->update( $wpdb->posts, $tr_post, array( 'ID' => $tr_id ) ); // Don't use wp_update_post to avoid conflict (reverse sync).
 		clean_post_cache( $tr_id );
 
+		/**
+		 * Fires after a post has been synchronized.
+		 *
+		 * @since 2.6.3
+		 *
+		 * @param int    $post_id Id of the source post.
+		 * @param int    $tr_id   Id of the target post.
+		 * @param string $lang    Language of the target post.
+		 */
+		do_action( 'pll_post_synchronized', $post_id, $tr_id, $lang );
+
 		return $tr_id;
 	}
 
