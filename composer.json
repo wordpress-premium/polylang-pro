@@ -5,8 +5,7 @@
 	"version": "2.6.4",
 	"time": "2019-08-27",
     "require": {
-        "composer/installers": ">=1.0",
-		"php": ""
+        "composer/installers": ">=1.0"
     },
     "license": "GPLv3 or later",
 	"keywords": [
