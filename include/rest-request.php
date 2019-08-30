@@ -29,6 +29,10 @@ class PLL_REST_Request extends PLL_Base {
 		parent::init();
 
 		if ( $this->model->get_languages_list() ) {
+
+			/** This action is documented in include/class-polylang.php */
+			do_action( 'pll_no_language_defined' ); // To load overridden textdomains.
+
 			$this->filters_links = new PLL_Filters_Links( $this );
 
 			// Static front page and page for posts
@@ -55,10 +59,6 @@ class PLL_REST_Request extends PLL_Base {
 				$curlang = null;
 				$slugs_model = new PLL_Translate_Slugs_Model( $this );
 				$this->translate_slugs = new PLL_Translate_Slugs( $slugs_model, $curlang );
-			}
-
-			if ( class_exists( 'PLL_Sync_Content' ) ) {
-				$this->sync_content = new PLL_Sync_Content( $this );
 			}
 
 			if ( class_exists( 'PLL_Sync_Post_REST' ) ) {

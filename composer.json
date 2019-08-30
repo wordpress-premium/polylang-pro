@@ -1,10 +1,22 @@
 {
     "name": "wordpress-premium/polylang-pro",
     "type": "wordpress-plugin",
-	"version": "2.6.3",
-	"time": "2019-08-06",
+	"homepage": "https://polylang.pro",
+	"version": "2.6.4",
+	"time": "2019-08-27",
     "require": {
-        "composer/installers": ">=1.0"
+        "composer/installers": ">=1.0",
+		"php": ""
     },
-    "license": "GPLv2 or later"
+    "license": "GPLv3 or later",
+	"keywords": [
+		"multilingual",
+		"bilingual",
+		"translate",
+		"translation",
+		"language",
+		"multilanguage",
+		"international",
+		"localization"
+	]
 }

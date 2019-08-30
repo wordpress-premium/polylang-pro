@@ -95,12 +95,16 @@ class PLL_ACF {
 
 		$post_id   = acf_get_valid_post_id( $post_id );
 		$field_key = acf_get_reference( $key, $post_id );
-		$field     = acf_get_field( substr( $field_key, -19 ) ); // Keep the last key in field_xxx_field_yyy for clone fields.
+		$field_key = substr( $field_key, -19 ); // Keep the last key in field_xxx_field_yyy for clone fields.
 
-		if ( $field ) {
-			$field['value'] = acf_get_value( $post_id, $field );
-			$field['value'] = acf_format_value( $field['value'], $post_id, $field );
-			return $field;
+		if ( acf_is_field_key( $field_key ) ) {
+			$field = acf_get_field( $field_key );
+
+			if ( $field ) {
+				$field['value'] = acf_get_value( $post_id, $field );
+				$field['value'] = acf_format_value( $field['value'], $post_id, $field );
+				return $field;
+			}
 		}
 
 		return false;
