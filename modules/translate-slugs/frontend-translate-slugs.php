@@ -46,6 +46,8 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 	 * @return string Modified url.
 	 */
 	public function pll_get_archive_url( $url, $language ) {
+		global $wp_rewrite;
+
 		if ( is_post_type_archive() ) {
 			$post_type = get_queried_object();
 			$url = $this->slugs_model->switch_translated_slug( $url, $language, 'archive_' . $post_type->name );
@@ -66,7 +68,7 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 			$url = $this->slugs_model->switch_translated_slug( $url, $language, 'search' );
 		}
 
-		if ( ! empty( $GLOBALS['wp_rewrite'] ) ) {
+		if ( ! empty( $wp_rewrite->front ) && trim( $wp_rewrite->front, '/' ) ) {
 			$url = $this->slugs_model->switch_translated_slug( $url, $language, 'front' );
 		}
 
@@ -85,7 +87,7 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 	 * @return string Modified canonical url.
 	 */
 	public function pll_check_canonical_url( $redirect_url, $language ) {
-		global $wp_query, $post;
+		global $wp_query, $post, $wp_rewrite;
 
 		$slugs = array();
 
@@ -129,7 +131,7 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 			$slugs[] = 'attachment';
 		}
 
-		if ( ! empty( $GLOBALS['wp_rewrite'] ) ) {
+		if ( ! empty( $wp_rewrite->front ) && trim( $wp_rewrite->front, '/' ) ) {
 			$slugs[] = 'front';
 		}
 

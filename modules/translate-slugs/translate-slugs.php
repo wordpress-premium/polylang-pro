@@ -36,7 +36,9 @@ class PLL_Translate_Slugs {
 	 * @return string
 	 */
 	public function pll_post_type_link( $url, $lang, $post ) {
-		if ( ! empty( $GLOBALS['wp_rewrite'] ) ) {
+		global $wp_rewrite;
+
+		if ( ! empty( $wp_rewrite->front ) && trim( $wp_rewrite->front, '/' ) ) {
 			$url = $this->slugs_model->translate_slug( $url, $lang, 'front' );
 		}
 
@@ -54,11 +56,13 @@ class PLL_Translate_Slugs {
 	 * @return string
 	 */
 	public function pll_term_link( $url, $lang, $term ) {
+		global $wp_rewrite;
+
 		if ( 'post_format' == $term->taxonomy ) {
 			$url = $this->slugs_model->translate_slug( $url, $lang, $term->slug ); // Occurs only on frontend.
 		}
 
-		if ( ! empty( $GLOBALS['wp_rewrite'] ) ) {
+		if ( ! empty( $wp_rewrite->front ) && trim( $wp_rewrite->front, '/' ) ) {
 			$url = $this->slugs_model->translate_slug( $url, $lang, 'front' );
 		}
 
@@ -78,6 +82,8 @@ class PLL_Translate_Slugs {
 	 * @return string Modified link
 	 */
 	public function translate_slug( $link, $post_type = '' ) {
+		global $wp_rewrite;
+
 		if ( empty( $this->curlang ) ) {
 			return $link;
 		}
@@ -92,7 +98,7 @@ class PLL_Translate_Slugs {
 
 		$link = $this->slugs_model->translate_slug( $link, $this->curlang, $types[ current_filter() ] );
 
-		if ( ! empty( $GLOBALS['wp_rewrite'] ) ) {
+		if ( ! empty( $wp_rewrite->front ) && trim( $wp_rewrite->front, '/' ) ) {
 			$link = $this->slugs_model->translate_slug( $link, $this->curlang, 'front' );
 		}
 

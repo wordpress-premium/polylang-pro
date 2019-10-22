@@ -89,7 +89,7 @@ class PLL_Translate_Slugs_Model {
 	 * @return string Modified url.
 	 */
 	public function translate_slug( $link, $lang, $type ) {
-		if ( ! empty( $lang ) && isset( $this->translated_slugs[ $type ] ) ) {
+		if ( ! empty( $lang ) && isset( $this->translated_slugs[ $type ] ) && ! empty( $this->translated_slugs[ $type ]['slug'] ) ) {
 			$link = preg_replace(
 				'#\/' . $this->translated_slugs[ $type ]['slug'] . '(\/|$)#',
 				'/' . $this->get_translated_slug( $type, $lang->slug ) . '$1',
@@ -110,7 +110,7 @@ class PLL_Translate_Slugs_Model {
 	 * @return string Modified url.
 	 */
 	public function switch_translated_slug( $link, $lang, $type ) {
-		if ( isset( $this->translated_slugs[ $type ] ) ) {
+		if ( isset( $this->translated_slugs[ $type ] ) && ! empty( $this->translated_slugs[ $type ]['slug'] ) ) {
 			$slugs   = $this->translated_slugs[ $type ]['translations'];
 			$slugs[] = $this->translated_slugs[ $type ]['slug'];
 			$slugs   = $this->encode_deep( $slugs );

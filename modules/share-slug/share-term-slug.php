@@ -37,12 +37,13 @@ class PLL_Share_Term_Slug {
 	protected function unique_term_slug( $slug, $lang, $term ) {
 		global $wpdb;
 
+		$original_slug = $slug; // Save this for the filter at the end.
+
 		// Quick check.
 		if ( ! $this->term_exists( $slug, $lang, $term->taxonomy ) ) {
-			return $slug;
+			/** This filter is documented in wp-includes/taxonomy.php */
+			return apply_filters( 'wp_unique_term_slug', $slug, $term, $original_slug );
 		}
-
-		$original_slug = $slug; // Save this for the filter at the end.
 
 		/*
 		 * As done by WP in term_exists except that we use our own term_exist.
@@ -58,7 +59,8 @@ class PLL_Share_Term_Slug {
 				}
 				$slug .= '-' . $parent_term->slug;
 				if ( ! $this->term_exists( $slug, $lang ) ) { // Calls our own term_exists.
-					return $slug;
+					/** This filter is documented in wp-includes/taxonomy.php */
+					return apply_filters( 'wp_unique_term_slug', $slug, $term, $original_slug );
 				}
 
 				if ( empty( $parent_term->parent ) ) {
