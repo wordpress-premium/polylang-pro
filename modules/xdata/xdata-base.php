@@ -33,7 +33,7 @@ abstract class PLL_Xdata_Base {
 		// Login redirect.
 		add_action( 'set_auth_cookie', array( $this, 'set_auth_cookie' ), 10, 5 );
 		add_action( 'login_redirect', array( $this, 'login_redirect' ), 10, 3 ); // Must be defined in child class.
-		add_filter( 'admin_url', array( $this, 'admin_url' ) );
+		add_filter( 'admin_url', array( $this, 'admin_url' ), 5 ); // Before PLL_Frontend_Filters_Links.
 
 		// Customizer.
 		add_filter( 'customize_allowed_urls', array( $this, 'customize_allowed_urls' ) );
@@ -251,6 +251,9 @@ abstract class PLL_Xdata_Base {
 		 * @param array $data Data transferred from one domain to the other.
 		 */
 		do_action( 'pll_set_xdata', $data );
+		if ( empty( $data['redirect'] ) ) {
+			$data['redirect'] = admin_url();
+		}
 		wp_safe_redirect( $data['redirect'] );
 		exit;
 	}

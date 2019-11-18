@@ -154,7 +154,7 @@ function isPostTypeRequest(options) {
 	// it's done by verifying options.path matches with one of baseURL of all post types
 	var postTypeURLs = Object(lodash__WEBPACK_IMPORTED_MODULE_3__["map"])(Object(_wordpress_data__WEBPACK_IMPORTED_MODULE_0__["select"])('core').getEntitiesByKind('postType'), Object(lodash__WEBPACK_IMPORTED_MODULE_3__["property"])('baseURL'));
 	return -1 !== postTypeURLs.findIndex(function (element) {
-		return new RegExp(Object(lodash__WEBPACK_IMPORTED_MODULE_3__["escapeRegExp"])(element) + '/[0-9]*').test(options.path);
+		return new RegExp('' + Object(lodash__WEBPACK_IMPORTED_MODULE_3__["escapeRegExp"])(element)).test(options.path); // phpcs:ignore WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore, WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter
 	});
 }
 
