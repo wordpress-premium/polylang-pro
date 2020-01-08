@@ -51,7 +51,10 @@ class PLL_Pro {
 	 * @return array
 	 */
 	public function pre_set_site_transient_update_plugins( $value ) {
+		// We encountered a 3rd party plugin setting the transient before the function get_plugins() is available.
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		$plugins = get_plugins();
+
 		if ( isset( $value->response ) ) {
 			if ( empty( $plugins['polylang/polylang.php'] ) ) {
 				unset( $value->response['polylang/polylang.php'] );
