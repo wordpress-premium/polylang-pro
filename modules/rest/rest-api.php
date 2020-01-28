@@ -51,6 +51,8 @@ class PLL_REST_API {
 		$taxonomies = apply_filters( 'pll_rest_api_taxonomies', $taxonomies );
 		$this->term = new PLL_REST_Term( $this, $taxonomies );
 
+		$this->comment = new PLL_REST_Comment( $this );
+
 		register_rest_route(
 			'pll/v1',
 			'/languages',

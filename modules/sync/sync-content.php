@@ -51,46 +51,50 @@ class PLL_Sync_Content {
 	public function duplicate_term( $tr_term, $term, $lang ) {
 		if ( empty( $tr_term ) ) {
 			$term = get_term( $term );
-			$tr_parent = empty( $term->parent ) ? 0 : $this->model->term->get_translation( $term->parent, $lang );
+			$language = $this->model->term->get_language( $term->term_id );
 
-			// Duplicate the parent if the parent translation doesn't exist yet.
-			if ( empty( $tr_parent ) && ! empty( $term->parent ) ) {
-				$tr_parent = $this->duplicate_term( $tr_parent, $term->parent, $lang );
-			}
+			if ( $language && $language->slug !== $lang ) { // Create a new term translation only if the source term has a language.
+				$tr_parent = empty( $term->parent ) ? 0 : $this->model->term->get_translation( $term->parent, $lang );
 
-			$args = array(
-				'description' => wp_slash( $term->description ),
-				'parent'      => $tr_parent,
-			);
+				// Duplicate the parent if the parent translation doesn't exist yet.
+				if ( empty( $tr_parent ) && ! empty( $term->parent ) ) {
+					$tr_parent = $this->duplicate_term( $tr_parent, $term->parent, $lang );
+				}
 
-			if ( $this->options['force_lang'] ) {
-				// Share slugs
-				$args['slug'] = $term->slug . '___' . $lang;
-			} else {
-				// Language set from the content: assign a different slug
-				// otherwise we would change the current term language instead of creating a new term
-				$args['slug'] = sanitize_title( $term->name ) . '-' . $lang;
-			}
+				$args = array(
+					'description' => wp_slash( $term->description ),
+					'parent'      => $tr_parent,
+				);
 
-			$t = wp_insert_term( wp_slash( $term->name ), $term->taxonomy, $args );
+				if ( $this->options['force_lang'] ) {
+					// Share slugs
+					$args['slug'] = $term->slug . '___' . $lang;
+				} else {
+					// Language set from the content: assign a different slug
+					// otherwise we would change the current term language instead of creating a new term
+					$args['slug'] = sanitize_title( $term->name ) . '-' . $lang;
+				}
 
-			if ( is_array( $t ) && isset( $t['term_id'] ) ) {
-				$tr_term = $t['term_id'];
-				$this->model->term->set_language( $tr_term, $lang );
-				$translations = $this->model->term->get_translations( $term->term_id );
-				$translations[ $lang ] = $tr_term;
-				$this->model->term->save_translations( $term->term_id, $translations );
+				$t = wp_insert_term( wp_slash( $term->name ), $term->taxonomy, $args );
 
-				/**
-				 * Fires after a term translation is automatically created when duplicating a post
-				 *
-				 * @since 2.3.8
-				 *
-				 * @param int    $from Term id of the source term
-				 * @param int    $to   Term id of the new term translation
-				 * @param string $lang Language code of the new translation
-				 */
-				do_action( 'pll_duplicate_term', $term->term_id, $tr_term, $lang );
+				if ( is_array( $t ) && isset( $t['term_id'] ) ) {
+					$tr_term = $t['term_id'];
+					$this->model->term->set_language( $tr_term, $lang );
+					$translations = $this->model->term->get_translations( $term->term_id );
+					$translations[ $lang ] = $tr_term;
+					$this->model->term->save_translations( $term->term_id, $translations );
+
+					/**
+					 * Fires after a term translation is automatically created when duplicating a post
+					 *
+					 * @since 2.3.8
+					 *
+					 * @param int    $from Term id of the source term
+					 * @param int    $to   Term id of the new term translation
+					 * @param string $lang Language code of the new translation
+					 */
+					do_action( 'pll_duplicate_term', $term->term_id, $tr_term, $lang );
+				}
 			}
 		}
 		return $tr_term;

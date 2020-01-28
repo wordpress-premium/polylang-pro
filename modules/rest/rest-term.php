@@ -21,9 +21,28 @@ class PLL_REST_Term extends PLL_REST_Translated_Object {
 		$this->type = 'term';
 		$this->id   = 'term_id';
 
+		add_filter( 'get_terms_args', array( $this, 'get_terms_args' ) );
+
 		foreach ( array_keys( $content_types ) as $taxonomy ) {
 			add_filter( "rest_pre_insert_{$taxonomy}", array( $this, 'pre_insert_term' ), 10, 2 );
 		}
+
+	}
+
+	/**
+	 * Filters the query per language according to the 'lang' parameter
+	 *
+	 * @since 2.6.9
+	 *
+	 * @param array $args WP_Term_Query arguments.
+	 * @return array
+	 */
+	public function get_terms_args( $args ) {
+		// The first test is necessary to avoid an infinite loop when calling get_languages_list().
+		if ( $this->model->is_translated_taxonomy( $args['taxonomy'] ) && isset( $this->params['lang'] ) && in_array( $this->params['lang'], $this->model->get_languages_list( array( 'fields' => 'slug' ) ) ) ) {
+			$args['lang'] = $this->params['lang'];
+		}
+		return $args;
 	}
 
 	/**

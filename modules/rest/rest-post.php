@@ -21,14 +21,28 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 		$this->type = 'post';
 		$this->id   = 'ID';
 
+		add_action( 'parse_query', array( $this, 'parse_query' ), 1 );
+
 		foreach ( array_keys( $content_types ) as $post_type ) {
 			add_filter( "rest_prepare_{$post_type}", array( $this, 'prepare_response' ), 10, 3 );
 		}
 
 		// Use rest_pre_dispatch_filter to be sure to get translations_table parameter in time
 		add_filter( 'rest_pre_dispatch', array( $this, 'get_rest_query_params' ), 10, 3 );
+	}
 
-		add_filter( 'rest_post_search_query', array( $this, 'query' ), 10, 2 ); // For search requests, since WP 5.1.0
+	/**
+	 * Filters the query per language according to the 'lang' parameter
+	 *
+	 * @since 2.6.9
+	 *
+	 * @param object $query WP_Query object.
+	 */
+	public function parse_query( $query ) {
+		if ( isset( $this->params['lang'] ) && in_array( $this->params['lang'], $this->model->get_languages_list( array( 'fields' => 'slug' ) ) ) ) {
+			$pll_query = new PLL_Query( $query, $this->model );
+			$pll_query->filter_query( $this->model->get_language( $this->params['lang'] ) );
+		}
 	}
 
 	/**
@@ -113,7 +127,6 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 		// When we come from a post new creation
 		$from_post_id = isset( $_GET['from_post'] ) ? (int) $_GET['from_post'] : 0; // phpcs:ignore WordPress.Security.NonceVerification
 
-		$lang = $this->model->post->get_language( $object['id'] );
 		foreach ( $this->model->get_languages_list() as $language ) {
 			$return[ $language->slug ]['lang'] = $language;
 
@@ -123,7 +136,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 				$value = $this->model->post->get( $from_post_id, $language );
 			}
 
-			$link = $add_link = $this->links->get_new_post_translation_link( $object['id'], $language, 'keep ampersand' );
+			$link = $this->links->get_new_post_translation_link( $object['id'], $language, 'keep ampersand' );
 			$return[ $language->slug ]['links']['add_link'] = $link;
 
 			if ( $value ) {
