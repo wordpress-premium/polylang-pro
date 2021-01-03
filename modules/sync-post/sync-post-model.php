@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Model for synchronizing posts
@@ -138,7 +141,7 @@ class PLL_Sync_Post_Model {
 			 */
 			do_action( 'pll_created_sync_post', $post_id, $tr_id, $lang );
 
-			/** This action is documented in admin/admin-filters-post.php */
+			/** This action is documented in /polylang/include/crud-posts.php */
 			do_action( 'pll_save_post', $post_id, $post, $translations ); // Fire again as we just updated $translations.
 
 			unset( $this->temp_synchronized[ $post_id ][ $tr_id ] );

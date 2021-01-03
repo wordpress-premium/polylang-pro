@@ -2,10 +2,10 @@
     "name": "wordpress-premium/polylang-pro",
     "type": "wordpress-plugin",
 	"homepage": "https://polylang.pro",
-	"version": "2.6.9",
-	"time": "2019-12-13",
+	"version": "2.9.1",
+	"time": "2020-12-16",
     "require": {
-        "composer/installers": ">=1.0"
+        "composer/installers": ">=1.6"
     },
     "license": "GPLv3 or later",
 	"keywords": [

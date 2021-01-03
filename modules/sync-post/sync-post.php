@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Manages the synchronization of posts across languages
@@ -12,18 +15,46 @@ class PLL_Sync_Post {
 	 * Constructor
 	 *
 	 * @since 2.1
+	 * @since 2.7 Registers two option for the Translate bulk action.
 	 *
 	 * @param object $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
-		$this->sync_model = new PLL_Sync_Post_Model( $polylang );
+		$this->sync_model = &$polylang->sync_post_model;
 
 		// Create buttons.
 		foreach ( $polylang->model->get_languages_list() as $language ) {
 			$this->buttons[ $language->slug ] = new PLL_Sync_Post_Button( $this->sync_model, $language );
 		}
 
-		add_action( 'pll_save_post', array( $this, 'sync_posts' ), 5, 2 ); // Before PLL_Admin_Sync, Before PLL_ACF, Before PLLWC.
+		if ( isset( $polylang->bulk_translate ) ) {
+			$polylang->bulk_translate->register_options(
+				array(
+					new PLL_Sync_Post_Bulk_Option(
+						array(
+							'name'           => 'pll_sync_post',
+							'description'    => __( 'Synchronize original items with translation in selected languages', 'polylang-pro' ),
+							'do_synchronize' => true,
+							'priority'       => 10,
+						),
+						$polylang->model,
+						$this->sync_model
+					),
+					new PLL_Sync_Post_Bulk_Option(
+						array(
+							'name'           => 'pll_copy_post',
+							'description'    => __( 'Copy original items to selected languages', 'polylang-pro' ),
+							'do_synchronize' => false,
+							'priority'       => 5,
+						),
+						$polylang->model,
+						$this->sync_model
+					),
+				)
+			);
+		}
+
+		add_action( 'pll_save_post', array( $this, 'sync_posts' ), 5 ); // Before PLL_Admin_Sync, Before PLL_ACF, Before PLLWC.
 	}
 
 	/**
@@ -31,10 +62,9 @@ class PLL_Sync_Post {
 	 *
 	 * @since 2.1
 	 *
-	 * @param int    $post_id The post id.
-	 * @param object $post    The post object.
+	 * @param int $post_id The post id.
 	 */
-	public function sync_posts( $post_id, $post ) {
+	public function sync_posts( $post_id ) {
 		static $avoid_recursion = false;
 
 		if ( $avoid_recursion ) {
@@ -91,7 +121,7 @@ class PLL_Sync_Post {
 	public function __call( $func, $args ) {
 		if ( method_exists( $this->sync_model, $func ) ) {
 			if ( WP_DEBUG ) {
-				$debug = debug_backtrace(); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
+				$debug = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
 
 				trigger_error( // phpcs:ignore WordPress.PHP.DevelopmentFunctions
 					sprintf(
@@ -105,7 +135,7 @@ class PLL_Sync_Post {
 			return call_user_func_array( array( $this->sync_model, $func ), $args );
 		}
 
-		$debug = debug_backtrace(); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
+		$debug = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
 		trigger_error( // phpcs:ignore WordPress.PHP.DevelopmentFunctions
 			sprintf(
 				'Call to undefined function PLL()->sync_post->%1$s() in %2$s on line %3$s' . "\nError handler",

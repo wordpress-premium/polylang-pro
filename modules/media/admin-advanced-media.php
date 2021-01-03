@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Advanced media functionalities
@@ -10,6 +13,7 @@ class PLL_Admin_Advanced_Media {
 	 * Constructor: setups filters and actions
 	 *
 	 * @since 1.9
+	 * @since 2.7 Now registers an option for the Translate bulk action.
 	 *
 	 * @param object $polylang Polylang object.
 	 */
@@ -17,6 +21,21 @@ class PLL_Admin_Advanced_Media {
 		$this->options = &$polylang->options;
 		$this->model   = &$polylang->model;
 		$this->posts   = &$polylang->posts;
+
+		if ( isset( $polylang->bulk_translate ) ) {
+			$polylang->bulk_translate->register_options(
+				array(
+					new PLL_Media_Bulk_Option(
+						array(
+							'name'        => 'pll_copy_media',
+							'description' => __( 'Copy original items to selected languages', 'polylang-pro' ),
+						),
+						$polylang->model,
+						$this->posts
+					),
+				)
+			);
+		}
 
 		if ( ! empty( $this->options['media']['duplicate'] ) ) {
 			add_action( 'add_attachment', array( $this, 'duplicate_media' ), 20 ); // After Polylang.

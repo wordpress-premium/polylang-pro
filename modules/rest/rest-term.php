@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Expose terms language and translations in the REST API
@@ -77,12 +80,19 @@ class PLL_REST_Term extends PLL_REST_Translated_Object {
 		}
 
 		if ( ! empty( $lang ) ) {
+			$taxonomy = substr( current_filter(), 16 );
+			$parent = isset( $prepared_term->parent ) ? $prepared_term->parent : 0;
+
 			if ( empty( $params['slug'] ) && empty( $params['id'] ) && ! empty( $params['name'] ) ) {
 				// The term is created without specifying the slug
-				$prepared_term->slug = sanitize_title( $params['name'] . '___' . $lang );
+				$slug = $params['name'];
 			} elseif ( ! empty( $params['slug'] ) && false === strpos( '___', $params['slug'] ) ) {
 				// The term is created or updated and the slug is specified
-				$prepared_term->slug = sanitize_title( $params['slug'] . '___' . $lang );
+				$slug = $params['slug'];
+			}
+
+			if ( ! empty( $slug ) && ! $this->model->term_exists_by_slug( $slug, $lang, $taxonomy, $parent ) ) {
+				$prepared_term->slug = sanitize_title( $slug . '___' . $lang );
 			}
 		}
 

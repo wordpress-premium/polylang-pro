@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * A class to handle cross domain data and single sign on for multiple domains
@@ -43,11 +46,7 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 	 * @param string $lang Language code.
 	 */
 	protected function maybe_set_cookie( $lang ) {
-		if ( ! headers_sent() && ( ! isset( $_COOKIE[ PLL_COOKIE ] ) || $_COOKIE[ PLL_COOKIE ] !== $lang ) ) {
-			/** This filter is documented in frontend/choose-lang.php */
-			$expiration = apply_filters( 'pll_cookie_expiration', YEAR_IN_SECONDS );
-			setcookie( PLL_COOKIE, $lang, time() + $expiration, COOKIEPATH, COOKIE_DOMAIN, is_ssl() );
-		}
+		PLL_Cookie::set( $lang, array( 'samesite' => 'None' ) );
 	}
 
 	/**
@@ -111,7 +110,7 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 
 		// Redirects to the preferred language home page at first visit.
 		if ( ! empty( $this->options['browser'] ) && ! isset( $_COOKIE[ PLL_COOKIE ] ) && trailingslashit( $redirect ) === $this->model->get_language( $lang )->home_url ) {
-			/** This filter is documented in frontend/choose-lang.php */
+			/** This filter is documented in /polylang/frontend/choose-lang.php */
 			$preflang = apply_filters( 'pll_preferred_language', $this->choose_lang->get_preferred_browser_language() );
 
 			if ( ! $this->model->get_language( $preflang ) ) {
@@ -119,7 +118,7 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 			}
 
 			if ( $preflang !== $lang ) {
-				/** This filter is documented in frontend/choose-lang.php */
+				/** This filter is documented in /polylang/frontend/choose-lang.php */
 				if ( $home_page_url = apply_filters( 'pll_redirect_home', $this->model->get_language( $preflang )->home_url ) ) {
 					header( 'Content-Type: application/javascript' );
 					printf( 'window.location.replace("%s");', esc_url_raw( $home_page_url ) );

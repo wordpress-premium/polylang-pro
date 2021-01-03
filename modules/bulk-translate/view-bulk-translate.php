@@ -1,7 +1,8 @@
 <?php
-
 /**
  * Outputs the bulk translate form
+ *
+ * @package Polylang-Pro
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -30,13 +31,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<fieldset>
 				<div class="inline-edit-col">
 					<span class="title"><?php esc_html_e( 'Action', 'polylang-pro' ); ?></span>
-					<label><input name="translate" type="radio" value="copy" checked="checked" /><?php esc_html_e( 'Copy original items to selected languages', 'polylang-pro' ); ?></label>
-					<?php if ( 'attachment' !== $post_type ) { ?>
-					<label><input name="translate" type="radio" value="sync" /><?php esc_html_e( 'Synchronize original items with translation in selected languages', 'polylang-pro' ); ?></label>
-					<?php } ?>
+					<?php
+					$option_nb = 0;
+					if ( isset( $bulk_translate_options ) ) {
+						foreach ( $bulk_translate_options as $bulk_translate_option ) {
+							?>
+							<label>
+								<input name="translate" type="radio" value="<?php echo esc_attr( $bulk_translate_option->get_name() ); ?>"<?php checked( 0, $option_nb ); ?>/>
+								<?php echo esc_html( $bulk_translate_option->get_description() ); ?>
+							</label>
+							<?php
+							$option_nb++;
+						}
+					}
+					?>
 				</div>
 			</fieldset>
 			<p class="submit bulk-translate-save">
+				<?php wp_nonce_field( 'pll_translate', '_pll_translate_nonce' ); ?>
 				<button type="button" class="button button-secondary cancel"><?php esc_html_e( 'Cancel', 'polylang-pro' ); ?></button>
 				<?php submit_button( __( 'Submit', 'polylang-pro' ), 'primary', '', false ); ?>
 			</p>

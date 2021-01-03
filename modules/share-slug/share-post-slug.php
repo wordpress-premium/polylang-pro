@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Base class to manage shared slugs for posts
@@ -51,10 +54,18 @@ class PLL_Share_Post_Slug {
 
 			if ( ! empty( $qv['pagename'] ) ) {
 				/*
-				 * A simpler solution is avalaible at https://github.com/mirsch/polylang-slug/commit/4bf2cb80256fc31347455f6539fac0c20f403c04
+				 * A simpler solution is available at https://github.com/mirsch/polylang-slug/commit/4bf2cb80256fc31347455f6539fac0c20f403c04
 				 * But it supposes that pages sharing slug are translations of each other which we don't.
 				 */
 				$queried_object = $this->get_page_by_path( $qv['pagename'], $lang->slug, OBJECT, empty( $qv['post_type'] ) ? 'page' : $qv['post_type'] );
+
+				// If we got nothing or an attachment, check if we also have a post with the same slug. See https://core.trac.wordpress.org/ticket/24612
+				if ( empty( $qv['post_type'] ) && ( empty( $queried_object ) || 'attachment' === $queried_object->post_type ) && preg_match( '/^[^%]*%(?:postname)%/', get_option( 'permalink_structure' ) ) ) {
+					$post = $this->get_page_by_path( $qv['pagename'], $lang->slug, OBJECT, 'post' );
+					if ( $post ) {
+						$queried_object = $post;
+					}
+				}
 
 				if ( ! empty( $queried_object ) ) {
 					$query->queried_object    = $queried_object;
@@ -192,7 +203,12 @@ class PLL_Share_Post_Slug {
 			if ( isset( $qv['tax_query'] ) && is_array( $qv['tax_query'] ) ) {
 				foreach ( $qv['tax_query'] as $tax_query ) {
 					if ( isset( $tax_query['taxonomy'] ) && 'language' === $tax_query['taxonomy'] ) {
-						return $this->model->get_language( $tax_query['terms'] );
+						// We can't use directly PLL_Model::get_language() as it doesn't accept a term_taxonomy_id.
+						foreach ( $this->model->get_languages_list() as $lang ) {
+							if ( $lang->term_taxonomy_id === $tax_query['terms'] ) {
+								return $lang;
+							}
+						}
 					}
 				}
 			}

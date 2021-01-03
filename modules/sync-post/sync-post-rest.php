@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Manages the synchronization of posts across languages through the REST API
@@ -17,8 +20,7 @@ class PLL_Sync_Post_REST {
 	 */
 	public function __construct( &$polylang ) {
 		$this->model = &$polylang->model;
-
-		$this->sync_model = new PLL_Sync_Post_Model( $polylang );
+		$this->sync_model = &$polylang->sync_post_model;
 
 		add_filter( 'pll_rest_translations_table', array( $this, 'translations_table' ), 10, 3 );
 		add_action( 'rest_api_init', array( $this, 'init' ), 20 ); // After PLL_REST_API.
@@ -70,23 +72,25 @@ class PLL_Sync_Post_REST {
 	 * @return bool
 	 */
 	public function sync_posts( $sync_post, $object ) {
-		$post_id = (int) $object->ID;
+		if ( isset( $object->ID ) ) { // Test to avoid a warning with WooCommerce.
+			$post_id = (int) $object->ID;
 
-		if ( empty( $sync_post ) ) {
-			$this->sync_model->save_group( $post_id, array() );
-		} else {
-			$languages = array_keys( array_intersect( $sync_post, array( 'true' ) ) );
+			if ( empty( $sync_post ) ) {
+				$this->sync_model->save_group( $post_id, array() );
+			} else {
+				$languages = array_keys( array_intersect( $sync_post, array( 'true' ) ) );
 
-			foreach ( $languages as $k => $lang ) {
-				if ( $this->sync_model->current_user_can_synchronize( $post_id, $lang ) ) {
-					$tr_id = $this->sync_model->copy_post( $post_id, $lang, false ); // Don't save the group inside the loop.
-					is_sticky( $post_id ) ? stick_post( $tr_id ) : unstick_post( $tr_id ); // copy_post() doesn't handle sticky posts
-				} else {
-					unset( $languages[ $k ] );
+				foreach ( $languages as $k => $lang ) {
+					if ( $this->sync_model->current_user_can_synchronize( $post_id, $lang ) ) {
+						$tr_id = $this->sync_model->copy_post( $post_id, $lang, false ); // Don't save the group inside the loop.
+						is_sticky( $post_id ) ? stick_post( $tr_id ) : unstick_post( $tr_id ); // copy_post() doesn't handle sticky posts.
+					} else {
+						unset( $languages[ $k ] );
+					}
 				}
-			}
 
-			$this->sync_model->save_group( $post_id, $languages );
+				$this->sync_model->save_group( $post_id, $languages );
+			}
 		}
 
 		return true;
@@ -100,10 +104,12 @@ class PLL_Sync_Post_REST {
 	 * @param WP_Post $post Inserted or updated post object.
 	 */
 	public function after_insert_post( $post ) {
-		foreach ( array_keys( $this->sync_model->get( $post->ID ) ) as $lang ) {
-			if ( $this->sync_model->current_user_can_synchronize( $post->ID, $lang ) ) {
-				$tr_id = $this->sync_model->copy_post( $post->ID, $lang, false );
-				is_sticky( $post->ID ) ? stick_post( $tr_id ) : unstick_post( $tr_id ); // copy_post() doesn't handle sticky posts
+		if ( isset( $post->ID ) ) { // Test to avoid a warning with WooCommerce.
+			foreach ( array_keys( $this->sync_model->get( $post->ID ) ) as $lang ) {
+				if ( $this->sync_model->current_user_can_synchronize( $post->ID, $lang ) ) {
+					$tr_id = $this->sync_model->copy_post( $post->ID, $lang, false );
+					is_sticky( $post->ID ) ? stick_post( $tr_id ) : unstick_post( $tr_id ); // copy_post() doesn't handle sticky posts.
+				}
 			}
 		}
 	}

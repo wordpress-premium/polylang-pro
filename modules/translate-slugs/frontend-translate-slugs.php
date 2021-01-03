@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Modifies links on frontend
@@ -181,7 +184,7 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 			$slugs   = $this->slugs_model->encode_deep( $slugs );
 
 			return preg_replace(
-				'#\/(' . implode( '|', array_unique( $slugs ) ) . ')\/[0-9]+\/#',
+				'#/(' . implode( '|', array_unique( $slugs ) ) . ')/[0-9]+/#',
 				'/',
 				$link
 			);

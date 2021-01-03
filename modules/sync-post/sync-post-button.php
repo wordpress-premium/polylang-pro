@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Buttons for posts synchronization
@@ -82,5 +85,4 @@ class PLL_Sync_Post_Button extends PLL_Metabox_Button {
 
 		return false;
 	}
-
 }

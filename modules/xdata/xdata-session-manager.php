@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * A class to store cross domain data
@@ -23,7 +26,7 @@ class PLL_Xdata_Session_Manager {
 		if ( empty( $user_id ) ) {
 			update_option( 'pll_xdata_' . $key, $data );
 		} else {
-			update_user_meta( $user_id, 'pll_xdata_' . $key, $data );
+			update_user_meta( $user_id, wp_slash( 'pll_xdata_' . $key ), wp_slash( $data ) );
 		}
 	}
 
@@ -44,7 +47,7 @@ class PLL_Xdata_Session_Manager {
 		if ( ! empty( $users ) ) {
 			$user = reset( $users );
 			$data = get_user_meta( $user->ID, $key, true );
-			delete_user_meta( $user->ID, $key ); // No replay.
+			delete_user_meta( $user->ID, wp_slash( $key ) ); // No replay.
 			$data['user_id'] = $user->ID;
 			return $data;
 		}

@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Setup the REST API endpoints and filters
@@ -6,7 +9,24 @@
  * @since 2.2
  */
 class PLL_REST_API {
-	public $links, $model;
+	/**
+	 * Instance of PLL_Admin_Links
+	 *
+	 * @var PLL_Admin_Links
+	 */
+	public $links;
+	/**
+	 * Instance of PLL_Model
+	 *
+	 * @var PLL_Model
+	 */
+	public $model;
+	/**
+	 * List of translatable post types
+	 *
+	 * @var array
+	 */
+	protected $post_types;
 
 	/**
 	 * Constructor
@@ -27,7 +47,7 @@ class PLL_REST_API {
 	 * @since 2.2
 	 */
 	public function init() {
-		$post_types = array_fill_keys( $this->model->get_translated_post_types(), array() );
+		$this->post_types = array_fill_keys( array_intersect( $this->model->get_translated_post_types(), get_post_types( array( 'show_in_rest' => true ) ) ), array() );
 
 		/**
 		 * Filter post types and their options passed to PLL_Rest_Post contructor
@@ -36,10 +56,10 @@ class PLL_REST_API {
 		 *
 		 * @param array $post_types An array of arrays with post types as keys and options as values
 		 */
-		$post_types = apply_filters( 'pll_rest_api_post_types', $post_types );
-		$this->post = new PLL_REST_Post( $this, $post_types );
+		$this->post_types = apply_filters( 'pll_rest_api_post_types', $this->post_types );
+		$this->post = new PLL_REST_Post( $this, $this->post_types );
 
-		$taxonomies = array_fill_keys( $this->model->get_translated_taxonomies(), array() );
+		$taxonomies = array_fill_keys( array_intersect( $this->model->get_translated_taxonomies(), get_taxonomies( array( 'show_in_rest' => true ) ) ), array() );
 
 		/**
 		 * Filter post types and their options passed to PLL_Rest_Term constructor
@@ -57,8 +77,9 @@ class PLL_REST_API {
 			'pll/v1',
 			'/languages',
 			array(
-				'methods'  => WP_REST_Server::READABLE,
-				'callback' => array( $this->model, 'get_languages_list' ),
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( $this->model, 'get_languages_list' ),
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -66,9 +87,10 @@ class PLL_REST_API {
 			'pll/v1',
 			'/untranslated-posts',
 			array(
-				'methods'  => WP_REST_Server::READABLE,
-				'callback' => array( $this, 'get_untranslated_posts' ),
-				'args' => $this->get_untranslated_posts_collection_params(),
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'get_untranslated_posts' ),
+				'permission_callback' => '__return_true',
+				'args'                => $this->get_untranslated_posts_collection_params(),
 			)
 		);
 	}
@@ -87,13 +109,7 @@ class PLL_REST_API {
 				'description'       => __( 'Limit results to items of an object type.', 'polylang-pro' ),
 				'type'              => 'string',
 				'required'          => true,
-				'enum'              => get_post_types(
-					array(
-						'public'       => true,
-						'show_in_rest' => true,
-					),
-					'names'
-				),
+				'enum'              => array_keys( $this->post_types ),
 			),
 			'untranslated_in' => array(
 				'description'       => __( 'Limit results to untranslated items in a language.', 'polylang-pro' ),

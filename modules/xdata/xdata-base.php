@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * An abstract class to handle cross domain data and single sign on
@@ -175,7 +178,7 @@ abstract class PLL_Xdata_Base {
 		if ( ! empty( $_COOKIE[ PLL_COOKIE ] ) && $_COOKIE[ PLL_COOKIE ] !== $lang ) {
 			$args = array(
 				'action'   => 'pll_xdata_get',
-				'redirect' => $redirect,
+				'redirect' => urlencode( $redirect ),
 				'nonce'    => $this->create_nonce( 'xdata_get' ),
 				'nologin'  => ! empty( $_GET['nologin'] ), // phpcs:ignore WordPress.Security.NonceVerification
 			);
@@ -238,7 +241,6 @@ abstract class PLL_Xdata_Base {
 		$data = $session_manager->get( sanitize_key( $_GET['key'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 
 		if ( ! empty( $data['user_id'] ) && ! empty( $data['token'] ) && time() < $data['time'] + 2 * MINUTE_IN_SECONDS ) {
-			$manager = WP_Session_Tokens::get_instance( $data['user_id'] );
 			// FIXME Use auth_cookie_expiration to sync the expiration time?
 			wp_set_auth_cookie( $data['user_id'], false, '', $data['token'] ); // WP 4.3+
 		}

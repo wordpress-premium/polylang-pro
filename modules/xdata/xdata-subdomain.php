@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * A class to handle cross domain data and single sign on for subdomains
@@ -62,9 +65,7 @@ class PLL_Xdata_Subdomain extends PLL_Xdata_Base {
 	 * @since 2.0
 	 */
 	public function maybe_language_switched() {
-		$redirect = urlencode( pll_get_requested_url() );
-
-		if ( $js = $this->maybe_get_xdomain_js( $redirect, $this->curlang ) ) {
+		if ( $js = $this->maybe_get_xdomain_js( pll_get_requested_url(), $this->curlang ) ) {
 			echo '<script async type="text/javascript">' . $js . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
 	}
@@ -110,19 +111,10 @@ class PLL_Xdata_Subdomain extends PLL_Xdata_Base {
 	 * @return string
 	 */
 	public function fix_cookie_in_redirect( $location ) {
-		if ( ! empty( $location ) && isset( $_COOKIE[ PLL_COOKIE ] ) && ! empty( $this->curlang ) && $_COOKIE[ PLL_COOKIE ] != $this->curlang ) {
+		$cookie = PLL_Cookie::get();
 
-			/** This filter is documented in frontend/choose-lang.php */
-			$expiration = apply_filters( 'pll_cookie_expiration', YEAR_IN_SECONDS );
-
-			setcookie(
-				PLL_COOKIE,
-				sanitize_key( $_COOKIE[ PLL_COOKIE ] ),
-				time() + $expiration,
-				COOKIEPATH,
-				wp_parse_url( $this->links_model->home, PHP_URL_HOST ),
-				is_ssl()
-			);
+		if ( ! empty( $location ) && $cookie && ! empty( $this->curlang ) && $cookie !== $this->curlang ) {
+			PLL_Cookie::set( $cookie, array( 'domain' => wp_parse_url( $this->links_model->home, PHP_URL_HOST ) ) );
 		}
 
 		return $location;

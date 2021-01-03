@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Links Model for translating slugs
@@ -31,7 +34,7 @@ class PLL_Translate_Slugs_Model {
 
 		// Register strings for translated slugs.
 		add_action( 'admin_init', array( $this, 'register_slugs' ) );
-		add_filter( 'pll_sanitize_string_translation', array( $this, 'sanitize_string_translation' ), 10, 3 );
+		add_filter( 'pll_sanitize_string_translation', array( $this, 'sanitize_string_translation' ), 10, 2 );
 
 		// Reset cache when adding or modifying languages.
 		add_action( 'pll_add_language', array( $this, 'clean_cache' ) );
@@ -91,7 +94,7 @@ class PLL_Translate_Slugs_Model {
 	public function translate_slug( $link, $lang, $type ) {
 		if ( ! empty( $lang ) && isset( $this->translated_slugs[ $type ] ) && ! empty( $this->translated_slugs[ $type ]['slug'] ) ) {
 			$link = preg_replace(
-				'#\/' . $this->translated_slugs[ $type ]['slug'] . '(\/|$)#',
+				'#/' . $this->translated_slugs[ $type ]['slug'] . '(/|$)#',
 				'/' . $this->get_translated_slug( $type, $lang->slug ) . '$1',
 				$link
 			);
@@ -116,7 +119,7 @@ class PLL_Translate_Slugs_Model {
 			$slugs   = $this->encode_deep( $slugs );
 
 			$link = preg_replace(
-				'#\/(' . implode( '|', array_unique( $slugs ) ) . ')(\/|$)#',
+				'#/(' . implode( '|', array_unique( $slugs ) ) . ')(/|$)#',
 				'/' . $this->encode_deep( $this->translated_slugs[ $type ]['translations'][ $lang->slug ] ) . '$2',
 				$link
 			);
@@ -275,7 +278,7 @@ class PLL_Translate_Slugs_Model {
 	 * @return string The pattern.
 	 */
 	protected function get_translated_slugs_pattern( $type, $capture = false ) {
-		$slugs[] = $this->translated_slugs[ $type ]['slug'];
+		$slugs = array( $this->translated_slugs[ $type ]['slug'] );
 
 		foreach ( array_keys( $this->translated_slugs[ $type ]['translations'] ) as $lang ) {
 			$slugs[] = $this->translated_slugs[ $type ]['translations'][ $lang ];
@@ -301,6 +304,8 @@ class PLL_Translate_Slugs_Model {
 		$old = $this->translated_slugs[ $type ]['slug'] . '/';
 		$new = $this->get_translated_slugs_pattern( $type );
 
+		$newrules = array();
+
 		foreach ( $rules as $key => $rule ) {
 			if ( false !== $found = strpos( $key, $old ) ) {
 				$new_key = 0 === $found ? str_replace( $old, $new, $key ) : str_replace( '/' . $old, '/' . $new, $key );
@@ -322,7 +327,7 @@ class PLL_Translate_Slugs_Model {
 	 */
 	protected function translate_post_format_rule( $rules ) {
 		$newrules = array();
-		$formats = get_theme_support( 'post-formats' );
+		$formats  = get_theme_support( 'post-formats' );
 
 		if ( isset( $formats[0] ) && is_array( $formats[0] ) ) {
 			foreach ( $formats[0] as $format ) {
@@ -347,7 +352,8 @@ class PLL_Translate_Slugs_Model {
 	 * @return array Modified rewrite rules.
 	 */
 	protected function translate_post_type_archive_rule( $rules ) {
-		$cpts = array_intersect( $this->model->get_translated_post_types(), get_post_types( array( '_builtin' => false ) ) );
+		$newrules = array();
+		$cpts     = array_intersect( $this->model->get_translated_post_types(), get_post_types( array( '_builtin' => false ) ) );
 
 		foreach ( $rules as $key => $rule ) {
 			$query = wp_parse_url( $rule, PHP_URL_QUERY );
@@ -444,10 +450,9 @@ class PLL_Translate_Slugs_Model {
 	 *
 	 * @param string $translation Translation to sanitize.
 	 * @param string $name        Unique name for the string, not used.
-	 * @param string $context     The group in which the string is registered.
 	 * @return string
 	 */
-	public function sanitize_string_translation( $translation, $name, $context ) {
+	public function sanitize_string_translation( $translation, $name ) {
 		if ( 0 === strpos( $name, 'slug_' ) ) {
 			// Inspired by category base sanitization.
 			$translation = preg_replace( '#/+#', '/', str_replace( '#', '', $translation ) );

@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Base class for managing shared slugs for taxonomy terms
@@ -40,8 +43,8 @@ class PLL_Share_Term_Slug {
 		$original_slug = $slug; // Save this for the filter at the end.
 
 		// Quick check.
-		if ( ! $this->term_exists( $slug, $lang, $term->taxonomy ) ) {
-			/** This filter is documented in wp-includes/taxonomy.php */
+		if ( ! $this->model->term_exists_by_slug( $slug, $lang, $term->taxonomy ) ) {
+			/** This filter is documented in /wordpress/wp-includes/taxonomy.php */
 			return apply_filters( 'wp_unique_term_slug', $slug, $term, $original_slug );
 		}
 
@@ -58,8 +61,8 @@ class PLL_Share_Term_Slug {
 					break;
 				}
 				$slug .= '-' . $parent_term->slug;
-				if ( ! $this->term_exists( $slug, $lang ) ) { // Calls our own term_exists.
-					/** This filter is documented in wp-includes/taxonomy.php */
+				if ( ! $this->model->term_exists_by_slug( $slug, $lang ) ) { // Calls our own term_exists.
+					/** This filter is documented in /wordpress/wp-includes/taxonomy.php */
 					return apply_filters( 'wp_unique_term_slug', $slug, $term, $original_slug );
 				}
 
@@ -89,40 +92,8 @@ class PLL_Share_Term_Slug {
 			$slug = $alt_slug;
 		}
 
-		/** This filter is documented in wp-includes/taxonomy.php */
+		/** This filter is documented in /wordpress/wp-includes/taxonomy.php */
 		return apply_filters( 'wp_unique_term_slug', $slug, $term, $original_slug );
-	}
-
-	/**
-	 * Checks if a term slug exists in a given language, taxonomy, hierarchy
-	 *
-	 * @since 1.9
-	 *
-	 * @param string        $slug     The term slug to test.
-	 * @param string|object $language The language slug or object.
-	 * @param string        $taxonomy Optional taxonomy name.
-	 * @param int           $parent   Optional parent term id.
-	 * @return null|int The term_id of the found term.
-	 */
-	protected function term_exists( $slug, $language, $taxonomy = '', $parent = 0 ) {
-		global $wpdb;
-
-		$select = "SELECT t.term_id FROM {$wpdb->terms} AS t";
-		$join   = " INNER JOIN {$wpdb->term_taxonomy} AS tt ON t.term_id = tt.term_id";
-		$join  .= $this->model->term->join_clause();
-		$where  = $wpdb->prepare( ' WHERE t.slug = %s', $slug );
-		$where .= $this->model->term->where_clause( $this->model->get_language( $language ) );
-
-		if ( ! empty( $taxonomy ) ) {
-			$where .= $wpdb->prepare( ' AND tt.taxonomy = %s', $taxonomy );
-		}
-
-		if ( $parent > 0 ) {
-			$where .= $wpdb->prepare( ' AND tt.parent = %d', $parent );
-		}
-
-		// PHPCS:ignore WordPress.DB.PreparedSQL.NotPrepared
-		return $wpdb->get_var( $select . $join . $where );
 	}
 
 	/**

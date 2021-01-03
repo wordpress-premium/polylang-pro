@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Abstract class to allow to filter posts, terms or comments in the REST API

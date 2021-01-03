@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Expose terms language and translations in the REST API
@@ -6,6 +9,12 @@
  * @since 2.2
  */
 class PLL_REST_Post extends PLL_REST_Translated_Object {
+	/**
+	 * Instance of PLL_Filters_Sanitization
+	 *
+	 * @var object
+	 */
+	public $filters_sanitization;
 
 	/**
 	 * Constructor
@@ -22,13 +31,16 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 		$this->id   = 'ID';
 
 		add_action( 'parse_query', array( $this, 'parse_query' ), 1 );
+		add_action( 'add_attachment', array( $this, 'set_media_language' ) );
 
 		foreach ( array_keys( $content_types ) as $post_type ) {
 			add_filter( "rest_prepare_{$post_type}", array( $this, 'prepare_response' ), 10, 3 );
 		}
 
-		// Use rest_pre_dispatch_filter to be sure to get translations_table parameter in time
+		// Use rest_pre_dispatch_filter to be sure to get translations_table parameter in time.
 		add_filter( 'rest_pre_dispatch', array( $this, 'get_rest_query_params' ), 10, 3 );
+		// Use rest_pre_dispatch_filter to get the right language locale and initialize correctly sanitization filters.
+		add_filter( 'rest_pre_dispatch', array( $this, 'set_filters_sanitization' ), 10, 3 );
 	}
 
 	/**
@@ -41,7 +53,8 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	public function parse_query( $query ) {
 		if ( isset( $this->params['lang'] ) && in_array( $this->params['lang'], $this->model->get_languages_list( array( 'fields' => 'slug' ) ) ) ) {
 			$pll_query = new PLL_Query( $query, $this->model );
-			$pll_query->filter_query( $this->model->get_language( $this->params['lang'] ) );
+			$pll_query->query->set( 'lang', $this->params['lang'] ); // Set query vars "lang" with the REST parameter value; fix #405 and #384
+			$pll_query->filter_query( $this->model->get_language( $this->params['lang'] ) ); // fix #493
 		}
 	}
 
@@ -95,6 +108,10 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	 */
 	public function get_rest_query_params( $result, $server, $request ) {
 		if ( current_user_can( 'edit_posts' ) && null !== $request->get_param( 'is_block_editor' ) ) {
+			// When it's a post request on a new post type you need to save the language really chosen by the user before any process. Fix #505
+			if ( $this->is_save_post_request( $request->get_param( 'id' ), $request ) && ! empty( $request->get_param( 'lang' ) ) ) {
+				$this->model->post->set_language( $request->get_param( 'id' ), $request->get_param( 'lang' ) );
+			}
 			foreach ( array_keys( $this->content_types ) as $post_type ) {
 				register_rest_field(
 					$this->get_rest_field_type( $post_type ),
@@ -111,6 +128,60 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Initialize correctly sanitization filters with the correct language locale.
+	 *
+	 * @see WP_REST_Server::dispatch()
+	 *
+	 * @since 2.9
+	 *
+	 * @param mixed           $result  Response to replace the requested version with. Can be anything
+	 *                                 a normal endpoint can return, or null to not hijack the request.
+	 * @param WP_REST_Server  $server  Server instance.
+	 * @param WP_REST_Request $request Request used to generate the response.
+	 */
+	public function set_filters_sanitization( $result, $server, $request ) {
+		if ( current_user_can( 'edit_posts' ) ) {
+			if ( ! empty( $request->get_param( 'lang' ) ) ) {
+				$this->filters_sanitization = new PLL_Filters_Sanitization( $this->model->get_language( sanitize_key( $request->get_param( 'lang' ) ) )->locale );
+			} elseif ( ! empty( $request->get_param( 'id' ) ) ) {
+				// Otherwise we need to get the language from the post itself.
+				$this->filters_sanitization = new PLL_Filters_Sanitization( $this->model->post->get_language( (int) $request->get_param( 'id' ) )->locale );
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Check if the request is a REST API post type request for saving
+	 *
+	 * @since 2.7.3
+	 *
+	 * @param string          $post_id The post id.
+	 * @param WP_REST_Request $request Request used to generate the response.
+	 * @return boolean True if the request saves a post.
+	 */
+	public function is_save_post_request( $post_id, $request ) {
+		$post_type_rest_bases = wp_list_pluck( get_post_types( array( 'show_in_rest' => true ), 'objects' ), 'rest_base' );
+
+		// Some rest_base could be not defined and WordPress return false. The post type name is taken as rest_base.
+		$post_type_rest_bases = array_merge(
+			array_filter( $post_type_rest_bases ), // Get rest_base really defined.
+			array_keys(  // Otherwise rest_base equals to the post type name.
+				array_filter(
+					$post_type_rest_bases,
+					function( $value ) {
+						return ! $value;
+					}
+				)
+			)
+		);
+		// Pattern to verify the request route.
+		$post_type_pattern = '#(' . implode( '|', array_values( $post_type_rest_bases ) ) . ')/' . $request->get_param( 'id' ) . '#';
+		return preg_match( "$post_type_pattern", $request->get_route() ) && 'PUT' === $request->get_method();
 	}
 
 	/**
@@ -161,5 +232,21 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 		}
 
 		return $return;
+	}
+
+	/**
+	 * Set the language to the edited media
+	 *
+	 * When a media is edited in the block image, a new media is created and we need to set the language from the original one.
+	 *
+	 * @see https://make.wordpress.org/core/2020/07/20/editing-images-in-the-block-editor/ the new WordPress 5.5 feature: Editing Images in the Block Editor.
+	 * @since 2.8
+	 *
+	 * @param int $post_id
+	 */
+	public function set_media_language( $post_id ) {
+		if ( ! empty( $this->params['id'] ) && $post_id !== $this->params['id'] ) {
+			$this->model->post->set_language( $post_id, $this->model->post->get_language( $this->params['id'] ) );
+		}
 	}
 }

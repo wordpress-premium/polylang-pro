@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Setup the block editor plugin
@@ -65,13 +68,8 @@ class PLL_Block_Editor_Plugin {
 				parse_str( $path_parts['query'], $query_params );
 			}
 
-			// We need to add translations_table parameter only for the post request
-			// to be able to retrieve these datas only for posts and in a block editor context only
-			// Therefore, if the path matches to the correct path we add the parameter
-			if ( $this->is_post_request( $post, $path_parts['path'] ) ) {
-				// Add is_block_editor in query params
-				$query_params['is_block_editor'] = 'true';
-			}
+			// Add is_block_editor in query params
+			$query_params['is_block_editor'] = 'true';
 
 			// Add language in query params
 			$query_params['lang'] = $lang->slug;
@@ -93,29 +91,9 @@ class PLL_Block_Editor_Plugin {
 		return array_merge(
 			$preload_paths,
 			array(
-				'/pll/v1/languages', // Add endpoint for languages to also preload languages data.
+				add_query_arg( array( 'is_block_editor' => 'true' ), '/pll/v1/languages' ), // Add endpoint for languages to also preload languages data.
 			)
 		);
-	}
-
-	/**
-	 * Check if an url path is a REST API post request
-	 *
-	 * @since 2.6
-	 *
-	 * @param WP_Post $post An instance of WP_Post.
-	 * @param string  $path URL path. Only the path part of the URL is used for easier comparison.
-	 * @return boolean True if the path corresponds to a REST API post request.
-	 */
-	public function is_post_request( $post, $path ) {
-		// Set rest_base for the post type.
-		$post_type        = get_post_type( $post );
-		$post_type_object = get_post_type_object( $post_type );
-		$rest_base        = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
-
-		$path_parts = wp_parse_url( $path );
-
-		return sprintf( '/wp/v2/%s/%s', $rest_base, $post->ID ) === $path_parts['path'];
 	}
 
 	/**
@@ -137,53 +115,49 @@ class PLL_Block_Editor_Plugin {
 		// Enqueue specific styles for block editor UI
 		wp_enqueue_style(
 			'polylang-block-editor-css',
-			plugins_url( '/modules/block-editor/build/style.css', POLYLANG_FILE ),
+			plugins_url( '/build/style.css', __FILE__ ),
 			array( 'wp-components' ),
-			filemtime( POLYLANG_DIR . '/modules/block-editor/build/style.css' )
+			POLYLANG_VERSION
 		);
 
-		$script_filename = '/modules/block-editor/build/block-editor-plugin' . $suffix . '.js';
-		$script_handle = PLL_PREFIX . 'block-editor-plugin';
+		$script_filename = '/build/block-editor-plugin' . $suffix . '.js';
+		$script_handle = 'pll_block-editor-plugin';
 		wp_register_script(
 			$script_handle,
-			plugins_url( $script_filename, POLYLANG_FILE ),
+			plugins_url( $script_filename, __FILE__ ),
 			array(
 				'wp-api-fetch',
 				'wp-data',
+				'wp-sanitize',
 				'lodash',
 			),
-			filemtime( POLYLANG_DIR . $script_filename ),
+			POLYLANG_VERSION,
 			true
 		);
 		// Set default language according to the context if no language is defined yet
 		$this->posts->set_default_language( $post->ID );
-		$lang = $this->model->post->get_language( $post->ID );
 		$pll_settings = array(
 			'lang' => $this->model->post->get_language( $post->ID ),
 		);
-		wp_localize_script( $script_handle, PLL_PREFIX . 'block_editor_plugin_settings', $pll_settings );
+		wp_localize_script( $script_handle, 'pll_block_editor_plugin_settings', $pll_settings );
 		wp_enqueue_script( $script_handle );
 
-		$script_filename = '/modules/block-editor/build/sidebar' . $suffix . '.js';
+		$script_filename = '/build/sidebar' . $suffix . '.js';
 		wp_enqueue_script(
-			PLL_PREFIX . 'sidebar',
-			plugins_url( $script_filename, POLYLANG_FILE ),
+			'pll_sidebar',
+			plugins_url( $script_filename, __FILE__ ),
 			array(
 				'wp-api-fetch',
 				'wp-data',
 				'lodash',
 			),
-			filemtime( POLYLANG_DIR . $script_filename ),
+			POLYLANG_VERSION,
 			true
 		);
 
 		// Translated strings used in JS code
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations(
-				PLL_PREFIX . 'sidebar',
-				'polylang-pro',
-				POLYLANG_DIR . '/languages'
-			);
+			wp_set_script_translations( 'pll_sidebar', 'polylang-pro' );
 		}
 	}
 }

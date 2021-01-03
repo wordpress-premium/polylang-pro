@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package Polylang-Pro
+ */
 
 /**
  * Smart copy of post content
@@ -185,6 +188,8 @@ class PLL_Sync_Content {
 	 * @return string Translated shortcode
 	 */
 	public function ids_list_shortcode( $attr, $null, $tag ) {
+		$out = array();
+
 		foreach ( $attr as $k => $v ) {
 			if ( 'ids' == $k ) {
 				$ids    = explode( ',', $v );
@@ -213,6 +218,8 @@ class PLL_Sync_Content {
 	 */
 	public function caption_shortcode( $attr, $content, $tag ) {
 		// Translate the caption id
+		$out = array();
+
 		foreach ( $attr as $k => $v ) {
 			if ( 'id' == $k ) {
 				$idarr = explode( '_', $v );
@@ -245,7 +252,7 @@ class PLL_Sync_Content {
 		$textarr = wp_html_split( $content ); // Since 4.2.3
 
 		if ( $this->options['media_support'] ) {
-			$tr_id = $caption = false;
+			$tr_id = false;
 			foreach ( $textarr as $i => $text ) {
 				// Translate img class and alternative text
 				if ( 0 === strpos( $text, '<img' ) ) {
@@ -277,12 +284,9 @@ class PLL_Sync_Content {
 		if ( function_exists( 'parse_blocks' ) && function_exists( 'has_blocks' ) && has_blocks( $content ) ) {
 			$blocks  = parse_blocks( $content );
 			$blocks  = $this->translate_blocks( $blocks );
-			$content = '';
-			foreach ( $blocks as $block ) {
-				$content = $this->serialize_block( $block, $content );
-			}
+			$content = serialize_blocks( $blocks );
 		} else {
-			$content = do_shortcode( $content ); // Translate shorcodes
+			$content = do_shortcode( $content ); // Translate shortcodes
 			$content = $this->translate_html( $content );
 		}
 
@@ -345,7 +349,7 @@ class PLL_Sync_Content {
 		foreach ( $blocks as $k => $block ) {
 			switch ( $block['blockName'] ) {
 				case 'core/block':
-					if ( $this->model->is_translated_post_type( 'wp_block' ) && isset( $block['attrs']['ref'] ) && $tr_id = $this->model->post->get( $block['attrs']['ref'], $this->language ) ) {
+					if ( $this->model->is_translated_post_type( 'wp_block' ) && isset( $block['attrs']['ref'] ) && false !== $tr_id = $this->model->post->get( $block['attrs']['ref'], $this->language ) ) {
 						$blocks[ $k ]['attrs']['ref'] = $tr_id;
 					}
 					break;
@@ -364,12 +368,16 @@ class PLL_Sync_Content {
 					case 'core/audio':
 					case 'core/video':
 					case 'core/cover':
-						$blocks[ $k ]['attrs']['id'] = $this->translate_media( $block['attrs']['id'] );
+						if ( array_key_exists( 'id', $blocks[ $k ]['attrs'] ) ) {
+							$blocks[ $k ]['attrs']['id'] = $this->translate_media( $block['attrs']['id'] );
+						}
 						break;
 
 					case 'core/image':
-						$blocks[ $k ]['attrs']['id'] = $this->translate_media( $block['attrs']['id'] );
-						$blocks[ $k ]['innerHTML']   = $this->translate_html( $block['innerHTML'] );
+						if ( array_key_exists( 'id', $blocks[ $k ]['attrs'] ) ) {
+							$blocks[ $k ]['attrs']['id'] = $this->translate_media( $block['attrs']['id'] );
+						}
+						$blocks[ $k ] = $this->translate_block_content( $blocks[ $k ] );
 						break;
 
 					case 'core/file':
@@ -379,6 +387,7 @@ class PLL_Sync_Content {
 						if ( 0 === strpos( $textarr[3], '<a' ) ) {
 							$tr_post = get_post( $tr_id );
 							$textarr[4] = $tr_post->post_title;
+							$blocks[ $k ]['innerContent'][0] = implode( $textarr );
 							$blocks[ $k ]['innerHTML'] = implode( $textarr );
 						}
 						break;
@@ -389,7 +398,7 @@ class PLL_Sync_Content {
 								$blocks[ $k ]['attrs']['ids'][ $n ] = $this->translate_media( $id );
 							}
 						}
-						$blocks[ $k ]['innerHTML'] = $this->translate_html( $block['innerHTML'] );
+						$blocks[ $k ] = $this->translate_block_content( $blocks[ $k ] );
 						break;
 
 					case 'core/media-text':
@@ -398,15 +407,13 @@ class PLL_Sync_Content {
 						break;
 
 					case 'core/shortcode':
+						$blocks[ $k ]['innerContent'][0] = do_shortcode( $block['innerContent'][0] );
 						$blocks[ $k ]['innerHTML'] = do_shortcode( $block['innerHTML'] );
 						break;
 
 					default:
 						if ( ! empty( $block['innerHTML'] ) ) {
-							$html = do_shortcode( $block['innerHTML'] ); // Translate shortcodes
-							$html = $this->translate_html( $html ); // Translate inline images
-
-							$blocks[ $k ]['innerHTML'] = $html;
+							$blocks[ $k ] = $this->translate_block_content( $blocks[ $k ] );
 						}
 						break;
 				}
@@ -430,49 +437,26 @@ class PLL_Sync_Content {
 	}
 
 	/**
-	 * Recursively serialize a blocks array to save it in a post content
+	 * Updates the block properties with a translation if it is found.
 	 *
-	 * @since 2.5
+	 * @since 2.9
 	 *
-	 * @param array  $block   A block array
-	 * @param string $content Partially serialized blocks used in the recursive process
-	 * @return string
+	 * @param array $block An array mimicking the structure of {@see https://github.com/WordPress/WordPress/blob/5.5.1/wp-includes/class-wp-block-parser.php WP_Block_Parser_Block}.
+	 * @return array The updated array formatted block.
 	 */
-	public function serialize_block( $block, $content ) {
-		if ( ! empty( $block['blockName'] ) ) {
-			$name = preg_replace( '#^core\/#', '', $block['blockName'] );
+	public function translate_block_content( $block ) {
+		$inner_content_nb = count( $block['innerContent'] );
+		for ( $i = 0; $i < $inner_content_nb; $i++ ) {
+			if ( ! empty( $block['innerContent'][ $i ] ) ) {
+				$html = do_shortcode( $block['innerContent'][ $i ] ); // Translate shortcodes.
+				$html = $this->translate_html( $html ); // Translate inline images.
 
-			// Check if $block['attrs'] is an array as it could be an empty object. See: https://core.trac.wordpress.org/ticket/45316
-			$attrs = is_array( $block['attrs'] ) && ! empty( $block['attrs'] ) ? ' ' . wp_json_encode( $block['attrs'] ) : '';
-
-			$content .= "<!-- wp:{$name}{$attrs}";
-
-			if ( empty( $block['innerBlocks'] ) && empty( $block['innerHTML'] ) ) {
-				$content .= ' /-->';
-				return $content;
+				$block['innerContent'][ $i ] = $html;
 			}
-
-			$content .= ' -->';
-
-			if ( ! empty( $block['innerBlocks'] ) ) {
-				$i = 0;
-				foreach ( $block['innerContent'] as $inner ) {
-					if ( ! empty( $inner ) ) {
-						$content .= $inner;
-					} else {
-						$content = $this->serialize_block( $block['innerBlocks'][ $i ], $content );
-						$i++;
-					}
-				}
-			} elseif ( ! empty( $block['innerHTML'] ) ) {
-				$content .= $block['innerHTML'];
-			}
-
-			$content .= "<!-- /wp:{$name} -->";
-		} else {
-			$content .= $block['innerHTML'];
 		}
+		$html = do_shortcode( $block['innerHTML'] ); // Translate shortcodes.
+		$block['innerHTML'] = $this->translate_html( $html );
 
-		return $content;
+		return $block;
 	}
 }

@@ -107,6 +107,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _sidebar_settings__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./sidebar/settings */ "./modules/block-editor/js/sidebar/settings.js");
 /**
  * WordPress dependencies
+ *
+ * @package Polylang-Pro
  */
 
 
@@ -125,37 +127,60 @@ __webpack_require__.r(__webpack_exports__);
 /*
  * Specific scripts with block editor
  */
-_wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default.a.use(function (options, next) {
-	var isRequestForPostType = isPostTypeRequest(options);
+_wordpress_api_fetch__WEBPACK_IMPORTED_MODULE_1___default.a.use(
+// phpcs:disable PEAR.Functions.FunctionCallSignature.Indent
+function (options, next) {
 	// If options.url is defined, this is not a REST request but a direct call to post.php for legacy metaboxes.
 	if (Object(lodash__WEBPACK_IMPORTED_MODULE_3__["isUndefined"])(options.url)) {
 		if (isSaveRequest(options)) {
-			if (isRequestForPostType) {
-				options.data.is_block_editor = true;
-			} else {
+			options.data.is_block_editor = true;
+			if (!isCurrentPostRequest(options)) {
 				options.data.lang = getCurrentLanguage();
 			}
 		} else {
 			addLanguageToRequest(options);
-			addIsBlockEditorToRequest(options, isRequestForPostType);
+			addIsBlockEditorToRequest(options);
 		}
 	}
 	return next(options);
-});
+}
+// phpcs:enable PEAR.Functions.FunctionCallSignature.Indent
+);
 
 /**
- * Is the request concerned a post type ?
+ * Is the request concerned the current post type ?
+ *
+ * Useful when saving a reusable block contained in another post type.
+ * Indeed a reusable block is also a post, but its saving request doesn't concern the post currently edited.
+ * As we don't know the language of the reusable block when the user triggers the reusable block saving action,
+ * we need to pass the current post language to be sure that the reusable block will have a language.
+ * @see https://github.com/polylang/polylang/issues/437 - Reusable block has no language when it's saved from another post type editing.
  *
  * @param {type} options the initial request
  * @returns {Boolean}
  */
-function isPostTypeRequest(options) {
-	// save translation datas is needed for all post types only
+function isCurrentPostRequest(options) {
+	// Save translation datas is needed for all post types only
 	// it's done by verifying options.path matches with one of baseURL of all post types
+	// and compare current post id with this sent in the request
+
+	// List of post type baseURLs.
 	var postTypeURLs = Object(lodash__WEBPACK_IMPORTED_MODULE_3__["map"])(Object(_wordpress_data__WEBPACK_IMPORTED_MODULE_0__["select"])('core').getEntitiesByKind('postType'), Object(lodash__WEBPACK_IMPORTED_MODULE_3__["property"])('baseURL'));
+
+	// Id from the post currently edited.
+	var postId = Object(_wordpress_data__WEBPACK_IMPORTED_MODULE_0__["select"])('core/editor').getCurrentPostId();
+
+	// Id from the REST request.
+	// options.data never isNil here because it's already verified before in isSaveRequest() function
+	var id = options.data.id;
+
+	// Return true
+	// if REST request baseURL matches with one of the known post type baseURLs
+	// and the id from the post currently edited corresponds on the id passed to the REST request
+	// Return false otherwise
 	return -1 !== postTypeURLs.findIndex(function (element) {
 		return new RegExp('' + Object(lodash__WEBPACK_IMPORTED_MODULE_3__["escapeRegExp"])(element)).test(options.path); // phpcs:ignore WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore, WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter
-	});
+	}) && postId === id;
 }
 
 /**
@@ -165,8 +190,11 @@ function isPostTypeRequest(options) {
  * @returns {Boolean}
  */
 function isSaveRequest(options) {
-	// if data is defined we are in a PUT or POST request method otherwise a GET request method
-	if (!Object(lodash__WEBPACK_IMPORTED_MODULE_3__["isUndefined"])(options.data)) {
+	// If data is defined we are in a PUT or POST request method otherwise a GET request method
+	// Test options.method property isn't efficient because most of REST request which use fetch API doesn't pass this property.
+	// So, test options.data is necessary to know if the REST request is to save datas.
+	// However test if options.data is undefined isn't sufficient because some REST request pass a null value as the ServerSideRender Gutenberg component.
+	if (!Object(lodash__WEBPACK_IMPORTED_MODULE_3__["isNil"])(options.data)) {
 		return true;
 	} else {
 		return false;
@@ -207,17 +235,12 @@ function getCurrentLanguage() {
  * Add is_block_editor parameter to the request in a block editor context
  *
  * @param {type} options the initial request
- * @param {type} options the initial request
  * @returns {undefined}
  */
 function addIsBlockEditorToRequest(options) {
-	var isPostTypeRequest = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-	if (isPostTypeRequest) {
-		options.path = Object(_wordpress_url__WEBPACK_IMPORTED_MODULE_2__["addQueryArgs"])(options.path, {
-			is_block_editor: true
-		});
-	}
+	options.path = Object(_wordpress_url__WEBPACK_IMPORTED_MODULE_2__["addQueryArgs"])(options.path, {
+		is_block_editor: true
+	});
 }
 
 /***/ }),
@@ -237,6 +260,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DEFAULT_STATE", function() { return DEFAULT_STATE; });
 /**
  * Module Constants
+ *
+ * @package Polylang-Pro
  */
 
 var MODULE_KEY = 'pll/metabox';
@@ -297,4 +322,3 @@ var DEFAULT_STATE = {
 /***/ })
 
 /******/ });
-//# sourceMappingURL=block-editor-plugin.js.map
