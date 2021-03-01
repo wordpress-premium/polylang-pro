@@ -19,9 +19,9 @@ class PLL_CPTUI {
 	public function init() {
 		$keys = array(
 			'*' => array(
-				'*_label' => 1,
-				'*_singular_label' => 1,
-				'*_description' => 1,
+				'label' => 1,
+				'singular_label' => 1,
+				'description' => 1,
 				'labels' => array(
 					'*' => 1,
 				),
