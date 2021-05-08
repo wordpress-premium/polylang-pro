@@ -41,7 +41,7 @@ class PLL_Duplicate_REST {
 	 *
 	 * @since 2.6
 	 *
-	 * @return array
+	 * @return bool[]
 	 */
 	public function get_duplicate_content_meta() {
 		return get_user_meta( get_current_user_id(), 'pll_duplicate_content', true );
@@ -52,7 +52,7 @@ class PLL_Duplicate_REST {
 	 *
 	 * @since 2.6
 	 *
-	 * @param array   $options An array with post type as key and boolean as value.
+	 * @param bool[]  $options An array with post type as key and boolean as value.
 	 * @param WP_User $user    An instance of WP_User.
 	 * @return bool
 	 */
@@ -65,11 +65,11 @@ class PLL_Duplicate_REST {
 	 *
 	 * @since 2.9
 	 *
-	 * @param array $preload_paths Array of paths to preload, not used.
-	 * @return array
+	 * @param string[] $preload_paths Array of paths to preload, not used.
+	 * @return string[]
 	 */
 	public function block_editor_preload_paths( $preload_paths ) {
-			$this->new_post_translation();
+		$this->new_post_translation();
 		return $preload_paths;
 	}
 }

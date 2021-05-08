@@ -4,8 +4,7 @@
  */
 
 /**
- * A class to bulk translate posts
- * Currently only support duplicate and synchronization
+ * A class to bulk translate posts.
  *
  * @since 2.4
  */
@@ -17,16 +16,12 @@ class PLL_Bulk_Translate {
 	const UPDATED = 'updated';
 
 	/**
-	 * Holds a reference to a {@see PLL_Model_Admin} instance
-	 *
-	 * @since 2.4
-	 *
-	 * @var PLL_Admin_Model
+	 * @var PLL_Model
 	 */
 	protected $model;
 
 	/**
-	 * Reference to the current WP_Screen object
+	 * Reference to the current WP_Screen object.
 	 *
 	 * @since 2.7
 	 *
@@ -35,13 +30,22 @@ class PLL_Bulk_Translate {
 	protected $current_screen;
 
 	/**
-	 * Stores the results of the bulk action when it's done
+	 * Stores the results of the bulk action when it's done.
 	 *
 	 * @since 2.7
 	 *
 	 * @var array
 	 */
 	protected $results;
+
+	/**
+	 * References the options for the bulk action.
+	 *
+	 * @since 2.7
+	 *
+	 * @var PLL_Bulk_Translate_Option[]
+	 */
+	protected $options = array();
 
 	/**
 	 * PLL_Bulk_Translate constructor.
@@ -60,23 +64,25 @@ class PLL_Bulk_Translate {
 	 * Enqueues script and style.
 	 *
 	 * @since 2.8
+	 *
+	 * @return void
 	 */
 	public function admin_enqueue_scripts() {
 		$screen = get_current_screen();
 
-		if ( in_array( $screen->base, array( 'edit', 'upload' ) ) ) {
+		if ( $screen && in_array( $screen->base, array( 'edit', 'upload' ) ) ) {
 			$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 			wp_enqueue_script(
 				'pll_bulk_translate',
-				plugins_url( '/js/bulk-translate' . $suffix . '.js', __FILE__ ),
+				plugins_url( '/js/build/bulk-translate' . $suffix . '.js', POLYLANG_ROOT_FILE ),
 				array( 'jquery', 'wp-ajax-response' ),
 				POLYLANG_VERSION,
-				1
+				true
 			);
 
 			wp_enqueue_style(
 				'pll_bulk_translate',
-				plugins_url( '/css/bulk-translate' . $suffix . '.css', __FILE__ ),
+				plugins_url( '/css/build/bulk-translate' . $suffix . '.css', POLYLANG_ROOT_FILE ),
 				array(),
 				POLYLANG_VERSION
 			);
@@ -84,31 +90,12 @@ class PLL_Bulk_Translate {
 	}
 
 	/**
-	 * References the options for the bulk action
-	 *
-	 * @since 2.7
-	 *
-	 * @var array {
-	 *    string => PLL_Bulk_Translate_Options[]
-	 * }
-	 */
-	protected $options = array();
-
-	/**
-	 * A reference to the array of available options for the current screen
-	 *
-	 * @since 2.7
-	 *
-	 * @var array PLL_Bulk_Translate_Options[]
-	 */
-	protected $available_options;
-
-	/**
-	 * Registers options of the Translate bulk action
+	 * Registers options of the Translate bulk action.
 	 *
 	 * @since 2.7
 	 *
 	 * @param PLL_Bulk_Translate_Option[] $options An array of {@see PLL_Bulk_Translate_Option} to register.
+	 * @return void
 	 */
 	public function register_options( $options ) {
 		if ( ! is_array( $options ) ) {
@@ -132,31 +119,30 @@ class PLL_Bulk_Translate {
 	}
 
 	/**
-	 * Add actions and filters
+	 * Add actions and filters.
 	 *
-	 * Verifies the post type is allowed for translation and that the post status isn't 'trashed'
+	 * Verifies the post type is allowed for translation and that the post status isn't 'trashed'.
 	 *
 	 * @since 2.4
-	 * @since 2.7 hooked on 'current_screen' and takes the screen as parameter
+	 * @since 2.7 hooked on 'current_screen' and takes the screen as parameter.
 	 *
 	 * @param WP_Screen $current_screen Instance of the current WP_Screen.
-	 *
-	 * @return bool False if error occurs in order to fail silently.
+	 * @return void
 	 */
 	public function init( $current_screen ) {
 
 		/**
-		 * Filter the list of post types enabling the bulk translate
+		 * Filter the list of post types enabling the bulk translate.
 		 *
 		 * @since 2.4
 		 *
-		 * @param array $post_types List of post types
+		 * @param string[] $post_types List of post types.
 		 */
 		$post_types = apply_filters( 'pll_bulk_translate_post_types', $this->model->get_translated_post_types() );
 
 		// phpcs:ignore WordPress.Security.NonceVerification
 		if ( ! in_array( $current_screen->post_type, $post_types ) || ( array_key_exists( 'post_status', $_GET ) && 'trash' === $_GET['post_status'] ) ) {
-			return false;
+			return;
 		}
 
 		$this->options = array_filter(
@@ -173,7 +159,7 @@ class PLL_Bulk_Translate {
 			add_action( "handle_bulk_actions-{$current_screen->id}", array( $this, 'handle_bulk_action' ), 10, 2 );
 			add_action( 'admin_footer', array( $this, 'display_form' ) );
 			add_action( 'admin_notices', array( $this, 'display_notices' ) );
-			// Special case where the wp_redirect() happens before the ulk action is trigerred
+			// Special case where the wp_redirect() happens before the bulk action is triggered.
 			if ( 'edit' === $current_screen->base ) {
 				add_action( 'wp_redirect', array( $this, 'parse_request_before_redirect' ) );
 			}
@@ -181,7 +167,7 @@ class PLL_Bulk_Translate {
 	}
 
 	/**
-	 * Retrieves the needed data in the request body and sanitize it
+	 * Retrieves the needed data in the request body and sanitize it.
 	 *
 	 * @since 2.7
 	 *
@@ -230,7 +216,7 @@ class PLL_Bulk_Translate {
 	}
 
 	/**
-	 * Handle the Translate bulk action
+	 * Handle the Translate bulk action.
 	 *
 	 * @since 2.4
 	 * @since 2.7 Use a transient to store notices.
@@ -288,9 +274,11 @@ class PLL_Bulk_Translate {
 	}
 
 	/**
-	 * Displays the Bulk translate form
+	 * Displays the Bulk translate form.
 	 *
 	 * @since 2.4
+	 *
+	 * @return void
 	 */
 	public function display_form() {
 		global $post_type; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
@@ -310,6 +298,8 @@ class PLL_Bulk_Translate {
 	 * Because WordPress triggers a {@see wp_redirect()}, these notices are stored in a transient.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	public function display_notices() {
 		$notice_types = array(

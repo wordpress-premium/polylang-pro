@@ -43,7 +43,8 @@ class PLL_Media_Bulk_Option extends PLL_Bulk_Translate_Option {
 	 * @return bool
 	 */
 	public function is_available() {
-		return 'upload' === get_current_screen()->base && current_user_can( 'upload_files' );
+		$screen = get_current_screen();
+		return $screen && 'upload' === $screen->base && current_user_can( 'upload_files' );
 	}
 
 
@@ -54,6 +55,7 @@ class PLL_Media_Bulk_Option extends PLL_Bulk_Translate_Option {
 	 *
 	 * @param int    $object_id The media id.
 	 * @param string $lang A language locale.
+	 * @return void
 	 */
 	public function translate( $object_id, $lang ) {
 		$this->posts->create_media_translation( $object_id, $lang );

@@ -9,6 +9,19 @@
  * @since 1.9
  */
 class PLL_Admin_Share_Term_Slug extends PLL_Share_Term_Slug {
+	/**
+	 * Stores the name of a term being saved.
+	 *
+	 * @var string
+	 */
+	protected $pre_term_name;
+
+	/**
+	 * The id of the current post being updated.
+	 *
+	 * @var int
+	 */
+	protected $post_id;
 
 	/**
 	 * Constructor
@@ -43,6 +56,7 @@ class PLL_Admin_Share_Term_Slug extends PLL_Share_Term_Slug {
 	 * @since 1.9
 	 *
 	 * @param int $post_id The id of the current post being updated.
+	 * @return void
 	 */
 	public function pre_post_update( $post_id ) {
 		if ( isset( $_GET['bulk_edit'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification

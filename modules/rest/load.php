@@ -7,4 +7,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly.
 };
 
-$polylang->rest_api = new PLL_REST_API( $polylang );
+add_action(
+	'pll_init',
+	function( $polylang ) {
+		$polylang->rest_api = new PLL_REST_API( $polylang );
+	}
+);

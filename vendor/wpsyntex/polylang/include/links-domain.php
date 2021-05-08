@@ -13,6 +13,13 @@
 class PLL_Links_Domain extends PLL_Links_Abstract_Domain {
 
 	/**
+	 * An array with language code as keys and the host as values.
+	 *
+	 * @var string[]
+	 */
+	protected $hosts;
+
+	/**
 	 * Constructor
 	 *
 	 * @since 1.8
@@ -35,9 +42,9 @@ class PLL_Links_Domain extends PLL_Links_Abstract_Domain {
 	 *
 	 * @since 1.2
 	 *
-	 * @param string $url  url to modify
-	 * @param object $lang language
-	 * @return string modified url
+	 * @param string       $url  The url to modify.
+	 * @param PLL_Language $lang The language object.
+	 * @return string Modified url.
 	 */
 	public function add_language_to_link( $url, $lang ) {
 		if ( ! empty( $lang ) && ! empty( $this->hosts[ $lang->slug ] ) ) {
@@ -63,12 +70,12 @@ class PLL_Links_Domain extends PLL_Links_Abstract_Domain {
 	}
 
 	/**
-	 * Returns the home url
-	 * links_model interface
+	 * Returns the home url in a given language.
+	 * links_model interface.
 	 *
 	 * @since 1.3.1
 	 *
-	 * @param object $lang PLL_Language object
+	 * @param PLL_Language $lang PLL_Language object.
 	 * @return string
 	 */
 	public function home_url( $lang ) {
@@ -76,11 +83,11 @@ class PLL_Links_Domain extends PLL_Links_Abstract_Domain {
 	}
 
 	/**
-	 * Get hosts managed on the website
+	 * Get hosts managed on the website.
 	 *
 	 * @since 1.5
 	 *
-	 * @return array list of hosts
+	 * @return string[] List of hosts.
 	 */
 	public function get_hosts() {
 		$hosts = array();

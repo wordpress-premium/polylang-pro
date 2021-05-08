@@ -9,15 +9,25 @@
  * @since 2.1
  */
 class PLL_Sync_Post {
-	public $sync_model, $buttons;
+	/**
+	 * @var PLL_Sync_Post_Model
+	 */
+	public $sync_model;
+
+	/**
+	 * Stores all synchronization buttons.
+	 *
+	 * @var PLL_Sync_Post_Button[]
+	 */
+	public $buttons;
 
 	/**
 	 * Constructor
 	 *
 	 * @since 2.1
-	 * @since 2.7 Registers two option for the Translate bulk action.
+	 * @since 2.7 Registers twos option for the Translate bulk action.
 	 *
-	 * @param object $polylang Polylang object.
+	 * @param PLL_Frontend|PLL_Admin|PLL_Settings $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		$this->sync_model = &$polylang->sync_post_model;
@@ -63,6 +73,7 @@ class PLL_Sync_Post {
 	 * @since 2.1
 	 *
 	 * @param int $post_id The post id.
+	 * @return void
 	 */
 	public function sync_posts( $post_id ) {
 		static $avoid_recursion = false;
@@ -117,6 +128,7 @@ class PLL_Sync_Post {
 	 *
 	 * @param string $func Function name.
 	 * @param array  $args Function arguments.
+	 * @return mixed|void
 	 */
 	public function __call( $func, $args ) {
 		if ( method_exists( $this->sync_model, $func ) ) {

@@ -10,9 +10,7 @@
  */
 class PLL_REST_Post extends PLL_REST_Translated_Object {
 	/**
-	 * Instance of PLL_Filters_Sanitization
-	 *
-	 * @var object
+	 * @var PLL_Filters_Sanitization
 	 */
 	public $filters_sanitization;
 
@@ -21,8 +19,8 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	 *
 	 * @since 2.2
 	 *
-	 * @param object $rest_api      Instance of PLL_REST_API
-	 * @param array  $content_types Array of arrays with post types as keys and options as values
+	 * @param PLL_REST_API $rest_api      Instance of PLL_REST_API
+	 * @param array        $content_types Array of arrays with post types as keys and options as values
 	 */
 	public function __construct( &$rest_api, $content_types ) {
 		parent::__construct( $rest_api, $content_types );
@@ -48,7 +46,8 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	 *
 	 * @since 2.6.9
 	 *
-	 * @param object $query WP_Query object.
+	 * @param WP_Query $query WP_Query object.
+	 * @return void
 	 */
 	public function parse_query( $query ) {
 		if ( isset( $this->params['lang'] ) && in_array( $this->params['lang'], $this->model->get_languages_list( array( 'fields' => 'slug' ) ) ) ) {
@@ -59,14 +58,15 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	}
 
 	/**
-	 * Allows to share the post slug across languages
-	 * Modifies the REST response accordingly
+	 * Allows to share the post slug across languages.
+	 * Modifies the REST response accordingly.
 	 *
 	 * @since 2.3
 	 *
-	 * @param object $response The response object.
-	 * @param object $post     Post object.
-	 * @param object $request  Request object.
+	 * @param WP_REST_Response $response The response object.
+	 * @param WP_Post          $post     Post object.
+	 * @param WP_REST_Request  $request  Request object.
+	 * @return WP_REST_Response
 	 */
 	public function prepare_response( $response, $post, $request ) {
 		global $wpdb;
@@ -79,7 +79,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 			if ( ! empty( $params['slug'] ) ) {
 				$requested_slug = $params['slug'];
 			} elseif ( is_array( $attributes['callback'] ) && 'create_item' === $attributes['callback'][1] ) {
-				// Allow sharing slug by default when creating a new post
+				// Allow sharing slug by default when creating a new post.
 				$requested_slug = sanitize_title( $post->post_title );
 			}
 
@@ -95,7 +95,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	}
 
 	/**
-	 * Add the translations_table REST field only when the request is called for the block editor
+	 * Adds the translations_table REST field only when the request is called for the block editor.
 	 *
 	 * @see WP_REST_Server::dispatch()
 	 *
@@ -105,6 +105,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	 *                                 a normal endpoint can return, or null to not hijack the request.
 	 * @param WP_REST_Server  $server  Server instance.
 	 * @param WP_REST_Request $request Request used to generate the response.
+	 * @return mixed
 	 */
 	public function get_rest_query_params( $result, $server, $request ) {
 		if ( current_user_can( 'edit_posts' ) && null !== $request->get_param( 'is_block_editor' ) ) {
@@ -141,14 +142,19 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	 *                                 a normal endpoint can return, or null to not hijack the request.
 	 * @param WP_REST_Server  $server  Server instance.
 	 * @param WP_REST_Request $request Request used to generate the response.
+	 * @return mixed
 	 */
 	public function set_filters_sanitization( $result, $server, $request ) {
 		if ( current_user_can( 'edit_posts' ) ) {
 			if ( ! empty( $request->get_param( 'lang' ) ) ) {
-				$this->filters_sanitization = new PLL_Filters_Sanitization( $this->model->get_language( sanitize_key( $request->get_param( 'lang' ) ) )->locale );
+				$language = $this->model->get_language( sanitize_key( $request->get_param( 'lang' ) ) );
 			} elseif ( ! empty( $request->get_param( 'id' ) ) ) {
 				// Otherwise we need to get the language from the post itself.
-				$this->filters_sanitization = new PLL_Filters_Sanitization( $this->model->post->get_language( (int) $request->get_param( 'id' ) )->locale );
+				$language = $this->model->post->get_language( (int) $request->get_param( 'id' ) );
+			}
+
+			if ( ! empty( $language ) ) {
+				$this->filters_sanitization = new PLL_Filters_Sanitization( $language->locale );
 			}
 		}
 
@@ -162,7 +168,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	 *
 	 * @param string          $post_id The post id.
 	 * @param WP_REST_Request $request Request used to generate the response.
-	 * @return boolean True if the request saves a post.
+	 * @return bool True if the request saves a post.
 	 */
 	public function is_save_post_request( $post_id, $request ) {
 		$post_type_rest_bases = wp_list_pluck( get_post_types( array( 'show_in_rest' => true ), 'objects' ), 'rest_base' );
@@ -211,7 +217,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 			$return[ $language->slug ]['links']['add_link'] = $link;
 
 			if ( $value ) {
-				$translated_post = get_post( $value, 'ARRAY_A' );
+				$translated_post = get_post( $value, ARRAY_A );
 				$return[ $language->slug ]['links']['edit_link'] = get_edit_post_link( $value, 'keep ampersand' );
 				$return[ $language->slug ]['translated_post'] = array(
 					'id'    => $translated_post['ID'],
@@ -220,13 +226,13 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 			}
 
 			/**
-			 * Filters the REST translations table
+			 * Filters the REST translations table.
 			 *
 			 * @since 2.6
 			 *
-			 * @param array  $row      Datas in a translations table row
-			 * @param int    $id       Source post id.
-			 * @param object $language Translation language
+			 * @param array        $row      Datas in a translations table row
+			 * @param int          $id       Source post id.
+			 * @param PLL_Language $language Translation language
 			 */
 			$return = apply_filters( 'pll_rest_translations_table', $return, $object['id'], $language );
 		}
@@ -235,14 +241,16 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	}
 
 	/**
-	 * Set the language to the edited media
+	 * Assigns the language to the edited media.
 	 *
 	 * When a media is edited in the block image, a new media is created and we need to set the language from the original one.
 	 *
 	 * @see https://make.wordpress.org/core/2020/07/20/editing-images-in-the-block-editor/ the new WordPress 5.5 feature: Editing Images in the Block Editor.
+	 *
 	 * @since 2.8
 	 *
-	 * @param int $post_id
+	 * @param int $post_id Post id.
+	 * @return void
 	 */
 	public function set_media_language( $post_id ) {
 		if ( ! empty( $this->params['id'] ) && $post_id !== $this->params['id'] ) {

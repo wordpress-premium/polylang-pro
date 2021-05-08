@@ -62,14 +62,16 @@ class PLL_Admin_Sync extends PLL_Sync {
 			$from_post_id = (int) $_GET['from_post'];
 			$from_post    = get_post( $from_post_id );
 
-			foreach ( array( 'menu_order', 'comment_status', 'ping_status' ) as $property ) {
-				$data[ $property ] = $from_post->$property;
-			}
+			if ( $from_post instanceof WP_Post ) {
+				foreach ( array( 'menu_order', 'comment_status', 'ping_status' ) as $property ) {
+					$data[ $property ] = $from_post->$property;
+				}
 
-			// Copy the date only if the synchronization is activated
-			if ( in_array( 'post_date', $this->options['sync'] ) ) {
-				$data['post_date']     = $from_post->post_date;
-				$data['post_date_gmt'] = $from_post->post_date_gmt;
+				// Copy the date only if the synchronization is activated
+				if ( in_array( 'post_date', $this->options['sync'] ) ) {
+					$data['post_date']     = $from_post->post_date;
+					$data['post_date_gmt'] = $from_post->post_date_gmt;
+				}
 			}
 		}
 
@@ -80,6 +82,8 @@ class PLL_Admin_Sync extends PLL_Sync {
 	 * Copy post metas, and taxonomies when using "Add new" ( translation )
 	 *
 	 * @since 2.5
+	 *
+	 * @return void
 	 */
 	public function new_post_translation() {
 		global $post;
@@ -108,12 +112,12 @@ class PLL_Admin_Sync extends PLL_Sync {
 	}
 
 	/**
-	 * Get post fields to synchronize
+	 * Get post fields to synchronize.
 	 *
 	 * @since 2.4
 	 *
-	 * @param object $post Post object
-	 * @return array
+	 * @param WP_Post $post Post object.
+	 * @return array Fields to synchronize.
 	 */
 	protected function get_fields_to_sync( $post ) {
 		global $wpdb;
@@ -128,14 +132,17 @@ class PLL_Admin_Sync extends PLL_Sync {
 			unset( $postarr['post_date_gmt'] );
 
 			$original = get_post( (int) $_GET['from_post'] );
-			$wpdb->update(
-				$wpdb->posts,
-				array(
-					'post_date'     => $original->post_date,
-					'post_date_gmt' => $original->post_date_gmt,
-				),
-				array( 'ID' => $post->ID )
-			);
+
+			if ( $original instanceof WP_Post ) {
+				$wpdb->update(
+					$wpdb->posts,
+					array(
+						'post_date'     => $original->post_date,
+						'post_date_gmt' => $original->post_date_gmt,
+					),
+					array( 'ID' => $post->ID )
+				);
+			}
 		}
 
 		if ( isset( $GLOBALS['post_type'] ) ) {
@@ -153,13 +160,13 @@ class PLL_Admin_Sync extends PLL_Sync {
 	}
 
 	/**
-	 * Synchronizes post fields in translations
+	 * Synchronizes post fields in translations.
 	 *
 	 * @since 1.2
 	 *
-	 * @param int    $post_id      post id
-	 * @param object $post         post object
-	 * @param array  $translations post translations
+	 * @param int     $post_id      Post id.
+	 * @param WP_Post $post         Post object.
+	 * @param int[]   $translations Post translations.
 	 */
 	public function pll_save_post( $post_id, $post, $translations ) {
 		parent::pll_save_post( $post_id, $post, $translations );
@@ -186,6 +193,7 @@ class PLL_Admin_Sync extends PLL_Sync {
 	 *
 	 * @param string $func Function name
 	 * @param array  $args Function arguments
+	 * @return mixed|void
 	 */
 	public function __call( $func, $args ) {
 		$obj = substr( $func, 5 );

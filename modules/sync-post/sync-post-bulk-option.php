@@ -23,7 +23,7 @@ class PLL_Sync_Post_Bulk_Option extends PLL_Bulk_Translate_Option {
 	 *
 	 * @since 2.7
 	 *
-	 * @var array
+	 * @var bool
 	 */
 	private $do_synchronize;
 
@@ -52,12 +52,12 @@ class PLL_Sync_Post_Bulk_Option extends PLL_Bulk_Translate_Option {
 	public function is_available() {
 		$screen = get_current_screen();
 
-		if ( 'edit' === $screen->base ) {
-			$capability = get_post_type_object( $screen->post_type )->cap->edit_posts;
-			return current_user_can( $capability );
-		} else {
-			return false;
+		if ( $screen && 'edit' === $screen->base ) {
+			$post_type = get_post_type_object( $screen->post_type );
+			return $post_type && current_user_can( $post_type->cap->edit_posts );
 		}
+
+		return false;
 	}
 
 

@@ -9,14 +9,22 @@
  * @since 2.6
  */
 class PLL_Block_Editor_Plugin {
-	protected $model, $posts;
+	/**
+	 * @var PLL_Model
+	 */
+	protected $model;
+
+	/**
+	 * @var PLL_CRUD_Posts
+	 */
+	protected $posts;
 
 	/**
 	 * Constructor
 	 *
 	 * @since 2.6
 	 *
-	 * @param object $polylang
+	 * @param PLL_Frontend|PLL_Admin|PLL_Settings|PLL_REST_Request $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		$this->model = &$polylang->model;
@@ -32,9 +40,9 @@ class PLL_Block_Editor_Plugin {
 	 *
 	 * @since 2.6
 	 *
-	 * @param array  $preload_paths Array of paths to preload.
-	 * @param object $post          The post resource data.
-	 * @return array
+	 * @param (string|string[])[] $preload_paths Array of paths to preload.
+	 * @param WP_Post             $post          The post resource data.
+	 * @return (string|string[])[]
 	 */
 	public function preload_paths( $preload_paths, $post ) {
 		if ( ! $this->model->is_translated_post_type( $post->post_type ) ) {
@@ -100,6 +108,8 @@ class PLL_Block_Editor_Plugin {
 	 * Enqueue scripts for the block editor plugin.
 	 *
 	 * @since 2.6
+	 *
+	 * @return void
 	 */
 	public function admin_enqueue_scripts() {
 		global $post;
@@ -108,23 +118,23 @@ class PLL_Block_Editor_Plugin {
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		// Only enqueue scripts for post screen and in block editor context
-		if ( 'post' !== $screen->base || ! $this->model->is_translated_post_type( $screen->post_type ) || ! method_exists( $screen, 'is_block_editor' ) || ! $screen->is_block_editor() ) {
+		if ( empty( $screen ) || 'post' !== $screen->base || ! $this->model->is_translated_post_type( $screen->post_type ) || ! method_exists( $screen, 'is_block_editor' ) || ! $screen->is_block_editor() ) {
 			return;
 		}
 
 		// Enqueue specific styles for block editor UI
 		wp_enqueue_style(
 			'polylang-block-editor-css',
-			plugins_url( '/build/style.css', __FILE__ ),
+			plugins_url( '/css/build/style' . $suffix . '.css', POLYLANG_ROOT_FILE ),
 			array( 'wp-components' ),
 			POLYLANG_VERSION
 		);
 
-		$script_filename = '/build/block-editor-plugin' . $suffix . '.js';
+		$script_filename = '/js/build/block-editor-plugin' . $suffix . '.js';
 		$script_handle = 'pll_block-editor-plugin';
 		wp_register_script(
 			$script_handle,
-			plugins_url( $script_filename, __FILE__ ),
+			plugins_url( $script_filename, POLYLANG_ROOT_FILE ),
 			array(
 				'wp-api-fetch',
 				'wp-data',
@@ -142,13 +152,14 @@ class PLL_Block_Editor_Plugin {
 		wp_localize_script( $script_handle, 'pll_block_editor_plugin_settings', $pll_settings );
 		wp_enqueue_script( $script_handle );
 
-		$script_filename = '/build/sidebar' . $suffix . '.js';
+		$script_filename = '/js/build/sidebar' . $suffix . '.js';
 		wp_enqueue_script(
 			'pll_sidebar',
-			plugins_url( $script_filename, __FILE__ ),
+			plugins_url( $script_filename, POLYLANG_ROOT_FILE ),
 			array(
 				'wp-api-fetch',
 				'wp-data',
+				'wp-i18n',
 				'lodash',
 			),
 			POLYLANG_VERSION,
@@ -156,8 +167,6 @@ class PLL_Block_Editor_Plugin {
 		);
 
 		// Translated strings used in JS code
-		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'pll_sidebar', 'polylang-pro' );
-		}
+		wp_set_script_translations( 'pll_sidebar', 'polylang-pro' );
 	}
 }

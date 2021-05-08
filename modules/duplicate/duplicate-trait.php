@@ -21,7 +21,7 @@ trait PLL_Duplicate_Trait {
 	 *
 	 * @var PLL_Sync_Content
 	 */
-	protected $ync_content;
+	protected $sync_content;
 
 	/**
 	 * Tells whether the button is active or not
@@ -33,7 +33,7 @@ trait PLL_Duplicate_Trait {
 	public function is_active() {
 		global $post;
 		$duplicate_options = get_user_meta( get_current_user_id(), 'pll_duplicate_content', true );
-		return isset( $duplicate_options[ $post->post_type ] ) ? $duplicate_options[ $post->post_type ] : false;
+		return ! empty( $duplicate_options ) && ! empty( $duplicate_options[ $post->post_type ] );
 	}
 
 	/**
@@ -59,6 +59,8 @@ trait PLL_Duplicate_Trait {
 	 * Fires the content copy
 	 *
 	 * @since 2.5
+	 *
+	 * @return void
 	 */
 	public function new_post_translation() {
 		global $post;
@@ -67,10 +69,7 @@ trait PLL_Duplicate_Trait {
 		if ( ! $done && 'post-new.php' === $GLOBALS['pagenow'] && isset( $_GET['from_post'], $_GET['new_lang'] ) ) {
 			check_admin_referer( 'new-post-translation' );
 
-			$duplicate_options = get_user_meta( get_current_user_id(), 'pll_duplicate_content', true );
-			$this->active      = ! empty( $duplicate_options ) && ! empty( $duplicate_options[ $post->post_type ] );
-
-			if ( $this->active ) {
+			if ( $this->is_active() ) {
 				$done = true; // Avoid a second duplication in the block editor.
 
 				// Capability check already done in post-new.php.

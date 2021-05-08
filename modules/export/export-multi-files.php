@@ -75,6 +75,7 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	 * @since 2.7
 	 *
 	 * @param string $source_language A language locale formatted string.
+	 * @return void
 	 */
 	public function set_source_language( $source_language ) {
 		$this->source_language = $source_language;
@@ -88,12 +89,13 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	 * @since 2.7
 	 *
 	 * @param string $target_language A language locale formatted string.
+	 * @return void
 	 */
 	public function set_target_language( $target_language ) {
 		$file_key = $this->source_language . '-' . $target_language;
 		if ( array_key_exists( $file_key, $this->export_files ) ) {
 			$this->current_file = $this->export_files[ $file_key ];
-			$this->current_index = array_keys( $this->export_filenames, $file_key );
+			$this->current_index = array_search( $file_key, $this->export_filenames );
 		} else {
 			$class_name = get_class( $this->base_instance );
 			$this->current_file = new $class_name();
@@ -113,6 +115,7 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	 * @param string $source The source to be translated.
 	 * @param string $target Optional, a preexisting translation, if any.
 	 * @param array  $args   Optional, an array of additional arguments, like an identifier for the string, its context, comments for translators, etc.
+	 * @return void
 	 */
 	public function add_translation_entry( $type, $source, $target = '', $args = array() ) {
 		$this->current_file->add_translation_entry( $type, $source, $target, $args );
@@ -125,6 +128,7 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	 *
 	 * @param string $type Type of data to be exported.
 	 * @param string $id   Optional, a unique identifier to retrieve the data in the database.
+	 * @return void
 	 */
 	public function set_source_reference( $type, $id = '' ) {
 		$this->current_file->set_source_reference( $type, $id );
@@ -168,6 +172,8 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	 * From {@see Iterator}.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	public function next() {
 		$this->current_index++;
@@ -200,6 +206,8 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	 * From {@see Iterator}
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	public function rewind() {
 		$this->current_index = 0;
@@ -212,6 +220,7 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	 * @since 2.7
 	 *
 	 * @param string $url Absolute URL of the current site exporting content.
+	 * @return void
 	 */
 	public function set_site_reference( $url ) {
 		$this->current_file->set_site_reference( $url );

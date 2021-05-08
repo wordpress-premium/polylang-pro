@@ -9,6 +9,24 @@
  * @since 1.9
  */
 class PLL_Share_Term_Slug {
+	/**
+	 * Stores the plugin options.
+	 *
+	 * @var array
+	 */
+	public $options;
+
+	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
+	 * Instance of a child class of PLL_Links_Model.
+	 *
+	 * @var PLL_Links_Model
+	 */
+	public $links_model;
 
 	/**
 	 * Constructor
@@ -32,9 +50,9 @@ class PLL_Share_Term_Slug {
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $slug The string that will be tried for a unique slug.
-	 * @param string $lang Language slug.
-	 * @param object $term The term object that the $slug will belong too.
+	 * @param string  $slug The string that will be tried for a unique slug.
+	 * @param string  $lang Language slug.
+	 * @param WP_Term $term The term object that the $slug will belong too.
 	 * @return string Will return a true unique slug.
 	 */
 	protected function unique_term_slug( $slug, $lang, $term ) {
@@ -57,7 +75,7 @@ class PLL_Share_Term_Slug {
 			$the_parent = $term->parent;
 			while ( ! empty( $the_parent ) ) {
 				$parent_term = get_term( $the_parent, $term->taxonomy );
-				if ( is_wp_error( $parent_term ) || empty( $parent_term ) ) {
+				if ( ! $parent_term instanceof WP_Term ) {
 					break;
 				}
 				$slug .= '-' . $parent_term->slug;
@@ -104,6 +122,7 @@ class PLL_Share_Term_Slug {
 	 * @param int    $term_id  The term id of a saved term.
 	 * @param int    $tt_id    The term taxononomy id.
 	 * @param string $taxonomy The term taxonomy.
+	 * @return void
 	 */
 	public function save_term( $term_id, $tt_id, $taxonomy ) {
 		global $wpdb;
@@ -115,7 +134,7 @@ class PLL_Share_Term_Slug {
 
 		$term = get_term( $term_id, $taxonomy );
 
-		if ( false === ( $pos = strpos( $term->slug, '___' ) ) ) {
+		if ( ! ( $term instanceof WP_Term ) || false === ( $pos = strpos( $term->slug, '___' ) ) ) {
 			return;
 		}
 

@@ -10,19 +10,32 @@
  */
 class PLL_REST_API {
 	/**
-	 * Instance of PLL_Admin_Links
-	 *
+	 * @var PLL_REST_Post
+	 */
+	public $post;
+
+	/**
+	 * @var PLL_REST_Term
+	 */
+	public $term;
+
+	/**
+	 * @var PLL_REST_Comment
+	 */
+	public $comment;
+
+	/**
 	 * @var PLL_Admin_Links
 	 */
 	public $links;
+
 	/**
-	 * Instance of PLL_Model
-	 *
 	 * @var PLL_Model
 	 */
 	public $model;
+
 	/**
-	 * List of translatable post types
+	 * List of translatable post types.
 	 *
 	 * @var array
 	 */
@@ -45,6 +58,8 @@ class PLL_REST_API {
 	 * Init filters and new endpoints
 	 *
 	 * @since 2.2
+	 *
+	 * @return void
 	 */
 	public function init() {
 		$this->post_types = array_fill_keys( array_intersect( $this->model->get_translated_post_types(), get_post_types( array( 'show_in_rest' => true ) ) ), array() );
@@ -166,17 +181,19 @@ class PLL_REST_API {
 
 		// Format output
 		foreach ( $untranslated_posts as $post ) {
-			$values = array(
-				'id'         => $post->ID,
-				'title'      => array(
-					'raw'      => $post->post_title,
-					'rendered' => get_the_title( $post->ID ),
-				),
-			);
-			if ( $request->get_param( 'is_block_editor' ) ) {
-				$values['edit_link'] = get_edit_post_link( $post, 'keep ampersand' );
+			if ( $post ) {
+				$values = array(
+					'id'         => $post->ID,
+					'title'      => array(
+						'raw'      => $post->post_title,
+						'rendered' => get_the_title( $post->ID ),
+					),
+				);
+				if ( $request->get_param( 'is_block_editor' ) ) {
+					$values['edit_link'] = get_edit_post_link( $post, 'keep ampersand' );
+				}
+				$return[] = $values;
 			}
-			$return[] = $values;
 		}
 
 		return $return;

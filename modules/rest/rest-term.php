@@ -63,19 +63,20 @@ class PLL_REST_Term extends PLL_REST_Translated_Object {
 
 	/**
 	 * Creates the term slug in case the term already exists in another language
-	 * to allow it to share the same slugs as terms in other languages
+	 * to allow it to share the same slugs as terms in other languages.
 	 *
 	 * @since 2.3
 	 *
-	 * @param object $prepared_term Term object.
-	 * @param object $request       Request object.
+	 * @param WP_Term         $prepared_term Term object.
+	 * @param WP_REST_Request $request       Request object.
+	 * @return WP_Term
 	 */
 	public function pre_insert_term( $prepared_term, $request ) {
 		$params = $request->get_params();
 
 		if ( ! empty( $params['lang'] ) ) {
 			$lang = $params['lang'];
-		} elseif ( ! empty( $params['id'] ) && $language = $this->model->term->get_language( $params['id'] ) ) { // Update
+		} elseif ( ! empty( $params['id'] ) && $language = $this->model->term->get_language( $params['id'] ) ) { // Update.
 			$lang = $language->slug;
 		}
 
@@ -84,10 +85,10 @@ class PLL_REST_Term extends PLL_REST_Translated_Object {
 			$parent = isset( $prepared_term->parent ) ? $prepared_term->parent : 0;
 
 			if ( empty( $params['slug'] ) && empty( $params['id'] ) && ! empty( $params['name'] ) ) {
-				// The term is created without specifying the slug
+				// The term is created without specifying the slug.
 				$slug = $params['name'];
 			} elseif ( ! empty( $params['slug'] ) && false === strpos( '___', $params['slug'] ) ) {
-				// The term is created or updated and the slug is specified
+				// The term is created or updated and the slug is specified.
 				$slug = $params['slug'];
 			}
 

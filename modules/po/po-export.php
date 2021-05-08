@@ -51,6 +51,7 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	 * @since 2.7
 	 *
 	 * @param string $source_language Locale.
+	 * @return void
 	 */
 	public function set_source_language( $source_language ) {
 		$this->source_language = $source_language;
@@ -60,9 +61,10 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	/**
 	 * Set a target language to the export
 	 *
-	 * @param string $target_language Target language.
-	 *
 	 * @since 2.7
+	 *
+	 * @param string $target_language Target language.
+	 * @return void
 	 */
 	public function set_target_language( $target_language ) {
 		$this->target_language = $target_language;
@@ -75,6 +77,7 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	 * @since 2.7
 	 *
 	 * @param string $url Absolute url of the current site.
+	 * @return void
 	 */
 	public function set_site_reference( $url ) {
 		$this->po->set_header( 'Site-Reference', $url );
@@ -90,6 +93,7 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	 * @param string $source The source to be translated.
 	 * @param string $target Optional, preexisting translation, if any.
 	 * @param array  $args   Optional, an array containing the name and the context of the string.
+	 * @return void
 	 */
 	public function add_translation_entry( $type, $source, $target = '', $args = array() ) {
 		$entry = new Translation_Entry(
@@ -111,6 +115,7 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	 *
 	 * @param string $type Type of data to be exported, @see PLL_Export_File_Interface .
 	 * @param string $id   Optional, unique identifier to retrieve the data in the database.
+	 * @return void
 	 */
 	public function set_source_reference( $type, $id = '' ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		$this->po->set_header( 'Source-Reference', $type );
@@ -120,6 +125,8 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	 * Writes the file in the output buffer
 	 *
 	 * @since 2.7
+	 *
+	 * @return string
 	 */
 	public function export() {
 		$this->po->set_comment_before_headers( $this->get_comment_before_headers() );
@@ -135,6 +142,8 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	 * @see https://www.gnu.org/software/trans-coord/manual/gnun/html_node/PO-Header.html
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	protected function set_file_headers() {
 		$this->po->set_header( 'Content-Type', 'text/plain; charset=utf-8' );

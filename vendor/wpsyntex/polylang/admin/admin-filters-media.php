@@ -10,6 +10,9 @@
  * @since 1.2
  */
 class PLL_Admin_Filters_Media extends PLL_Admin_Filters_Post_Base {
+	/**
+	 * @var PLL_CRUD_Posts
+	 */
 	public $posts;
 
 	/**
@@ -37,14 +40,14 @@ class PLL_Admin_Filters_Media extends PLL_Admin_Filters_Post_Base {
 	}
 
 	/**
-	 * Adds the language field and translations tables in the 'Edit Media' panel
+	 * Adds the language field and translations tables in the 'Edit Media' panel.
 	 * Needs WP 3.5+
 	 *
 	 * @since 0.9
 	 *
-	 * @param array  $fields list of form fields
-	 * @param object $post
-	 * @return array modified list of form fields
+	 * @param array   $fields List of form fields.
+	 * @param WP_Post $post   The attachment being edited.
+	 * @return array Modified list of form fields.
 	 */
 	public function attachment_fields_to_edit( $fields, $post ) {
 		if ( 'post.php' == $GLOBALS['pagenow'] ) {
@@ -76,6 +79,8 @@ class PLL_Admin_Filters_Media extends PLL_Admin_Filters_Post_Base {
 	 * Creates a media translation
 	 *
 	 * @since 0.9
+	 *
+	 * @return void
 	 */
 	public function translate_media() {
 		if ( isset( $_GET['from_media'], $_GET['new_lang'] ) ) {

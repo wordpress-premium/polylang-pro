@@ -10,32 +10,30 @@
  */
 class PLL_Block_Editor_Switcher_Block {
 	/**
-	 * Instance of PLL_Admin_Links
-	 *
-	 * @var PLL_Admin_Links
+	 * @var PLL_Links
 	 */
 	protected $links;
+
 	/**
-	 * Instance of PLL_Model
-	 *
 	 * @var PLL_Model
 	 */
 	protected $model;
+
 	/**
 	 * Current lang to render the language switcher block in an admin context
 	 *
 	 * @since 2.8
 	 *
-	 * @var string $polylang
+	 * @var string
 	 */
 	public $admin_current_lang;
 
 	/**
-	 * Is the context block editor ?
+	 * Is the context block editor?
 	 *
 	 * @since 2.8
 	 *
-	 * @var bool $is_block_editor
+	 * @var bool
 	 */
 	public $is_block_editor = false;
 
@@ -44,7 +42,7 @@ class PLL_Block_Editor_Switcher_Block {
 	 *
 	 * @since 2.8
 	 *
-	 * @param object $polylang
+	 * @param PLL_Frontend|PLL_Admin|PLL_Settings|PLL_REST_Request $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		$this->model = &$polylang->model;
@@ -89,15 +87,17 @@ class PLL_Block_Editor_Switcher_Block {
 	 * Registers the `polylang/language-switcher` block.
 	 *
 	 * @since 2.8
+	 *
+	 * @return void
 	 */
 	public function register_block_polylang_language_switcher() {
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
-		$script_filename = '/build/blocks' . $suffix . '.js';
+		$script_filename = 'js/build/blocks' . $suffix . '.js';
 		$script_handle = 'pll_blocks';
 		wp_register_script(
 			$script_handle,
-			plugins_url( $script_filename, __FILE__ ),
+			plugins_url( $script_filename, POLYLANG_ROOT_FILE ),
 			array(
 				'wp-block-editor',
 				'wp-blocks',
@@ -141,6 +141,8 @@ class PLL_Block_Editor_Switcher_Block {
 				'render_callback' => array( $this, 'render_block_polylang_language_switcher' ),
 			)
 		);
+		// Translated strings used in JS code
+		wp_set_script_translations( $script_handle, 'polylang-pro' );
 	}
 	/**
 	 * Get REST parameters for language switcher block
@@ -153,6 +155,7 @@ class PLL_Block_Editor_Switcher_Block {
 	 *                                 a normal endpoint can return, or null to not hijack the request.
 	 * @param WP_REST_Server  $server  Server instance.
 	 * @param WP_REST_Request $request Request used to generate the response.
+	 * @return mixed
 	 */
 	public function get_rest_query_params( $result, $server, $request ) {
 		if ( ! empty( $request->get_param( 'is_block_editor' ) ) ) {

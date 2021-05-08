@@ -11,11 +11,11 @@
 class PLL_REST_Comment extends PLL_REST_Filtered_Object {
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
 	 * @since 2.6.9
 	 *
-	 * @param object $rest_api Instance of PLL_REST_API
+	 * @param PLL_REST_API $rest_api Instance of PLL_REST_API.
 	 */
 	public function __construct( &$rest_api ) {
 		parent::__construct( $rest_api, array( 'comment' => array() ) );
@@ -26,11 +26,12 @@ class PLL_REST_Comment extends PLL_REST_Filtered_Object {
 	}
 
 	/**
-	 * Filters the query per language according to the 'lang' parameter
+	 * Filters the query per language according to the 'lang' parameter.
 	 *
 	 * @since 2.6.9
 	 *
-	 * @param object $query Comment query.
+	 * @param WP_Comment_Query $query Comment query.
+	 * @return void
 	 */
 	public function parse_comment_query( $query ) {
 		if ( isset( $this->params['lang'] ) && in_array( $this->params['lang'], $this->model->get_languages_list( array( 'fields' => 'slug' ) ) ) ) {

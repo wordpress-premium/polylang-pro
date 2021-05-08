@@ -36,7 +36,7 @@ class PLL_Import_Action {
 	/**
 	 * Instance of PLL_Import_File_Interface.
 	 *
-	 * @var PLL_Import_File_Interface
+	 * @var PLL_Import_File
 	 */
 	private $import_factory;
 
@@ -56,6 +56,8 @@ class PLL_Import_Action {
 	 * Processes the import and redirects.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	public function import() {
 		$error = $this->_import();
@@ -75,6 +77,8 @@ class PLL_Import_Action {
 	 * Processes the imported objects retrieved in an import file.
 	 *
 	 * @since 2.7
+	 *
+	 * @return WP_Error|true
 	 */
 	protected function _import() {
 		if ( empty( $_FILES['importFileToUpload']['name'] ) ) {
@@ -155,7 +159,7 @@ class PLL_Import_Action {
 	 *
 	 * @param PO           $translations Contains all translations entries.
 	 * @param PLL_Language $language     Target Language.
-	 * @return the number of updated strings.
+	 * @return int|WP_Error The number of updated strings.
 	 */
 	public function create_string_translations_on_import( $translations, $language ) {
 		$pll_mo = new PLL_MO();

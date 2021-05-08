@@ -9,8 +9,19 @@
  * @since 1.2
  */
 class PLL_Frontend_Links extends PLL_Links {
+	/**
+	 * Current language.
+	 *
+	 * @var PLL_Language
+	 */
 	public $curlang;
-	public $cache; // Our internal non persistent cache object
+
+	/**
+	 * Internal non persistent cache object.
+	 *
+	 * @var PLL_Cache
+	 */
+	public $cache;
 
 	/**
 	 * Constructor
@@ -28,11 +39,11 @@ class PLL_Frontend_Links extends PLL_Links {
 	}
 
 	/**
-	 * Returns the url of the translation ( if exists ) of the current page
+	 * Returns the url of the translation (if it exists) of the current page.
 	 *
 	 * @since 0.1
 	 *
-	 * @param object $language
+	 * @param PLL_Language $language Language object.
 	 * @return string
 	 */
 	public function get_translation_url( $language ) {
@@ -47,14 +58,14 @@ class PLL_Frontend_Links extends PLL_Links {
 		$queried_object_id = $wp_query->get_queried_object_id();
 
 		/**
-		 * Filter the translation url before Polylang attempts to find one
-		 * Internally used by Polylang for the static front page and posts page
+		 * Filters the translation url before Polylang attempts to find one.
+		 * Internally used by Polylang for the static front page and posts page.
 		 *
 		 * @since 1.8
 		 *
-		 * @param string $url               Empty or the url of the translation of teh current page
-		 * @param object $language          Language of the translation
-		 * @param int    $queried_object_id Queried object id
+		 * @param string       $url               Empty or the url of the translation of teh current page.
+		 * @param PLL_Language $language          Language of the translation.
+		 * @param int          $queried_object_id Queried object id.
 		 */
 		if ( ! $url = apply_filters( 'pll_pre_translation_url', '', $language, $queried_object_id ) ) {
 			$qv = $wp_query->query_vars;
@@ -199,12 +210,12 @@ class PLL_Frontend_Links extends PLL_Links {
 	}
 
 	/**
-	 * Returns the home url in the right language
+	 * Returns the home url in the right language.
 	 *
 	 * @since 0.1
 	 *
-	 * @param object $language  Optional, defaults to current language
-	 * @param bool   $is_search Optional, whether we need the home url for a search form, defaults to false
+	 * @param PLL_Language|string $language  Optional, defaults to current language.
+	 * @param bool                $is_search Optional, whether we need the home url for a search form, defaults to false.
 	 */
 	public function get_home_url( $language = '', $is_search = false ) {
 		if ( empty( $language ) ) {

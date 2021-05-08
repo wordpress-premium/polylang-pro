@@ -10,11 +10,17 @@
  */
 class PLL_Locale_Fallback {
 	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
 	 * Setups actions and filters
 	 *
 	 * @since 2.9
 	 *
 	 * @param object $polylang Polylang object.
+	 * @return void
 	 */
 	public function init( &$polylang ) {
 		$this->model = &$polylang->model;
@@ -37,7 +43,8 @@ class PLL_Locale_Fallback {
 	 *
 	 * @since 2.9
 	 *
-	 * @param array $languages The list of language objects.
+	 * @param PLL_Language[] $languages The list of language objects.
+	 * @return PLL_Language[]
 	 */
 	public static function pll_languages_list( $languages ) {
 		foreach ( $languages as $language ) {
@@ -78,7 +85,8 @@ class PLL_Locale_Fallback {
 	 *
 	 * @since 2.9
 	 *
-	 * @param PLL_Language $edit_lang
+	 * @param PLL_Language $edit_lang Language being edited.
+	 * @return void
 	 */
 	public function edit_language_form_fields( $edit_lang ) {
 		// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
@@ -90,6 +98,8 @@ class PLL_Locale_Fallback {
 	 * Outputs an empty locale fallbacks field when adding a language.
 	 *
 	 * @since 2.9
+	 *
+	 * @return void
 	 */
 	public function add_language_form_fields() {
 		// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
@@ -103,31 +113,35 @@ class PLL_Locale_Fallback {
 	 * @since 2.9
 	 *
 	 * @param array $args Arguments used to create or edit the language.
+	 * @return void
 	 */
 	public function save_language( $args ) {
 		$language = $this->model->get_language( $args['slug'] );
-		if ( ! empty( $args['fallback'] ) ) {
-			$fallbacks = array_map( 'trim', explode( ',', $args['fallback'] ) );
 
-			foreach ( $fallbacks as $k => $fallback ) {
-				// Keep only valid locales.
-				// @TODO Display an error message.
-				if ( ! preg_match( '#^[a-z]{2,3}(?:_[A-Z]{2})?(?:_[a-z0-9]+)?$#', $fallback ) ) {
-					unset( $fallbacks[ $k ] );
+		if ( $language ) {
+			if ( ! empty( $args['fallback'] ) ) {
+				$fallbacks = array_map( 'trim', explode( ',', $args['fallback'] ) );
+
+				foreach ( $fallbacks as $k => $fallback ) {
+					// Keep only valid locales.
+					// @TODO Display an error message.
+					if ( ! preg_match( '#^[a-z]{2,3}(?:_[A-Z]{2})?(?:_[a-z0-9]+)?$#', $fallback ) ) {
+						unset( $fallbacks[ $k ] );
+					}
+
+					if ( current_user_can( 'install_languages' ) ) {
+						require_once ABSPATH . 'wp-admin/includes/translation-install.php';
+						wp_download_language_pack( $fallback );
+					}
 				}
 
-				if ( current_user_can( 'install_languages' ) ) {
-					require_once ABSPATH . 'wp-admin/includes/translation-install.php';
-					wp_download_language_pack( $fallback );
-				}
+				update_term_meta( $language->term_id, 'fallback', $fallbacks );
+			} else {
+				delete_term_meta( $language->term_id, 'fallback' );
 			}
 
-			update_term_meta( $language->term_id, 'fallback', $fallbacks );
-		} else {
-			delete_term_meta( $language->term_id, 'fallback' );
+			$this->model->clean_languages_cache();
 		}
-
-		$this->model->clean_languages_cache();
 	}
 
 	/**
@@ -135,8 +149,8 @@ class PLL_Locale_Fallback {
 	 *
 	 * @since 2.9
 	 *
-	 * @param array $locales List of locales to update.
-	 * @return array
+	 * @param string[] $locales List of locales to update.
+	 * @return string[]
 	 */
 	public function update_check_locales( $locales ) {
 		foreach ( $this->model->get_languages_list() as $language ) {

@@ -4,7 +4,7 @@
  */
 
 /**
- * ACF compatibility
+ * This class is part of the ACF compatibility.
  * Manages the automatic translation of posts and terms in custom fields.
  *
  * @since 2.7
@@ -18,8 +18,8 @@ class PLL_ACF_Auto_Translate {
 	private $fields;
 
 	/**
-	 * Constructor
-	 * Setups actions and filters
+	 * Constructor.
+	 * Setups actions and filters.
 	 *
 	 * @since 2.7
 	 */
@@ -38,14 +38,14 @@ class PLL_ACF_Auto_Translate {
 	}
 
 	/**
-	 * Store updated or deleted fields for future usage
+	 * Stores updated or deleted fields for future usage.
 	 *
 	 * @since 2.3
 	 *
-	 * @param mixed $value   Not used
-	 * @param mixed $post_id Not used
-	 * @param array $field   Custom field
-	 * @return mixed Unmodified custom field value
+	 * @param mixed $value   Not used.
+	 * @param mixed $post_id Not used.
+	 * @param array $field   Custom field.
+	 * @return mixed Unmodified custom field value.
 	 */
 	public function store_updated_field( $value, $post_id, $field ) {
 		$this->fields[ $field['name'] ] = $field;
@@ -58,13 +58,14 @@ class PLL_ACF_Auto_Translate {
 	 * @since 2.3
 	 *
 	 * @param int $term_id Id of the term being saved.
+	 * @return void
 	 */
 	public function store_term_fields( $term_id ) {
 		$this->fields = get_field_objects( 'term_' . $term_id );
 	}
 
 	/**
-	 * Copy and possibly translate custom fields when creating a new term translation
+	 * Copies and possibly translates custom fields when creating a new term translation.
 	 *
 	 * @since 2.2
 	 *
@@ -90,7 +91,7 @@ class PLL_ACF_Auto_Translate {
 				if ( in_array( $field['name'], $keys ) || preg_match( '#^(' . implode( '|', $keys ) . ')_(.+)#', $field['name'] ) ) {
 					$value = acf_get_value( $tr_id, $field ); // Since ACF 5.0.0.
 					$empty = null; // Parameter 1 is useless in this context.
-					$value = $this->translate_fields( $empty, $value, $field['name'], $field, $lang );
+					$value = $this->translate_fields( $empty, $value, $field['name'], $field, $lang->slug );
 
 					if ( pll_is_translated_post_type( 'acf-field-group' ) ) {
 						$references = $this->translate_fields_references( $tr_id, $lang->slug );
@@ -103,16 +104,16 @@ class PLL_ACF_Auto_Translate {
 	}
 
 	/**
-	 * Translate a custom field before it is copied or synchronized
+	 * Translates a custom field before it is copied or synchronized.
 	 *
 	 * @since 2.3
-	 * @since 2.4 Added parameter $to
+	 * @since 2.4 Added parameter $to.
 	 *
-	 * @param mixed  $value Meta value
-	 * @param string $key   Meta key
-	 * @param string $lang  Language of target
-	 * @param int    $from  Id of the object from which we copy informations
-	 * @param int    $to    Id of the object to which we copy informations
+	 * @param mixed  $value Meta value.
+	 * @param string $key   Meta key.
+	 * @param string $lang  Language of target.
+	 * @param int    $from  Id of the object from which we copy informations.
+	 * @param int    $to    Id of the object to which we copy informations.
 	 * @return mixed
 	 */
 	public function translate_meta( $value, $key, $lang, $from, $to = 0 ) {
@@ -142,8 +143,8 @@ class PLL_ACF_Auto_Translate {
 	}
 
 	/**
-	 * Returns an array containing all the field data for a given field name
-	 * Unlike the original ACF function, it works for clone fields
+	 * Returns an array containing all the field data for a given field name.
+	 * Unlike the original ACF function, it works for clone fields.
 	 *
 	 * @since 2.6.2
 	 *
@@ -176,7 +177,7 @@ class PLL_ACF_Auto_Translate {
 	}
 
 	/**
-	 * Translate a CPT archive link in a page link field
+	 * Translates a CPT archive link in a page link field.
 	 *
 	 * @since 2.3.6
 	 *
@@ -198,10 +199,10 @@ class PLL_ACF_Auto_Translate {
 	}
 
 	/**
-	 * Translate a custom field value
+	 * Translates a custom field value.
 	 *
 	 * @since 2.3
-	 * @since 2.4 Added parameter $create_if_not_exists
+	 * @since 2.4 Added parameter $create_if_not_exists.
 	 *
 	 * @param mixed  $value                Custom field value.
 	 * @param string $lang                 Language slug.
@@ -303,7 +304,7 @@ class PLL_ACF_Auto_Translate {
 	}
 
 	/**
-	 * Translate repeater and flexible content sub fields (for recursive translation of this fields)
+	 * Translates repeater and flexible content sub fields (for recursive translation of this fields).
 	 *
 	 * @since 2.2
 	 *
@@ -334,7 +335,7 @@ class PLL_ACF_Auto_Translate {
 	}
 
 	/**
-	 * Recursively translate custom group, repeater and flexible content fields
+	 * Recursively translates custom group, repeater and flexible content fields.
 	 *
 	 * @since 2.0
 	 *
@@ -382,12 +383,13 @@ class PLL_ACF_Auto_Translate {
 
 	/**
 	 * Translated field groups:
-	 * Recursively translates the references in value for repeaters and flexible content
+	 * Recursively translates the references in value for repeaters and flexible content.
 	 *
 	 * @since 2.2
 	 *
 	 * @param array $value      Reference to a custom field value.
 	 * @param array $references List of custom fields references with source as key and translation as value.
+	 * @return void
 	 */
 	protected function translate_references_in_value( &$value, $references ) {
 		if ( is_array( $value ) ) {
@@ -409,7 +411,7 @@ class PLL_ACF_Auto_Translate {
 
 	/**
 	 * Translated field groups:
-	 * Searches for fields having the same name in translated posts
+	 * Searches for fields having the same name in translated posts.
 	 *
 	 * @since 2.2
 	 *
@@ -436,13 +438,14 @@ class PLL_ACF_Auto_Translate {
 	/**
 	 * Translated field groups:
 	 * Loops through sub fields in the recursive search for fields
-	 * having the same name among translated fields groups
+	 * having the same name among translated fields groups.
 	 *
 	 * @since 2.2
 	 *
 	 * @param array $keys      Reference to an array mapping the fields keys of the translated post to the field keys of the currentpost.
 	 * @param array $fields    ACF Custom fields of the current post.
 	 * @param array $tr_fields ACF Custom fields of a translation.
+	 * @return void
 	 */
 	protected function translate_sub_fields_references( &$keys, $fields, $tr_fields ) {
 		foreach ( $fields as $field ) {
@@ -452,13 +455,14 @@ class PLL_ACF_Auto_Translate {
 
 	/**
 	 * Translated field groups:
-	 * Recursively searches for fields having the same name among translated fields groups
+	 * Recursively searches for fields having the same name among translated fields groups.
 	 *
 	 * @since 2.2
 	 *
 	 * @param array $keys      Reference to an array mapping the fields keys of the translated post to the field keys of the currentpost.
 	 * @param array $field     ACF Custom fields of the current post.
 	 * @param array $tr_fields ACF Custom fields of a translation.
+	 * @return void
 	 */
 	protected function translate_field_references( &$keys, $field, $tr_fields ) {
 		$k = array_search( $field['name'], wp_list_pluck( $tr_fields, 'name' ) );

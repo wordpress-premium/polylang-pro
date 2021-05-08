@@ -9,7 +9,19 @@
  * @since 2.0
  */
 class PLL_Xdata_Subdomain extends PLL_Xdata_Base {
-	private $curlang, $ajax_urls;
+	/**
+	 * Current language (defined by its slug).
+	 *
+	 * @var string
+	 */
+	private $curlang;
+
+	/**
+	 * The list of ajax endpoints for each subdomain.
+	 *
+	 * @var string[]
+	 */
+	private $ajax_urls;
 
 	/**
 	 * Constructor
@@ -51,8 +63,8 @@ class PLL_Xdata_Subdomain extends PLL_Xdata_Base {
 	 *
 	 * @since 2.0
 	 *
-	 * @param string $lang The language slug.
-	 * @param array  $args Existing url parameters.
+	 * @param string   $lang The language slug.
+	 * @param string[] $args Existing url parameters.
 	 * @return string The ajax url.
 	 */
 	public function ajax_url( $lang, $args ) {
@@ -63,6 +75,8 @@ class PLL_Xdata_Subdomain extends PLL_Xdata_Base {
 	 * Outputs the javascript to create the cross domain request when the language just switched
 	 *
 	 * @since 2.0
+	 *
+	 * @return void
 	 */
 	public function maybe_language_switched() {
 		if ( $js = $this->maybe_get_xdomain_js( pll_get_requested_url(), $this->curlang ) ) {

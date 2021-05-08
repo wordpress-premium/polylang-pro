@@ -10,7 +10,7 @@
  * Plugin Name:       Polylang
  * Plugin URI:        https://polylang.pro
  * Description:       Adds multilingual capability to WordPress
- * Version:           2.9.2
+ * Version:           3.0.4
  * Requires at least: 5.1
  * Requires PHP:      5.6
  * Author:            WP SYNTEX
@@ -53,12 +53,17 @@ if ( defined( 'POLYLANG_VERSION' ) ) {
 	}
 } else {
 	// Go on loading the plugin
-	define( 'POLYLANG_VERSION', '2.9.2' );
+	define( 'POLYLANG_VERSION', '3.0.4' );
 	define( 'PLL_MIN_WP_VERSION', '5.1' );
 	define( 'PLL_MIN_PHP_VERSION', '5.6' );
 
 	define( 'POLYLANG_FILE', __FILE__ );
 	define( 'POLYLANG_DIR', __DIR__ );
+
+	// Whether we are using Polylang or Polylang Pro, get the filename of the plugin in use.
+	if ( ! defined( 'POLYLANG_ROOT_FILE' ) ) {
+		define( 'POLYLANG_ROOT_FILE', __FILE__ );
+	}
 
 	if ( ! defined( 'POLYLANG_BASENAME' ) ) {
 		define( 'POLYLANG_BASENAME', plugin_basename( __FILE__ ) ); // Plugin name as known by WP.

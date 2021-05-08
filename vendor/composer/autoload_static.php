@@ -4,13 +4,16 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit126fb7c5a1390e81fa054e2001322d07
+class ComposerStaticInit027f6740baebed034e1dcbd04aca7861
 {
     public static $classMap = array (
         'PLL_ACF' => __DIR__ . '/../..' . '/integrations/acf/acf.php',
         'PLL_ACF_Auto_Translate' => __DIR__ . '/../..' . '/integrations/acf/acf-auto-translate.php',
         'PLL_ACF_Sync_Metas' => __DIR__ . '/../..' . '/integrations/acf/acf-sync-metas.php',
         'PLL_AS3CF' => __DIR__ . '/..' . '/wpsyntex/polylang/integrations/wp-offload-media/as3cf.php',
+        'PLL_Abstract_Sitemaps' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/sitemaps/abstract-sitemaps.php',
+        'PLL_Accept_Language' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/accept-language.php',
+        'PLL_Accept_Languages_Collection' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/accept-languages-collection.php',
         'PLL_Active_Languages' => __DIR__ . '/../..' . '/modules/active-languages/active-languages.php',
         'PLL_Admin' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin.php',
         'PLL_Admin_Advanced_Media' => __DIR__ . '/../..' . '/modules/media/admin-advanced-media.php',
@@ -23,6 +26,7 @@ class ComposerStaticInit126fb7c5a1390e81fa054e2001322d07
         'PLL_Admin_Filters_Post' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-filters-post.php',
         'PLL_Admin_Filters_Post_Base' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-filters-post-base.php',
         'PLL_Admin_Filters_Term' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-filters-term.php',
+        'PLL_Admin_Filters_Widgets_Options' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-filters-widgets-options.php',
         'PLL_Admin_Links' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-links.php',
         'PLL_Admin_Loader' => __DIR__ . '/../..' . '/modules/admin-loader/admin-loader.php',
         'PLL_Admin_Model' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-model.php',
@@ -67,6 +71,7 @@ class ComposerStaticInit126fb7c5a1390e81fa054e2001322d07
         'PLL_Filters' => __DIR__ . '/..' . '/wpsyntex/polylang/include/filters.php',
         'PLL_Filters_Links' => __DIR__ . '/..' . '/wpsyntex/polylang/include/filters-links.php',
         'PLL_Filters_Sanitization' => __DIR__ . '/..' . '/wpsyntex/polylang/include/filters-sanitization.php',
+        'PLL_Filters_Widgets_Options' => __DIR__ . '/..' . '/wpsyntex/polylang/include/filters-widgets-options.php',
         'PLL_Frontend' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/frontend.php',
         'PLL_Frontend_Auto_Translate' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/frontend-auto-translate.php',
         'PLL_Frontend_Filters' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/frontend-filters.php',
@@ -107,7 +112,6 @@ class ComposerStaticInit126fb7c5a1390e81fa054e2001322d07
         'PLL_PO_Export' => __DIR__ . '/../..' . '/modules/po/po-export.php',
         'PLL_PO_Import' => __DIR__ . '/../..' . '/modules/po/po-import.php',
         'PLL_Plugin_Updater' => __DIR__ . '/..' . '/wpsyntex/polylang/install/plugin-updater.php',
-        'PLL_Pointer' => __DIR__ . '/..' . '/wpsyntex/polylang/include/pointer.php',
         'PLL_Pro' => __DIR__ . '/../..' . '/include/pro.php',
         'PLL_Query' => __DIR__ . '/..' . '/wpsyntex/polylang/include/query.php',
         'PLL_REST_API' => __DIR__ . '/../..' . '/modules/rest/rest-api.php',
@@ -132,6 +136,7 @@ class ComposerStaticInit126fb7c5a1390e81fa054e2001322d07
         'PLL_Share_Post_Slug' => __DIR__ . '/../..' . '/modules/share-slug/share-post-slug.php',
         'PLL_Share_Term_Slug' => __DIR__ . '/../..' . '/modules/share-slug/share-term-slug.php',
         'PLL_Sitemaps' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/sitemaps/sitemaps.php',
+        'PLL_Sitemaps_Domain' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/sitemaps/sitemaps-domain.php',
         'PLL_Static_Pages' => __DIR__ . '/..' . '/wpsyntex/polylang/include/static-pages.php',
         'PLL_Switcher' => __DIR__ . '/..' . '/wpsyntex/polylang/include/switcher.php',
         'PLL_Sync' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/sync/sync.php',
@@ -183,7 +188,7 @@ class ComposerStaticInit126fb7c5a1390e81fa054e2001322d07
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->classMap = ComposerStaticInit126fb7c5a1390e81fa054e2001322d07::$classMap;
+            $loader->classMap = ComposerStaticInit027f6740baebed034e1dcbd04aca7861::$classMap;
 
         }, null, ClassLoader::class);
     }

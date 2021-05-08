@@ -11,8 +11,19 @@
  * @since 1.0
  */
 class PLL_WPML_Config {
-	protected static $instance; // For singleton
-	protected $xmls, $options;
+	/**
+	 * Singleton instance
+	 *
+	 * @var PLL_WPML_Config
+	 */
+	protected static $instance;
+
+	/**
+	 * The content of all read xml files.
+	 *
+	 * @var SimpleXMLElement[]
+	 */
+	protected $xmls;
 
 	/**
 	 * Constructor
@@ -43,6 +54,8 @@ class PLL_WPML_Config {
 	 * Finds the wpml-config.xml files to parse and setup filters
 	 *
 	 * @since 1.0
+	 *
+	 * @return void
 	 */
 	public function init() {
 		$this->xmls = array();
@@ -80,19 +93,24 @@ class PLL_WPML_Config {
 			add_filter( 'pll_get_taxonomies', array( $this, 'translate_taxonomies' ), 10, 2 );
 
 			foreach ( $this->xmls as $context => $xml ) {
-				foreach ( $xml->xpath( 'admin-texts/key' ) as $key ) {
-					$attributes = $key->attributes();
-					$name = (string) $attributes['name'];
+				$keys = $xml->xpath( 'admin-texts/key' );
+				if ( is_array( $keys ) ) {
+					foreach ( $keys as $key ) {
+						$attributes = $key->attributes();
+						$name = (string) $attributes['name'];
 
-					if ( false !== strpos( $name, '*' ) ) {
-						$pattern = '#^' . str_replace( '*', '(?:.+)', $name ) . '$#';
-						$names = preg_grep( $pattern, array_keys( wp_load_alloptions() ) );
+						if ( false !== strpos( $name, '*' ) ) {
+							$pattern = '#^' . str_replace( '*', '(?:.+)', $name ) . '$#';
+							$names = preg_grep( $pattern, array_keys( wp_load_alloptions() ) );
 
-						foreach ( $names as $_name ) {
-							$this->register_or_translate_option( $context, $_name, $key );
+							if ( is_array( $names ) ) {
+								foreach ( $names as $_name ) {
+									$this->register_or_translate_option( $context, $_name, $key );
+								}
+							}
+						} else {
+							$this->register_or_translate_option( $context, $name, $key );
 						}
-					} else {
-						$this->register_or_translate_option( $context, $name, $key );
 					}
 				}
 			}
@@ -100,22 +118,25 @@ class PLL_WPML_Config {
 	}
 
 	/**
-	 * Adds custom fields to the list of metas to copy when creating a new translation
+	 * Adds custom fields to the list of metas to copy when creating a new translation.
 	 *
 	 * @since 1.0
 	 *
-	 * @param array $metas the list of custom fields to copy or synchronize
-	 * @param bool  $sync  true for sync, false for copy
-	 * @return array the list of custom fields to copy or synchronize
+	 * @param string[] $metas The list of custom fields to copy or synchronize.
+	 * @param bool     $sync  True for sync, false for copy.
+	 * @return string[] The list of custom fields to copy or synchronize.
 	 */
 	public function copy_post_metas( $metas, $sync ) {
 		foreach ( $this->xmls as $xml ) {
-			foreach ( $xml->xpath( 'custom-fields/custom-field' ) as $cf ) {
-				$attributes = $cf->attributes();
-				if ( 'copy' == $attributes['action'] || ( ! $sync && in_array( $attributes['action'], array( 'translate', 'copy-once' ) ) ) ) {
-					$metas[] = (string) $cf;
-				} else {
-					$metas = array_diff( $metas, array( (string) $cf ) );
+			$cfs = $xml->xpath( 'custom-fields/custom-field' );
+			if ( is_array( $cfs ) ) {
+				foreach ( $cfs as $cf ) {
+					$attributes = $cf->attributes();
+					if ( 'copy' == $attributes['action'] || ( ! $sync && in_array( $attributes['action'], array( 'translate', 'copy-once' ) ) ) ) {
+						$metas[] = (string) $cf;
+					} else {
+						$metas = array_diff( $metas, array( (string) $cf ) );
+					}
 				}
 			}
 		}
@@ -123,22 +144,25 @@ class PLL_WPML_Config {
 	}
 
 	/**
-	 * Adds term metas to the list of metas to copy when creating a new translation
+	 * Adds term metas to the list of metas to copy when creating a new translation.
 	 *
 	 * @since 2.6
 	 *
-	 * @param array $metas The list of term metas to copy or synchronize.
-	 * @param bool  $sync  True for sync, false for copy.
-	 * @return array The list of term metas to copy or synchronize.
+	 * @param string[] $metas The list of term metas to copy or synchronize.
+	 * @param bool     $sync  True for sync, false for copy.
+	 * @return string[] The list of term metas to copy or synchronize.
 	 */
 	public function copy_term_metas( $metas, $sync ) {
 		foreach ( $this->xmls as $xml ) {
-			foreach ( $xml->xpath( 'custom-term-fields/custom-term-field' ) as $cf ) {
-				$attributes = $cf->attributes();
-				if ( 'copy' == $attributes['action'] || ( ! $sync && in_array( $attributes['action'], array( 'translate', 'copy-once' ) ) ) ) {
-					$metas[] = (string) $cf;
-				} else {
-					$metas = array_diff( $metas, array( (string) $cf ) );
+			$cfs = $xml->xpath( 'custom-term-fields/custom-term-field' );
+			if ( is_array( $cfs ) ) {
+				foreach ( $cfs as $cf ) {
+					$attributes = $cf->attributes();
+					if ( 'copy' == $attributes['action'] || ( ! $sync && in_array( $attributes['action'], array( 'translate', 'copy-once' ) ) ) ) {
+						$metas[] = (string) $cf;
+					} else {
+						$metas = array_diff( $metas, array( (string) $cf ) );
+					}
 				}
 			}
 		}
@@ -146,22 +170,25 @@ class PLL_WPML_Config {
 	}
 
 	/**
-	 * Language and translation management for custom post types
+	 * Language and translation management for custom post types.
 	 *
 	 * @since 1.0
 	 *
-	 * @param array $types list of post type names for which Polylang manages language and translations
-	 * @param bool  $hide  true when displaying the list in Polylang settings
-	 * @return array list of post type names for which Polylang manages language and translations
+	 * @param string[] $types The list of post type names for which Polylang manages language and translations.
+	 * @param bool     $hide  True when displaying the list in Polylang settings.
+	 * @return string[] The list of post type names for which Polylang manages language and translations.
 	 */
 	public function translate_types( $types, $hide ) {
 		foreach ( $this->xmls as $xml ) {
-			foreach ( $xml->xpath( 'custom-types/custom-type' ) as $pt ) {
-				$attributes = $pt->attributes();
-				if ( 1 == $attributes['translate'] && ! $hide ) {
-					$types[ (string) $pt ] = (string) $pt;
-				} else {
-					unset( $types[ (string) $pt ] ); // The theme/plugin author decided what to do with the post type so don't allow the user to change this
+			$pts = $xml->xpath( 'custom-types/custom-type' );
+			if ( is_array( $pts ) ) {
+				foreach ( $pts as $pt ) {
+					$attributes = $pt->attributes();
+					if ( 1 == $attributes['translate'] && ! $hide ) {
+						$types[ (string) $pt ] = (string) $pt;
+					} else {
+						unset( $types[ (string) $pt ] ); // The theme/plugin author decided what to do with the post type so don't allow the user to change this
+					}
 				}
 			}
 		}
@@ -169,22 +196,25 @@ class PLL_WPML_Config {
 	}
 
 	/**
-	 * Language and translation management for custom taxonomies
+	 * Language and translation management for custom taxonomies.
 	 *
 	 * @since 1.0
 	 *
-	 * @param array $taxonomies list of taxonomy names for which Polylang manages language and translations
-	 * @param bool  $hide       true when displaying the list in Polylang settings
-	 * @return array list of taxonomy names for which Polylang manages language and translations
+	 * @param string[] $taxonomies The list of taxonomy names for which Polylang manages language and translations.
+	 * @param bool     $hide       True when displaying the list in Polylang settings.
+	 * @return string[] The list of taxonomy names for which Polylang manages language and translations.
 	 */
 	public function translate_taxonomies( $taxonomies, $hide ) {
 		foreach ( $this->xmls as $xml ) {
-			foreach ( $xml->xpath( 'taxonomies/taxonomy' ) as $tax ) {
-				$attributes = $tax->attributes();
-				if ( 1 == $attributes['translate'] && ! $hide ) {
-					$taxonomies[ (string) $tax ] = (string) $tax;
-				} else {
-					unset( $taxonomies[ (string) $tax ] ); // the theme/plugin author decided what to do with the taxonomy so don't allow the user to change this
+			$taxos = $xml->xpath( 'taxonomies/taxonomy' );
+			if ( is_array( $taxos ) ) {
+				foreach ( $taxos as $tax ) {
+					$attributes = $tax->attributes();
+					if ( 1 == $attributes['translate'] && ! $hide ) {
+						$taxonomies[ (string) $tax ] = (string) $tax;
+					} else {
+						unset( $taxonomies[ (string) $tax ] ); // the theme/plugin author decided what to do with the taxonomy so don't allow the user to change this
+					}
 				}
 			}
 		}
@@ -199,6 +229,7 @@ class PLL_WPML_Config {
 	 * @param string $context The group in which the strings will be registered.
 	 * @param string $name    Option name.
 	 * @param object $key     XML node.
+	 * @return void
 	 */
 	protected function register_or_translate_option( $context, $name, $key ) {
 		$option_keys = $this->xml_to_array( $key );

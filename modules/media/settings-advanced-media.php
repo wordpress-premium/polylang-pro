@@ -40,6 +40,8 @@ class PLL_Settings_Advanced_Media extends PLL_Settings_Module {
 	 * Displays the settings form
 	 *
 	 * @since 1.9
+	 *
+	 * @return void
 	 */
 	protected function form() {
 		printf(
@@ -67,7 +69,7 @@ class PLL_Settings_Advanced_Media extends PLL_Settings_Module {
 	 *
 	 * @since 1.9
 	 *
-	 * @return array
+	 * @return string[]
 	 */
 	protected function get_actions() {
 		return empty( $this->options['media_support'] ) ? array( 'activate' ) : array( 'configure', 'deactivate' );

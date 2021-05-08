@@ -9,6 +9,16 @@
  * @since 1.9
  */
 class PLL_Translate_Slugs {
+	/**
+	 * @var PLL_Translate_Slugs_Model
+	 */
+	public $slugs_model;
+
+	/**
+	 * Current language.
+	 *
+	 * @var PLL_Language
+	 */
 	public $curlang;
 
 	/**
@@ -16,8 +26,8 @@ class PLL_Translate_Slugs {
 	 *
 	 * @since 1.9
 	 *
-	 * @param object $slugs_model An instance of PLL_Translate_Slugs_Model.
-	 * @param object $curlang     The Current language.
+	 * @param PLL_Translate_Slugs_Model $slugs_model An instance of PLL_Translate_Slugs_Model.
+	 * @param PLL_Language              $curlang     The Current language.
 	 */
 	public function __construct( &$slugs_model, &$curlang ) {
 		$this->slugs_model = &$slugs_model;
@@ -29,13 +39,13 @@ class PLL_Translate_Slugs {
 	}
 
 	/**
-	 * Modifies custom post type links
+	 * Modifies custom post type links.
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $url  The post link.
-	 * @param object $lang The post language.
-	 * @param object $post The post object.
+	 * @param string       $url  The post link.
+	 * @param PLL_Language $lang The post language.
+	 * @param WP_Post      $post The post object.
 	 * @return string
 	 */
 	public function pll_post_type_link( $url, $lang, $post ) {
@@ -49,13 +59,13 @@ class PLL_Translate_Slugs {
 	}
 
 	/**
-	 * Modifies term links
+	 * Modifies term links.
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $url  The term link.
-	 * @param object $lang The term language.
-	 * @param object $term The term object.
+	 * @param string       $url  The term link.
+	 * @param PLL_Language $lang The term language.
+	 * @param WP_Term      $term The term object.
 	 * @return string
 	 */
 	public function pll_term_link( $url, $lang, $term ) {

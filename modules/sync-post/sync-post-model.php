@@ -9,7 +9,33 @@
  * @since 2.6
  */
 class PLL_Sync_Post_Model {
-	public $options, $model, $sync, $sync_content;
+	/**
+	 * Stores the plugin options.
+	 *
+	 * @var array
+	 */
+	public $options;
+
+	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
+	 * @var PLL_Sync
+	 */
+	public $sync;
+
+	/**
+	 * @var PLL_Sync_Content
+	 */
+	public $sync_content;
+
+	/**
+	 * Stores temporary a synchronization information.
+	 *
+	 * @var array
+	 */
 	protected $temp_synchronized;
 
 	/**
@@ -30,15 +56,15 @@ class PLL_Sync_Post_Model {
 	}
 
 	/**
-	 * Copies all taxonomies
+	 * Copies all taxonomies.
 	 *
 	 * @since 2.1
 	 *
-	 * @param array $taxonomies List of taxonomy names.
-	 * @param bool  $sync       True for a synchronization, false for a simple copy.
-	 * @param int   $from       Source post id.
-	 * @param int   $to         Target post id.
-	 * @return array
+	 * @param string[] $taxonomies List of taxonomy names.
+	 * @param bool     $sync       True for a synchronization, false for a simple copy.
+	 * @param int      $from       Source post id.
+	 * @param int      $to         Target post id.
+	 * @return string[]
 	 */
 	public function copy_taxonomies( $taxonomies, $sync, $from, $to ) {
 		if ( ! empty( $from ) && ! empty( $to ) && $this->are_synchronized( $from, $to ) ) {
@@ -48,15 +74,15 @@ class PLL_Sync_Post_Model {
 	}
 
 	/**
-	 * Copies all custom fields
+	 * Copies all custom fields.
 	 *
 	 * @since 2.1
 	 *
-	 * @param array $keys List of custom fields names.
-	 * @param bool  $sync True if it is synchronization, false if it is a copy.
-	 * @param int   $from Id of the post from which we copy the information.
-	 * @param int   $to   Id of the post to which we paste the information.
-	 * @return array
+	 * @param string[] $keys List of custom fields names.
+	 * @param bool     $sync True if it is synchronization, false if it is a copy.
+	 * @param int      $from Id of the post from which we copy the information.
+	 * @param int      $to   Id of the post to which we paste the information.
+	 * @return string[]
 	 */
 	public function copy_post_metas( $keys, $sync, $from, $to ) {
 		if ( ! empty( $from ) && ! empty( $to ) && $this->are_synchronized( $from, $to ) ) {
@@ -106,7 +132,7 @@ class PLL_Sync_Post_Model {
 		// If it does not exist, create it.
 		if ( ! $tr_id ) {
 			$tr_post->ID = null;
-			$tr_id       = wp_insert_post( wp_slash( (array) $tr_post ) );
+			$tr_id       = wp_insert_post( wp_slash( get_object_vars( $tr_post ) ) );
 			$this->model->post->set_language( $tr_id, $lang ); // Necessary to do it now to share slug.
 
 			$translations = $this->model->post->get_translations( $post_id );
@@ -216,6 +242,7 @@ class PLL_Sync_Post_Model {
 	 *
 	 * @param int   $post_id   Id of the post currently being saved
 	 * @param array $sync_post Array of languages to sync with this post.
+	 * @return void
 	 */
 	public function save_group( $post_id, $sync_post ) {
 		$term = $this->model->post->get_object_term( $post_id, 'post_translations' );

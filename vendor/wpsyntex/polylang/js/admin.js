@@ -111,7 +111,13 @@ jQuery(
 		 */
 
 		// Selectmenu widget options
-		var selectmenuOptions = { width: defaultSelectmenuWidth };
+		var selectmenuOptions = {
+			width: defaultSelectmenuWidth,
+			classes: {
+				'ui-selectmenu-menu': 'pll-selectmenu-menu',
+				'ui-selectmenu-button': 'pll-selectmenu-button',
+			}
+		};
 
 		// Selectmenu widget callbacks
 		var selectmenuFlagListCallbacks = {};
@@ -306,7 +312,7 @@ jQuery(
 											function() {
 												var $this = $( this ),
 													$button = $( '<button type="button" class="notice-dismiss"><span class="screen-reader-text"></span></button>' ),
-													btnText = pll_dismiss_notice || '';
+													btnText = pll_admin.dismiss_notice || '';
 
 												// Ensure plain text
 												$button.find( '.screen-reader-text' ).text( btnText );

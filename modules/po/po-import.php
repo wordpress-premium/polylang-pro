@@ -15,7 +15,7 @@ class PLL_PO_Import implements  PLL_Import_File_Interface {
 	/**
 	 * Po object.
 	 *
-	 * @var PO $po.
+	 * @var PO
 	 */
 	private $po;
 
@@ -39,7 +39,7 @@ class PLL_PO_Import implements  PLL_Import_File_Interface {
 	 * @since 2.7
 	 *
 	 * @param string $filepath The path on the filesystem where the import file is located.
-	 * @return bool|WP_Error
+	 * @return WP_Error|true
 	 */
 	public function import_from_file( $filepath ) {
 		// PO::import_from_file returns false in case it does not succeed to parse the file.
@@ -54,7 +54,7 @@ class PLL_PO_Import implements  PLL_Import_File_Interface {
 	 *
 	 * @since 2.7
 	 *
-	 * @return string
+	 * @return string|false
 	 */
 	public function get_source_lang() {
 		if ( ! empty( $this->po->headers['Language-Source'] ) ) {
@@ -68,7 +68,7 @@ class PLL_PO_Import implements  PLL_Import_File_Interface {
 	 *
 	 * @since 2.7
 	 *
-	 * @return string
+	 * @return string|false
 	 */
 	public function get_target_language() {
 		if ( ! empty( $this->po->headers['Language-Target'] ) ) {
@@ -82,7 +82,7 @@ class PLL_PO_Import implements  PLL_Import_File_Interface {
 	 *
 	 * @since 2.7
 	 *
-	 * @return bool|string
+	 * @return string|false
 	 */
 	public function get_site_reference() {
 		if ( ! empty( $this->po->headers['Site-Reference'] ) ) {
@@ -96,7 +96,7 @@ class PLL_PO_Import implements  PLL_Import_File_Interface {
 	 *
 	 * @since 2.7
 	 *
-	 * @return array|bool
+	 * @return array
 	 */
 	public function get_next_entry() {
 		return array(

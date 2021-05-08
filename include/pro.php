@@ -20,8 +20,11 @@ class PLL_Pro {
 	 */
 	public function __construct() {
 		require_once __DIR__ . '/../include/functions.php';
-		foreach ( glob( POLYLANG_PRO_DIR . '/integrations/*/load.php', GLOB_NOSORT ) as $load_script ) {
-			require_once $load_script; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
+		$load_scripts = glob( POLYLANG_PRO_DIR . '/integrations/*/load.php', GLOB_NOSORT );
+		if ( is_array( $load_scripts ) ) {
+			foreach ( $load_scripts as $load_script ) {
+				require_once $load_script; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
+			}
 		}
 
 		add_filter( 'pll_languages_list', array( 'PLL_Locale_Fallback', 'pll_languages_list' ) );
@@ -34,6 +37,7 @@ class PLL_Pro {
 	 * @since 2.8
 	 *
 	 * @param object $polylang Polylang object.
+	 * @return void
 	 */
 	public function init( &$polylang ) {
 		if ( $polylang instanceof PLL_Admin_Base ) {
@@ -47,8 +51,11 @@ class PLL_Pro {
 		}
 
 		// Loads the modules.
-		foreach ( glob( POLYLANG_PRO_DIR . '/modules/*/load.php', GLOB_NOSORT ) as $load_script ) {
-			require_once $load_script; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
+		$load_scripts = glob( POLYLANG_PRO_DIR . '/modules/*/load.php', GLOB_NOSORT );
+		if ( is_array( $load_scripts ) ) {
+			foreach ( $load_scripts as $load_script ) {
+				require_once $load_script; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
+			}
 		}
 	}
 
@@ -77,8 +84,8 @@ class PLL_Pro {
 	 *
 	 * @since 2.1.1
 	 *
-	 * @param array $value The value stored in the update_plugins site transient.
-	 * @return array
+	 * @param stdClass[] $value The value stored in the update_plugins site transient.
+	 * @return stdClass[]
 	 */
 	public function pre_set_site_transient_update_plugins( $value ) {
 		// We encountered a 3rd party plugin setting the transient before the function get_plugins() is available.

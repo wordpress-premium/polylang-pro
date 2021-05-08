@@ -162,6 +162,7 @@ abstract class PLL_Bulk_Translate_Option {
 	 *
 	 * @param int    $object_id Identifies the post, term, media, etc. to be translated.
 	 * @param string $lang      A language locale.
+	 * @return void
 	 */
 	abstract public function translate( $object_id, $lang );
 

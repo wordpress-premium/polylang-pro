@@ -9,7 +9,24 @@
  * @since 1.9
  */
 class PLL_Active_Languages {
-	public $options, $model, $curlang;
+	/**
+	 * Stores the plugin options.
+	 *
+	 * @var array
+	 */
+	public $options;
+
+	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
+	 * Current Language.
+	 *
+	 * @var PLL_Language
+	 */
+	public $curlang;
 
 	/**
 	 * Constructor
@@ -33,9 +50,9 @@ class PLL_Active_Languages {
 			add_action( 'admin_print_styles', array( $this, 'print_css' ) );
 		}
 
-		// Frontend.
-		if ( $polylang instanceof PLL_Frontend ) {
-			add_action( 'wp', array( $this, 'init' ) );
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			add_action( 'pll_language_defined', array( $this, 'init' ) );
+			add_action( 'wp_sitemaps_init', array( $this, 'init' ) );
 			add_action( 'rest_api_init', array( $this, 'init' ) );
 			add_filter( 'pll_languages_for_browser_preferences', array( $this, 'remove_inactive_languages' ) );
 		}
@@ -46,9 +63,9 @@ class PLL_Active_Languages {
 	 *
 	 * @since 1.9
 	 *
-	 * @param array  $classes  CSS classes applied to a row in the languages list table.
-	 * @param object $language The language.
-	 * @return array Modified list of classes.
+	 * @param string[]       $classes  CSS classes applied to a row in the languages list table.
+	 * @param PLL_Language[] $language The language.
+	 * @return string[] Modified list of classes.
 	 */
 	public function row_classes( $classes, $language ) {
 		return isset( $language->active ) && false === $language->active ? array( 'inactive' ) : array();
@@ -59,9 +76,9 @@ class PLL_Active_Languages {
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $action   HTML markup of the action to define the default language.
-	 * @param object $language The Language.
-	 * @return array Modified row action.
+	 * @param string         $action   HTML markup of the action to define the default language.
+	 * @param PLL_Language[] $language The Language.
+	 * @return string Modified row action.
 	 */
 	public function remove_default_lang_action( $action, $language ) {
 		if ( isset( $language->active ) && false === $language->active ) {
@@ -76,9 +93,9 @@ class PLL_Active_Languages {
 	 *
 	 * @since 1.9
 	 *
-	 * @param array  $actions  The list of the HTML markup of row actions.
-	 * @param object $language The language.
-	 * @return array Modified list of row actions.
+	 * @param string[]     $actions  The list of the HTML markup of row actions.
+	 * @param PLL_Language $language The language.
+	 * @return string[] Modified list of row actions.
 	 */
 	public function row_actions( $actions, $language ) {
 		if ( $language->slug == $this->options['default_lang'] ) {
@@ -113,6 +130,7 @@ class PLL_Active_Languages {
 	 *
 	 * @param int  $lang_id The language term id.
 	 * @param bool $enable  True to enable, false to disable.
+	 * @return void
 	 */
 	public function _enable( $lang_id, $enable ) {
 		$lang_id     = (int) $lang_id;
@@ -129,6 +147,8 @@ class PLL_Active_Languages {
 	 * Enables a language
 	 *
 	 * @since 1.9
+	 *
+	 * @return void
 	 */
 	public function enable() {
 		check_admin_referer( 'enable-lang' );
@@ -142,6 +162,8 @@ class PLL_Active_Languages {
 	 * Disables a language
 	 *
 	 * @since 1.9
+	 *
+	 * @return void
 	 */
 	public function disable() {
 		check_admin_referer( 'disable-lang' );
@@ -155,11 +177,12 @@ class PLL_Active_Languages {
 	 * Sets error 404 if the requested language is not active
 	 *
 	 * @since 1.9
+	 *
+	 * @return void
 	 */
 	public function maybe_set_404() {
-		if ( isset( $this->curlang->active ) && false === $this->curlang->active ) {
+		if ( isset( $this->curlang, $this->curlang->active ) && false === $this->curlang->active ) {
 			$GLOBALS['wp_query']->set_404();
-
 			add_filter( 'wp_sitemaps_enabled', '__return_false' );
 
 			/**
@@ -175,6 +198,8 @@ class PLL_Active_Languages {
 	 * Styles the border
 	 *
 	 * @since 1.9
+	 *
+	 * @return void
 	 */
 	public function print_css() {
 		?>
@@ -199,22 +224,22 @@ class PLL_Active_Languages {
 	 * Removes inactive languages from the list of languages for users who can't edit posts
 	 *
 	 * @since 1.9
+	 *
+	 * @return void
 	 */
 	public function init() {
-		if ( ! current_user_can( 'edit_posts' ) ) {
-			$languages = $this->remove_inactive_languages( $this->model->get_languages_list() );
-			$this->model->cache->set( 'languages', $languages ); // FIXME access to $this->model->cache which I would prefer to keep protected.
-			$this->maybe_set_404();
-		}
+		$languages = $this->remove_inactive_languages( $this->model->get_languages_list() );
+		$this->model->cache->set( 'languages', $languages ); // FIXME access to $this->model->cache which I would prefer to keep protected.
+		add_action( 'wp', array( $this, 'maybe_set_404' ) );
 	}
 
 	/**
-	 * Removes inactive languages from the list of languages
+	 * Removes inactive languages from the list of languages.
 	 *
 	 * @since 1.9.3
 	 *
-	 * @param array $languages Array of PLL_Language objects.
-	 * @return array
+	 * @param PLL_Language[] $languages Array of PLL_Language objects.
+	 * @return PLL_Language[]
 	 */
 	public function remove_inactive_languages( $languages ) {
 		foreach ( $languages as $k => $lang ) {

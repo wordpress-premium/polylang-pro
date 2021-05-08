@@ -9,8 +9,60 @@
  * @since 1.9
  */
 class PLL_License {
-	public $id, $name, $license_key, $license_data;
-	private $file, $version, $author;
+	/**
+	 * Sanitized plugin name.
+	 *
+	 * @var string
+	 */
+	public $id;
+
+	/**
+	 * Plugin name.
+	 *
+	 * @var string
+	 */
+	public $name;
+
+	/**
+	 * License key.
+	 *
+	 * @var string
+	 */
+	public $license_key;
+
+	/**
+	 * License data, obtained from the API request.
+	 *
+	 * @var stdClass
+	 */
+	public $license_data;
+
+	/**
+	 * Main plugin file.
+	 *
+	 * @var string
+	 */
+	private $file;
+
+	/**
+	 * Current plugin version.
+	 *
+	 * @var string
+	 */
+	private $version;
+
+	/**
+	 * Plugin author.
+	 *
+	 * @var string
+	 */
+	private $author;
+
+	/**
+	 * API url.
+	 *
+	 * @var string.
+	 */
 	private $api_url = 'https://polylang.pro';
 
 	/**
@@ -57,6 +109,8 @@ class PLL_License {
 	 * Auto updater
 	 *
 	 * @since 1.9
+	 *
+	 * @return void
 	 */
 	public function auto_updater() {
 		$args = array(
@@ -132,6 +186,7 @@ class PLL_License {
 	 * @since 1.9
 	 *
 	 * @param string $request check_license | activate_license | deactivate_license
+	 * @return void
 	 */
 	private function api_request( $request ) {
 		$licenses = get_option( 'polylang_licenses' );
@@ -191,11 +246,12 @@ class PLL_License {
 			$license = $this->license_data;
 		}
 
-		$class = 'license-null';
+		$class   = 'license-null';
+		$message = '';
 
 		$out = sprintf(
 			'<td><label for="pll-licenses[%1$s]">%2$s</label></td>' .
-			'<td><input name="licenses[%1$s]" id="pll-licenses[%1$s]" type="text" value="%3$s" class="regular-text code" />',
+			'<td><input name="licenses[%1$s]" id="pll-licenses[%1$s]" type="password" value="%3$s" class="regular-text code" />',
 			esc_attr( $this->id ),
 			esc_attr( $this->name ),
 			esc_html( $this->license_key )
@@ -220,7 +276,7 @@ class PLL_License {
 							/* translators: %1$s is a date, %2$s is link start tag, %3$s is link end tag. */
 							esc_html__( 'Your license key expired on %1$s. Please %2$srenew your license key%3$s.', 'polylang' ),
 							esc_html( date_i18n( get_option( 'date_format' ), $expiration ) ),
-							sprintf( '<a href="%s" target="_blank">', esc_url( 'https://polylang.pro/checkout/?edd_license_key=' . $this->license_key ) ),
+							sprintf( '<a href="%s" target="_blank">', 'https://polylang.pro/account/' ),
 							'</a>'
 						);
 						break;
@@ -234,7 +290,7 @@ class PLL_License {
 						$message = sprintf(
 							/* translators: %1$s is link start tag, %2$s is link end tag. */
 							esc_html__( 'Invalid license. Please %1$svisit your account page%2$s and verify it.', 'polylang' ),
-							sprintf( '<a href="%s" target="_blank">', 'https://polylang.pro/account' ),
+							sprintf( '<a href="%s" target="_blank">', 'https://polylang.pro/account/' ),
 							'</a>'
 						);
 						break;
@@ -245,7 +301,7 @@ class PLL_License {
 							/* translators: %1$s is a product name, %2$s is link start tag, %3$s is link end tag. */
 							esc_html__( 'Your %1$s license key is not active for this URL. Please %2$svisit your account page%3$s to manage your license key URLs.', 'polylang' ),
 							esc_html( $this->name ),
-							sprintf( '<a href="%s" target="_blank">', 'https://polylang.pro/account' ),
+							sprintf( '<a href="%s" target="_blank">', 'https://polylang.pro/account/' ),
 							'</a>'
 						);
 						break;
@@ -259,7 +315,7 @@ class PLL_License {
 						$message = sprintf(
 							/* translators: %1$s is link start tag, %2$s is link end tag */
 							esc_html__( 'Your license key has reached its activation limit. %1$sView possible upgrades%2$s now.', 'polylang' ),
-							sprintf( '<a href="%s" target="_blank">', 'https://polylang.pro/account' ),
+							sprintf( '<a href="%s" target="_blank">', 'https://polylang.pro/account/' ),
 							'</a>'
 						);
 						break;
@@ -277,7 +333,7 @@ class PLL_License {
 						/* translators: %1$s is a date, %2$s is link start tag, %3$s is link end tag. */
 						esc_html__( 'Your license key will expire soon! Precisely, it will expire on %1$s. %2$sRenew your license key today!%3$s.', 'polylang' ),
 						esc_html( date_i18n( get_option( 'date_format' ), $expiration ) ),
-						sprintf( '<a href="%s" target="_blank">', esc_url( 'https://polylang.pro/checkout/?edd_license_key=' . $this->license_key ) ),
+						sprintf( '<a href="%s" target="_blank">', 'https://polylang.pro/account/' ),
 						'</a>'
 					);
 				} else {

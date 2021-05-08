@@ -9,17 +9,49 @@
  * @since 1.6
  */
 abstract class PLL_Links_Permalinks extends PLL_Links_Model {
+	/**
+	 * Tells this child class of PLL_Links_Model is for pretty permalinks.
+	 *
+	 * @var bool
+	 */
 	public $using_permalinks = true;
-	protected $index = 'index.php'; // Need this before $wp_rewrite is created, also hardcoded in wp-includes/rewrite.php
-	protected $root, $use_trailing_slashes;
+
+	/**
+	 * The name of the index file which is the entry point to all requests.
+	 * We need this before the global $wp_rewrite is created.
+	 * Also hardcoded in WP_Rewrite.
+	 *
+	 * @var string
+	 */
+	protected $index = 'index.php';
+
+	/**
+	 * The prefix for all permalink structures.
+	 *
+	 * @var string
+	 */
+	protected $root;
+
+	/**
+	 * Whether to add trailing slashes.
+	 *
+	 * @var bool
+	 */
+	protected $use_trailing_slashes;
+
+	/**
+	 * The name of the rewrite rules to always modify.
+	 *
+	 * @var string[]
+	 */
 	protected $always_rewrite = array( 'date', 'root', 'comments', 'search', 'author' );
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
 	 * @since 1.8
 	 *
-	 * @param object $model PLL_Model instance
+	 * @param PLL_Model $model PLL_Model instance.
 	 */
 	public function __construct( &$model ) {
 		parent::__construct( $model );
@@ -73,11 +105,11 @@ abstract class PLL_Links_Permalinks extends PLL_Links_Model {
 	}
 
 	/**
-	 * Returns the home url
+	 * Returns the home url.
 	 *
 	 * @since 1.3.1
 	 *
-	 * @param object $lang PLL_Language object
+	 * @param PLL_Language $lang PLL_Language object.
 	 * @return string
 	 */
 	public function home_url( $lang ) {
@@ -85,12 +117,12 @@ abstract class PLL_Links_Permalinks extends PLL_Links_Model {
 	}
 
 	/**
-	 * Returns the static front page url
+	 * Returns the static front page url.
 	 *
 	 * @since 1.8
 	 *
-	 * @param object $lang
-	 * @return string
+	 * @param PLL_Language $lang The language object.
+	 * @return string The static front page url.
 	 */
 	public function front_page_url( $lang ) {
 		if ( $this->options['hide_default'] && $lang->slug == $this->options['default_lang'] ) {
@@ -105,6 +137,8 @@ abstract class PLL_Links_Permalinks extends PLL_Links_Model {
 	 * Prepares rewrite rules filters
 	 *
 	 * @since 1.6
+	 *
+	 * @return string[]
 	 */
 	public function get_rewrite_rules_filters() {
 		// Make sure we have the right post types and taxonomies

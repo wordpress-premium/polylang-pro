@@ -11,17 +11,22 @@
  * @since 1.2
  */
 class PLL_Links_Default extends PLL_Links_Model {
+	/**
+	 * Tells this child class of PLL_Links_Model does not use pretty permalinks.
+	 *
+	 * @var bool
+	 */
 	public $using_permalinks = false;
 
 	/**
-	 * Adds language information to an url
-	 * links_model interface
+	 * Adds the language code in a url.
+	 * links_model interface.
 	 *
 	 * @since 1.2
 	 *
-	 * @param string $url  url to modify
-	 * @param object $lang language
-	 * @return string modified url
+	 * @param string       $url  The url to modify.
+	 * @param PLL_Language $lang The language object.
+	 * @return string Modified url.
 	 */
 	public function add_language_to_link( $url, $lang ) {
 		return empty( $lang ) || ( $this->options['hide_default'] && $this->options['default_lang'] == $lang->slug ) ? $url : add_query_arg( 'lang', $lang->slug, $url );
@@ -86,12 +91,12 @@ class PLL_Links_Default extends PLL_Links_Model {
 	}
 
 	/**
-	 * Returns the static front page url
+	 * Returns the static front page url.
 	 *
 	 * @since 1.8
 	 *
-	 * @param object $lang
-	 * @return string
+	 * @param PLL_Language $lang The language object.
+	 * @return string The static front page url.
 	 */
 	public function front_page_url( $lang ) {
 		if ( $this->options['hide_default'] && $lang->slug == $this->options['default_lang'] ) {

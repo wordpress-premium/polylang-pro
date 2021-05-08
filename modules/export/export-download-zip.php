@@ -18,16 +18,16 @@ class PLL_Export_Download_Zip {
 	private $zip_name;
 
 	/**
-	 * Size of the zipped file
+	 * Size of the zipped file.
 	 *
-	 * @var $zip_size
+	 * @var int
 	 */
 	private $zip_size;
 
 	/**
-	 * The file path
+	 * The file path.
 	 *
-	 * @var string $filepath
+	 * @var string
 	 */
 	private $filepath;
 
@@ -75,6 +75,8 @@ class PLL_Export_Download_Zip {
 	 * Also exits the current script.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	public function send_response() {
 		$this->send_headers();
@@ -85,6 +87,8 @@ class PLL_Export_Download_Zip {
 	 * Set correct headers for downloading a file in the browser.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	private function send_headers() {
 		header( 'Content-Disposition: attachment; filename=' . $this->zip_name );
@@ -96,6 +100,8 @@ class PLL_Export_Download_Zip {
 	 * Outputs in the buffer the zipped file and delete the local zip.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	private function download() {
 		ob_clean();

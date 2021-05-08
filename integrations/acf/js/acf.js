@@ -2,7 +2,7 @@
  * @package Polylang-Pro
  */
 
-jQuery( document ).ready(
+jQuery(
 	function( $ ) {
 		/**
 		 * Ajax for changing the post's language in the languages metabox.

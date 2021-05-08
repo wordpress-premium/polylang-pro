@@ -2,6 +2,11 @@
  * @package Polylang
  */
 
+import {
+	initializeLanguageOldValue,
+	initializeConfimationModal
+} from './lib/confirmation-modal';
+
 /**
  * Filter REST API requests to add the language in the request
  *
@@ -35,126 +40,170 @@ function getCurrentLanguage() {
 }
 
 /**
- * Save post after lang choice is done and redirect to the same page for refreshing all the data
- *
- * @since 2.5
- */
-jQuery(
-	function( $ ) {
-		// savePost after changing the post's language and reload page for refreshing post translated data
-		$( '.post_lang_choice' ).on(
-			'change',
-			function() {
-				const select = wp.data.select;
-				const dispatch = wp.data.dispatch;
-				const subscribe = wp.data.subscribe;
-
-				let unsubscribe = null;
-
-				// Listen if the savePost is done
-				const savePostIsDone = new Promise(
-					function( resolve, reject ) {
-						unsubscribe = subscribe(
-							function() {
-								const isSavePostSucceeded = select( 'core/editor' ).didPostSaveRequestSucceed();
-								const isSavePostFailed = select( 'core/editor' ).didPostSaveRequestFail();
-								if ( isSavePostSucceeded || isSavePostFailed ) {
-									if ( isSavePostFailed ) {
-										reject();
-									} else {
-										resolve();
-									}
-								}
-							}
-						);
-					}
-				);
-
-				// Specific case for empty posts
-				if ( location.pathname.match( /post-new.php/gi ) ) {
-					const title = select( 'core/editor' ).getEditedPostAttribute( 'title' );
-					const content = select( 'core/editor' ).getEditedPostAttribute( 'content' );
-					const excerpt = select( 'core/editor' ).getEditedPostAttribute( 'excerpt' );
-					if ( '' === title && '' === content && '' === excerpt ) {
-						// Change the new_lang parameter with the new language value for reloading the page
-						// WPCS location.search is never written in the page, just used to relaoad page ( See line 94 ) with the right value of new_lang
-						// new_lang input is controlled server side in PHP. The value come from the dropdown list of language returned and escaped server side
-						if ( -1 != location.search.indexOf( 'new_lang' ) ) {
-							// use regexp non capturing group to replace new_lang parameter no matter where it is and capture other parameters which can be behind it
-							window.location.search = window.location.search.replace( /(?:new_lang=[^&]*)(&)?(.*)/, 'new_lang=' + this.value + '$1$2' ); // phpcs:ignore WordPressVIPMinimum.JS.Window.location, WordPressVIPMinimum.JS.Window.VarAssignment
-						} else {
-							window.location.search = window.location.search + ( ( -1 != window.location.search.indexOf( '?' ) ) ? '&' : '?' ) + 'new_lang=' + this.value; // phpcs:ignore WordPressVIPMinimum.JS.Window.location, WordPressVIPMinimum.JS.Window.VarAssignment
-						}
-					}
-				}
-
-				// For empty posts savePost does nothing
-				dispatch( 'core/editor' ).savePost();
-
-				savePostIsDone.then(
-					function() {
-						// If the post is well saved, we can reload the page
-						unsubscribe();
-						window.location.reload();
-					},
-					function() {
-						// If the post save failed
-						unsubscribe();
-					}
-				).catch(
-					function() {
-						// If an exception is thrown
-						unsubscribe();
-					}
-				);
-			}
-		);
-	}
-);
-
-/**
  * Handles internals of the metabox:
  * Language select, autocomplete input field.
  *
  * @since 1.5
+ *
+ * Save post after lang choice is done and redirect to the same page for refreshing all the data.
+ *
+ * @since 2.5
+ *
+ * Link post saving after refreshing the metabox.
+ *
+ * @since 3.0
  */
 jQuery(
 	function( $ ) {
+		// Initialize current language to be able to compare if it changes.
+		initializeLanguageOldValue();
+
+
 		// Ajax for changing the post's language in the languages metabox
 		$( '.post_lang_choice' ).on(
 			'change',
-			function() {
-				var data = {
-					action:     'post_lang_choice',
-					lang:       $( this ).val(),
-					post_type:  $( '#post_type' ).val(),
-					post_id:    $( '#post_ID' ).val(),
-					_pll_nonce: $( '#_pll_nonce' ).val()
+			function( event ) {
+				const select = wp.data.select;
+				const dispatch = wp.data.dispatch;
+				const subscribe = wp.data.subscribe;
+				const emptyPost = isEmptyPost();
+
+				// Initialize the confirmation dialog box.
+				const confirmationModal = initializeConfimationModal();
+				const { dialogContainer : dialog } = confirmationModal;
+				let { dialogResult } = confirmationModal;
+				// The selected option in the dropdown list.
+				const selectedOption = event.target;
+
+				// Specific case for empty posts.
+				// Place at the beginning because window.location changing triggers automatically page reloading.
+				if ( location.pathname.match( /post-new.php/gi ) && emptyPost ) {
+					reloadPageForEmptyPost( selectedOption.value );
 				}
 
-				$.post(
-					ajaxurl,
-					data,
-					function( response ) {
-						var res = wpAjax.parseAjaxResponse( response, 'ajax-response' );
-						$.each(
-							res.responses,
-							function() {
-								switch ( this.what ) {
-									case 'translations': // Translations fields
-										// Data is built and come from server side and is well escaped when necessary
-										$( '.translations' ).html( this.data ); // phpcs:ignore WordPressVIPMinimum.JS.HTMLExecutingFunctions.html
-										init_translations();
-									break;
-									case 'flag': // Flag in front of the select dropdown
-										// Data is built and come from server side and is well escaped when necessary
-										$( '.pll-select-flag' ).html( this.data ); // phpcs:ignore WordPressVIPMinimum.JS.HTMLExecutingFunctions.html
-									break;
-								}
+				// Otherwise send an ajax request to refresh the legacy metabox and set the post language with the new language.
+				// It needs a confirmation of the user before changing the language.
+				// Need to wait the ajax response before triggering the block editor post save action.
+				if ( $( this ).data( 'old-value' ) !== selectedOption.value && ! emptyPost ) {
+					dialog.dialog( 'open' );
+				} else {
+					// Update the old language with the new one to be able to compare it in the next changing.
+					// Because the page isn't reloaded in this case.
+					initializeLanguageOldValue();
+					dialogResult = Promise.resolve();
+				}
+
+				dialogResult.then(
+					() => {
+						var data = { // phpcs:ignore PEAR.Functions.FunctionCallSignature.Indent
+							action:     'post_lang_choice',
+							lang:       selectedOption.value,
+							post_type:  $( '#post_type' ).val(),
+							post_id:    $( '#post_ID' ).val(),
+							_pll_nonce: $( '#_pll_nonce' ).val()
+						}
+
+						$.post(
+							ajaxurl,
+							data,
+							function( response ) {
+								var res = wpAjax.parseAjaxResponse( response, 'ajax-response' );
+								$.each(
+									res.responses,
+									function() {
+										switch ( this.what ) {
+											case 'translations': // Translations fields
+												// Data is built and come from server side and is well escaped when necessary
+												$( '.translations' ).html( this.data ); // phpcs:ignore WordPressVIPMinimum.JS.HTMLExecutingFunctions.html
+												init_translations();
+											break;
+											case 'flag': // Flag in front of the select dropdown
+												// Data is built and come from server side and is well escaped when necessary
+												$( '.pll-select-flag' ).html( this.data ); // phpcs:ignore WordPressVIPMinimum.JS.HTMLExecutingFunctions.html
+											break;
+										}
+									}
+								);
+								blockEditorSavePostAndReloadPage();
 							}
 						);
-					}
+					},
+					() => {} // Do nothing when promise is rejected by clicking the Cancel dialog button.
 				);
+
+				function isEmptyPost() {
+					const editor = wp.data.select( 'core/editor' );
+					const title = editor.getEditedPostAttribute( 'title' ).trim();
+					const content = editor.getEditedPostAttribute( 'content' ).trim();
+					const excerpt = editor.getEditedPostAttribute( 'excerpt' ).trim();
+
+					return ! title && ! content && ! excerpt;
+				}
+
+				/**
+				 * Reload the block editor page for empty posts.
+				 *
+				 * @param {string} lang The target language code.
+				 */
+				function reloadPageForEmptyPost( lang ) {
+					// Change the new_lang parameter with the new language value for reloading the page
+					// WPCS location.search is never written in the page, just used to reload page with the right value of new_lang
+					// new_lang input is controlled server side in PHP. The value come from the dropdown list of language returned and escaped server side.
+					// Notice that window.location changing triggers automatically page reloading.
+					if ( -1 != location.search.indexOf( 'new_lang' ) ) {
+						// use regexp non capturing group to replace new_lang parameter no matter where it is and capture other parameters which can be behind it
+						window.location.search = window.location.search.replace( /(?:new_lang=[^&]*)(&)?(.*)/, 'new_lang=' + lang + '$1$2' ); // phpcs:ignore WordPressVIPMinimum.JS.Window.location, WordPressVIPMinimum.JS.Window.VarAssignment
+					} else {
+						window.location.search = window.location.search + ( ( -1 != window.location.search.indexOf( '?' ) ) ? '&' : '?' ) + 'new_lang=' + lang; // phpcs:ignore WordPressVIPMinimum.JS.Window.location, WordPressVIPMinimum.JS.Window.VarAssignment
+					}
+				};
+
+				/**
+				 * Triggers block editor post save and reload the block editor page when everything is ok.
+				 */
+				function blockEditorSavePostAndReloadPage() {
+
+					let unsubscribe = null;
+
+					// Listen if the savePost is completely done by subscribing to its events.
+					const savePostIsDone = new Promise(
+						function( resolve, reject ) {
+							unsubscribe = subscribe(
+								function() {
+									const isSavePostSucceeded = select( 'core/editor' ).didPostSaveRequestSucceed();
+									const isSavePostFailed = select( 'core/editor' ).didPostSaveRequestFail();
+									if ( isSavePostSucceeded || isSavePostFailed ) {
+										if ( isSavePostFailed ) {
+											reject();
+										} else {
+											resolve();
+										}
+									}
+								}
+							);
+						}
+					);
+
+					// Triggers the post save.
+					dispatch( 'core/editor' ).savePost();
+
+					// Process
+					savePostIsDone.then(
+						function() {
+							// If the post is well saved, we can reload the page
+							window.location.reload();
+						},
+						function() {
+							// If the post save failed
+							unsubscribe();
+						}
+					).catch(
+						function() {
+							// If an exception is thrown
+							unsubscribe();
+						}
+					);
+				};
 			}
 		);
 

@@ -14,7 +14,7 @@ class PLL_Admin_Loader {
 	 *
 	 * @var object
 	 */
-	protected $poylang;
+	protected $polylang;
 
 	/**
 	 * Name of the property to create.
@@ -42,12 +42,14 @@ class PLL_Admin_Loader {
 	 * Finds out if the block editor is in use and loads the correct class accordingly.
 	 *
 	 * @since 2.8
+	 *
+	 * @return void
 	 */
 	public function load() {
-		if ( 'post-new.php' === $GLOBALS['pagenow'] && function_exists( 'use_block_editor_for_post' ) ) {
+		if ( 'post-new.php' === $GLOBALS['pagenow'] ) {
 			// We need to wait until we know which editor is in use
 			add_filter( 'use_block_editor_for_post', array( $this, '_load' ), 999 ); // After the plugin Classic Editor
-		} elseif ( 'post.php' === $GLOBALS['pagenow'] && function_exists( 'use_block_editor_for_post' ) && isset( $_GET['post'] ) && empty( $_GET['meta-box-loader'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		} elseif ( 'post.php' === $GLOBALS['pagenow'] && isset( $_GET['action'], $_GET['post'] ) && 'edit' === $_GET['action'] && empty( $_GET['meta-box-loader'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$this->_load( use_block_editor_for_post( (int) $_GET['post'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		} else {
 			$this->_load( false );

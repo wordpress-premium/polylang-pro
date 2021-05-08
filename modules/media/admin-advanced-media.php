@@ -10,12 +10,29 @@
  */
 class PLL_Admin_Advanced_Media {
 	/**
+	 * Stores the plugin options.
+	 *
+	 * @var array
+	 */
+	public $options;
+
+	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
+	 * @var PLL_CRUD_Posts
+	 */
+	public $posts;
+
+	/**
 	 * Constructor: setups filters and actions
 	 *
 	 * @since 1.9
 	 * @since 2.7 Now registers an option for the Translate bulk action.
 	 *
-	 * @param object $polylang Polylang object.
+	 * @param PLL_Admin $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		$this->options = &$polylang->options;
@@ -38,8 +55,25 @@ class PLL_Admin_Advanced_Media {
 		}
 
 		if ( ! empty( $this->options['media']['duplicate'] ) ) {
+			add_filter( 'wp_insert_attachment_data', array( $this, 'attachment_data' ), 10, 2 );
 			add_action( 'add_attachment', array( $this, 'duplicate_media' ), 20 ); // After Polylang.
 		}
+	}
+
+	/**
+	 * Disables the duplication if we are uploading a plugin or theme.
+	 *
+	 * @since 3.0
+	 *
+	 * @param array $data    An array of slashed, sanitized, and processed attachment post data, unused.
+	 * @param array $postarr An array of slashed and sanitized attachment post data, but not processed.
+	 * @return array Unmodified $data.
+	 */
+	public function attachment_data( $data, $postarr ) {
+		if ( 'upgrader' === $postarr['context'] ) {
+			add_filter( 'pll_enable_duplicate_media', '__return_false' );
+		}
+		return $data;
 	}
 
 	/**
@@ -48,6 +82,7 @@ class PLL_Admin_Advanced_Media {
 	 * @since 1.9
 	 *
 	 * @param int $post_id The id of the attachment to duplicate.
+	 * @return void
 	 */
 	public function duplicate_media( $post_id ) {
 		static $avoid_recursion = false;

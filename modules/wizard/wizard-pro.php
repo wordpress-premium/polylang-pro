@@ -11,16 +11,12 @@
 class PLL_Wizard_Pro {
 
 	/**
-	 * Reference to PLL_Model object
-	 *
-	 * @var object $model
+	 * @var PLL_Model
 	 */
 	public $model;
 
 	/**
-	 * Reference to Polylang PLL_Sync_Post_Model object
-	 *
-	 * @var object $sync_model
+	 * @var PLL_Sync_Post_Model
 	 */
 	protected $sync_model;
 
@@ -43,6 +39,8 @@ class PLL_Wizard_Pro {
 	 * Replace function to apply to process the home page transations creation.
 	 *
 	 * @since 2.7
+	 *
+	 * @return callable
 	 */
 	public function replace_create_home_page_translations() {
 		return array( $this, 'create_home_page_translations' );
@@ -58,6 +56,7 @@ class PLL_Wizard_Pro {
 	 * @param string $home_page_title        home page title if it's defined, 'Homepage' otherwise.
 	 * @param string $home_page_language     slug of the home page if it's defined, false otherwise.
 	 * @param array  $untranslated_languages array of languages which needs to have a home page translated.
+	 * @return void
 	 */
 	public function create_home_page_translations( $default_language, $home_page, $home_page_title, $home_page_language, $untranslated_languages ) {
 		global $wpdb;

@@ -25,11 +25,9 @@ class PLL_Import_Export {
 	const STRINGS_TRANSLATION = 'strings-translations';
 
 	/**
-	 * Reference to the instance of PLL_Admin_Model
-	 *
 	 * @since 2.7
 	 *
-	 * @var PLL_Admin_Model
+	 * @var PLL_Model
 	 */
 	private $model;
 
@@ -48,7 +46,7 @@ class PLL_Import_Export {
 	 *
 	 * @since 2.7
 	 *
-	 * @param PLL_Base Current $polylang instance of the Polylang context.
+	 * @param PLL_Base $polylang Current instance of the Polylang context.
 	 */
 	public function __construct( &$polylang ) {
 		$this->model = &$polylang->model;
@@ -63,6 +61,8 @@ class PLL_Import_Export {
 	 * Add Metaboxes, shown only if there is more than one language registered.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	public function add_meta_boxes() {
 		if ( 1 < count( $this->model->get_languages_list() ) ) {
@@ -88,6 +88,8 @@ class PLL_Import_Export {
 	 * Metabox export strings.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	public function metabox_export_strings() {
 		include POLYLANG_PRO_DIR . '/modules/export/view-tab-export-strings.php';
@@ -97,6 +99,8 @@ class PLL_Import_Export {
 	 * Metabox import translations.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	public function metabox_import_translation() {
 		include POLYLANG_PRO_DIR . '/modules/import/view-tab-import-translations.php';
@@ -106,6 +110,8 @@ class PLL_Import_Export {
 	 * Launch the import action.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	public function import_action() {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -120,6 +126,8 @@ class PLL_Import_Export {
 	 * Handles the triggering of the import class.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	protected function trigger_import() {
 		$import = new PLL_Import_Action( $this->model );
@@ -130,6 +138,8 @@ class PLL_Import_Export {
 	 * Launch the strings translation export.
 	 *
 	 * @since 2.7
+	 *
+	 * @return void
 	 */
 	public function export_strings_translation() {
 		if ( isset( $_POST['export'] ) && 'string-translation' === $_POST['export'] ) {

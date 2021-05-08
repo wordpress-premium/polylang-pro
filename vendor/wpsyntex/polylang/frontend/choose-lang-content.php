@@ -15,6 +15,8 @@ class PLL_Choose_Lang_Content extends PLL_Choose_Lang {
 	 * Defers the language choice to the 'wp' action (when the content is known)
 	 *
 	 * @since 1.8
+	 *
+	 * @return void
 	 */
 	public function init() {
 		parent::init();
@@ -29,11 +31,12 @@ class PLL_Choose_Lang_Content extends PLL_Choose_Lang {
 	}
 
 	/**
-	 * Overwrites parent::set_language to remove the 'wp' action if the language is set before
+	 * Overwrites parent::set_language to remove the 'wp' action if the language is set before.
 	 *
 	 * @since 1.2
 	 *
-	 * @param object $curlang current language
+	 * @param PLL_Language $curlang Current language.
+	 * @return void
 	 */
 	protected function set_language( $curlang ) {
 		parent::set_language( $curlang );
@@ -64,29 +67,31 @@ class PLL_Choose_Lang_Content extends PLL_Choose_Lang {
 
 		else {
 			foreach ( $this->model->get_translated_taxonomies() as $taxonomy ) {
-				if ( $var = get_query_var( get_taxonomy( $taxonomy )->query_var ) ) {
+				$tax_object = get_taxonomy( $taxonomy );
+				if ( ! empty( $tax_object ) && $var = get_query_var( $tax_object->query_var ) ) {
 					$lang = $this->model->term->get_language( $var, $taxonomy );
 				}
 			}
 		}
 
 		/**
-		 * Filter the language before it is set from the content
+		 * Filters the language before it is set from the content.
 		 *
 		 * @since 0.9
 		 *
-		 * @param bool|object $lang language object or false if none was found
+		 * @param PLL_Language|false $lang Language object or false if none was found.
 		 */
 		return apply_filters( 'pll_get_current_language', isset( $lang ) ? $lang : false );
 	}
 
 	/**
-	 * Sets the language for home page
-	 * Add the lang query var when querying archives with no language code
+	 * Sets the language for the home page.
+	 * Adds the lang query var when querying archives with no language code.
 	 *
 	 * @since 1.2
 	 *
-	 * @param object $query instance of WP_Query
+	 * @param WP_Query $query Instance of WP_Query.
+	 * @return void
 	 */
 	public function parse_main_query( $query ) {
 		if ( empty( $GLOBALS['wp_the_query'] ) || $query !== $GLOBALS['wp_the_query'] ) {
@@ -122,21 +127,23 @@ class PLL_Choose_Lang_Content extends PLL_Choose_Lang {
 	 * Sets the language from content
 	 *
 	 * @since 1.2
+	 *
+	 * @return void
 	 */
 	public function wp() {
 		// Nothing to do if the language has already been set ( although normally the filter has been removed )
-		if ( ! $this->curlang && $curlang = $this->get_language_from_content() ) {
+		if ( empty( $this->curlang ) && $curlang = $this->get_language_from_content() ) {
 			parent::set_language( $curlang );
 		}
 	}
 
 	/**
-	 * If no language found by get_language_from_content, return the preferred one
+	 * If no language is found by {@see PLL_Choose_Lang_Content::get_language_from_content()}, returns the preferred one.
 	 *
 	 * @since 0.9
 	 *
-	 * @param object|bool $lang Language found in get_language_from_content
-	 * @return object Language
+	 * @param PLL_Language|false $lang Language found by {@see PLL_Choose_Lang_Content::get_language_from_content()}.
+	 * @return PLL_Language
 	 */
 	public function pll_get_current_language( $lang ) {
 		return ! $lang ? $this->get_preferred_language() : $lang;

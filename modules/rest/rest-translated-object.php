@@ -10,15 +10,13 @@
  */
 abstract class PLL_REST_Translated_Object extends PLL_REST_Filtered_Object {
 	/**
-	 * Instance of PLL_Links
-	 *
-	 * @var object
+	 * @var PLL_Admin_Links
 	 */
 	public $links;
 
 	/**
-	 * How is named the object id, typically 'ID' for posts and 'term_id' for terms
-	 * defined by the child class
+	 * How is named the object id, typically 'ID' for posts and 'term_id' for terms.
+	 * Must be defined by the child class.
 	 *
 	 * @var string
 	 */

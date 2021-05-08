@@ -9,14 +9,50 @@
  * @since 2.6
  */
 class PLL_Sync_Content {
-	public $options, $model, $posts;
+	/**
+	 * Stores the plugin options.
+	 *
+	 * @var array
+	 */
+	public $options;
+
+	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
+	 * Instance of a child class of PLL_Links_Model.
+	 *
+	 * @var PLL_Links_Model
+	 */
+	public $links_model;
+
+	/**
+	 * @var PLL_CRUD_Posts
+	 */
+	public $posts;
+
+	/**
+	 * Id of the target post.
+	 *
+	 * @var int
+	 */
+	public $post_id;
+
+	/**
+	 * Language of the target post.
+	 *
+	 * @var PLL_Language
+	 */
+	public $language;
 
 	/**
 	 * Constructor
 	 *
 	 * @since 1.9
 	 *
-	 * @param object $polylang
+	 * @param PLL_Frontend|PLL_Admin|PLL_Settings|PLL_REST_Request $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		$this->options = &$polylang->options;
@@ -54,49 +90,52 @@ class PLL_Sync_Content {
 	public function duplicate_term( $tr_term, $term, $lang ) {
 		if ( empty( $tr_term ) ) {
 			$term = get_term( $term );
-			$language = $this->model->term->get_language( $term->term_id );
 
-			if ( $language && $language->slug !== $lang ) { // Create a new term translation only if the source term has a language.
-				$tr_parent = empty( $term->parent ) ? 0 : $this->model->term->get_translation( $term->parent, $lang );
+			if ( $term instanceof WP_Term ) {
+				$language = $this->model->term->get_language( $term->term_id );
 
-				// Duplicate the parent if the parent translation doesn't exist yet.
-				if ( empty( $tr_parent ) && ! empty( $term->parent ) ) {
-					$tr_parent = $this->duplicate_term( $tr_parent, $term->parent, $lang );
-				}
+				if ( $language && $language->slug !== $lang ) { // Create a new term translation only if the source term has a language.
+					$tr_parent = empty( $term->parent ) ? 0 : $this->model->term->get_translation( $term->parent, $lang );
 
-				$args = array(
-					'description' => wp_slash( $term->description ),
-					'parent'      => $tr_parent,
-				);
+					// Duplicate the parent if the parent translation doesn't exist yet.
+					if ( empty( $tr_parent ) && ! empty( $term->parent ) ) {
+						$tr_parent = $this->duplicate_term( $tr_parent, $term->parent, $lang );
+					}
 
-				if ( $this->options['force_lang'] ) {
-					// Share slugs
-					$args['slug'] = $term->slug . '___' . $lang;
-				} else {
-					// Language set from the content: assign a different slug
-					// otherwise we would change the current term language instead of creating a new term
-					$args['slug'] = sanitize_title( $term->name ) . '-' . $lang;
-				}
+					$args = array(
+						'description' => wp_slash( $term->description ),
+						'parent'      => $tr_parent,
+					);
 
-				$t = wp_insert_term( wp_slash( $term->name ), $term->taxonomy, $args );
+					if ( $this->options['force_lang'] ) {
+						// Share slugs
+						$args['slug'] = $term->slug . '___' . $lang;
+					} else {
+						// Language set from the content: assign a different slug
+						// otherwise we would change the current term language instead of creating a new term
+						$args['slug'] = sanitize_title( $term->name ) . '-' . $lang;
+					}
 
-				if ( is_array( $t ) && isset( $t['term_id'] ) ) {
-					$tr_term = $t['term_id'];
-					$this->model->term->set_language( $tr_term, $lang );
-					$translations = $this->model->term->get_translations( $term->term_id );
-					$translations[ $lang ] = $tr_term;
-					$this->model->term->save_translations( $term->term_id, $translations );
+					$t = wp_insert_term( wp_slash( $term->name ), $term->taxonomy, $args );
 
-					/**
-					 * Fires after a term translation is automatically created when duplicating a post
-					 *
-					 * @since 2.3.8
-					 *
-					 * @param int    $from Term id of the source term
-					 * @param int    $to   Term id of the new term translation
-					 * @param string $lang Language code of the new translation
-					 */
-					do_action( 'pll_duplicate_term', $term->term_id, $tr_term, $lang );
+					if ( is_array( $t ) && isset( $t['term_id'] ) ) {
+						$tr_term = $t['term_id'];
+						$this->model->term->set_language( $tr_term, $lang );
+						$translations = $this->model->term->get_translations( $term->term_id );
+						$translations[ $lang ] = $tr_term;
+						$this->model->term->save_translations( $term->term_id, $translations );
+
+						/**
+						 * Fires after a term translation is automatically created when duplicating a post
+						 *
+						 * @since 2.3.8
+						 *
+						 * @param int    $from Term id of the source term
+						 * @param int    $to   Term id of the new term translation
+						 * @param string $lang Language code of the new translation
+						 */
+						do_action( 'pll_duplicate_term', $term->term_id, $tr_term, $lang );
+					}
 				}
 			}
 		}
@@ -108,9 +147,10 @@ class PLL_Sync_Content {
 	 *
 	 * @since 1.9
 	 *
-	 * @param object        $from_post The post to copy from
-	 * @param object        $post      The post to copy to
-	 * @param object|string $language  The language of the post to copy to
+	 * @param WP_Post             $from_post The post to copy from.
+	 * @param WP_Post             $post      The post to copy to.
+	 * @param PLL_Language|string $language  The language of the post to copy to.
+	 * @return WP_Post|void
 	 */
 	public function copy_content( $from_post, $post, $language ) {
 		global $shortcode_tags;
@@ -118,7 +158,7 @@ class PLL_Sync_Content {
 		$this->post_id  = $post->ID;
 		$this->language = $this->model->get_language( $language );
 
-		if ( ! $from_post || ! $this->language ) {
+		if ( ! $this->language ) {
 			return;
 		}
 
@@ -182,10 +222,10 @@ class PLL_Sync_Content {
 	 *
 	 * @since 1.9
 	 *
-	 * @param array  $attr Shortcode attribute
-	 * @param null   $null
-	 * @param string $tag  Shortcode tag (either 'gallery' or 'playlist')
-	 * @return string Translated shortcode
+	 * @param array  $attr Shortcode attributes.
+	 * @param null   $null Shortcode content, not used.
+	 * @param string $tag  Shortcode tag (either 'gallery' or 'playlist').
+	 * @return string Translated shortcode.
 	 */
 	public function ids_list_shortcode( $attr, $null, $tag ) {
 		$out = array();
@@ -195,7 +235,7 @@ class PLL_Sync_Content {
 				$ids    = explode( ',', $v );
 				$tr_ids = array();
 				foreach ( $ids as $id ) {
-					$tr_ids[] = $this->translate_media( $id );
+					$tr_ids[] = $this->translate_media( (int) $id );
 				}
 				$v = implode( ',', $tr_ids );
 			}
@@ -224,17 +264,19 @@ class PLL_Sync_Content {
 			if ( 'id' == $k ) {
 				$idarr = explode( '_', $v );
 				$id    = $idarr[1]; // Remember this
-				$tr_id = $idarr[1] = $this->translate_media( $id );
+				$tr_id = $idarr[1] = $this->translate_media( (int) $id );
 				$v     = implode( '_', $idarr );
 			}
 			$out[] = $k . '="' . $v . '"';
 		}
 
 		// Translate the caption content
-		if ( ! empty( $id ) ) {
-			$p       = get_post( $id );
-			$tr_p    = get_post( $tr_id );
-			$content = str_replace( $p->post_excerpt, $tr_p->post_excerpt, $content );
+		if ( ! empty( $id ) && ! empty( $tr_id ) ) {
+			$p    = get_post( (int) $id );
+			$tr_p = get_post( $tr_id );
+			if ( $p && $tr_p ) {
+				$content = str_replace( $p->post_excerpt, $tr_p->post_excerpt, $content );
+			}
 		}
 
 		return '[' . $tag . ' ' . implode( ' ', $out ) . ']' . $content . '[/' . $tag . ']';
@@ -304,6 +346,10 @@ class PLL_Sync_Content {
 	 */
 	public function translate_img( &$text ) {
 		$attributes = wp_kses_attr_parse( $text ); // since WP 4.2.3
+
+		if ( ! is_array( $attributes ) ) {
+			return false;
+		}
 
 		// Replace class
 		foreach ( $attributes as $k => $attr ) {
@@ -381,14 +427,19 @@ class PLL_Sync_Content {
 						break;
 
 					case 'core/file':
-						$tr_id = $this->translate_media( $block['attrs']['id'] );
+						$source_id = $block['attrs']['id'];
+						$tr_id = $this->translate_media( $source_id );
 						$blocks[ $k ]['attrs']['id'] = $tr_id;
 						$textarr = wp_html_split( $block['innerHTML'] );
-						if ( 0 === strpos( $textarr[3], '<a' ) ) {
+						$source_post = get_post( $source_id );
+						$replace_file_link_text = 0 === strpos( $textarr[3], '<a' ) && $textarr[4] === $source_post->post_title;
+						if ( $replace_file_link_text ) {
 							$tr_post = get_post( $tr_id );
-							$textarr[4] = $tr_post->post_title;
-							$blocks[ $k ]['innerContent'][0] = implode( $textarr );
-							$blocks[ $k ]['innerHTML'] = implode( $textarr );
+							if ( $tr_post ) {
+								$textarr[4] = $tr_post->post_title;
+								$blocks[ $k ]['innerContent'][0] = implode( $textarr );
+								$blocks[ $k ]['innerHTML'] = implode( $textarr );
+							}
 						}
 						break;
 
@@ -431,7 +482,6 @@ class PLL_Sync_Content {
 		 *
 		 * @param array  $blocks List of blocks
 		 * @param string $lang   Language of target
-		 * @return array
 		 */
 		return apply_filters( 'pll_translate_blocks', $blocks, $this->language->slug );
 	}

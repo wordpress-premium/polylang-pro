@@ -10,9 +10,7 @@
  */
 abstract class PLL_REST_Filtered_Object {
 	/**
-	 * Instance of PLL_Model
-	 *
-	 * @var object
+	 * @var PLL_Model
 	 */
 	public $model;
 

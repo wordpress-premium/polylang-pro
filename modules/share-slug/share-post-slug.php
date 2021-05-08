@@ -9,7 +9,29 @@
  * @since 1.9
  */
 class PLL_Share_Post_Slug {
-	public $options, $model, $links_model, $curlang;
+	/**
+	 * Stores the plugin options.
+	 *
+	 * @var array
+	 */
+	public $options;
+
+	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
+	 * @var PLL_Links_Model
+	 */
+	public $links_model;
+
+	/**
+	 * The current language.
+	 *
+	 * @var PLL_Language
+	 */
+	public $curlang;
 
 	/**
 	 * Constructor
@@ -41,7 +63,8 @@ class PLL_Share_Post_Slug {
 	 *
 	 * @since 1.9
 	 *
-	 * @param object $query Reference to a WP_Query object.
+	 * @param WP_Query $query Reference to a WP_Query object.
+	 * @return void
 	 */
 	public function parse_query( $query ) {
 		if ( $lang = $this->get_language_for_filter( $query ) ) {
@@ -82,10 +105,10 @@ class PLL_Share_Post_Slug {
 	 *
 	 * @since 1.9
 	 *
-	 * @param string       $page_path Page path.
-	 * @param string       $lang      Language slug.
-	 * @param string       $output    Optional. Output type. Accepts OBJECT, ARRAY_N, or ARRAY_A. Default OBJECT.
-	 * @param string|array $post_type Optional. Post type or array of post types. Default 'page'.
+	 * @param string          $page_path Page path.
+	 * @param string          $lang      Language slug.
+	 * @param string          $output    Optional. Output type. Accepts OBJECT, ARRAY_N, or ARRAY_A. Default OBJECT.
+	 * @param string|string[] $post_type Optional. Post type or array of post types. Default 'page'.
 	 * @return WP_Post|null WP_Post on success or null on failure.
 	 */
 	protected function get_page_by_path( $page_path, $lang, $output = OBJECT, $post_type = 'page' ) {
@@ -149,13 +172,13 @@ class PLL_Share_Post_Slug {
 	}
 
 	/**
-	 * Adds our join clause to sql query
-	 * Useful when querying a post by name
+	 * Adds our join clause to sql query.
+	 * Useful when querying a post by name.
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $join  Original join clause.
-	 * @param object $query The WP_Query object.
+	 * @param string   $join  Original join clause.
+	 * @param WP_Query $query The WP_Query object.
 	 * @return string Modified join clause.
 	 */
 	public function posts_join( $join, $query ) {
@@ -166,13 +189,13 @@ class PLL_Share_Post_Slug {
 	}
 
 	/**
-	 * Adds our where clause to sql query
-	 * Useful when querying a post by name
+	 * Adds our where clause to sql query.
+	 * Useful when querying a post by name.
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $where Original where clause.
-	 * @param object $query The WP_Query object.
+	 * @param string   $where Original where clause.
+	 * @param WP_Query $query The WP_Query object.
 	 * @return string Modified where clause.
 	 */
 	public function posts_where( $where, $query ) {
@@ -187,8 +210,8 @@ class PLL_Share_Post_Slug {
 	 *
 	 * @since 1.9
 	 *
-	 * @param object $query The WP_Query object.
-	 * @return bool| PLL_Language The language to use for the filter, false if the query should be kept unfiltered.
+	 * @param WP_Query $query The WP_Query object.
+	 * @return PLL_Language|false The language to use for the filter, false if the query should be kept unfiltered.
 	 */
 	protected function get_language_for_filter( $query ) {
 		$qv = $query->query_vars;
@@ -293,9 +316,12 @@ class PLL_Share_Post_Slug {
 	 *
 	 * @param int $post_id Original attachment id.
 	 * @param int $tr_id   Translated attachment id.
+	 * @return void
 	 */
 	public function pll_translate_media( $post_id, $tr_id ) {
 		$post = get_post( $post_id );
-		wp_update_post( array( 'ID' => $tr_id, 'post_name' => $post->post_name ) );
+		if ( $post ) {
+			wp_update_post( array( 'ID' => $tr_id, 'post_name' => $post->post_name ) );
+		}
 	}
 }

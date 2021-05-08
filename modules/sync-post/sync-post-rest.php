@@ -9,7 +9,15 @@
  * @since 2.6
  */
 class PLL_Sync_Post_REST {
-	public $model, $sync_model;
+	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
+	 * @var PLL_Sync_Post_Model
+	 */
+	public $sync_model;
 
 	/**
 	 * Constructor
@@ -30,6 +38,8 @@ class PLL_Sync_Post_REST {
 	 * Register the 'pll_sync_post' REST field
 	 *
 	 * @since 2.6
+	 *
+	 * @return void
 	 */
 	public function init() {
 		foreach ( $this->model->get_translated_post_types() as $type ) {
@@ -102,6 +112,8 @@ class PLL_Sync_Post_REST {
 	 * @since 2.6
 	 *
 	 * @param WP_Post $post Inserted or updated post object.
+	 *
+	 * @return void
 	 */
 	public function after_insert_post( $post ) {
 		if ( isset( $post->ID ) ) { // Test to avoid a warning with WooCommerce.
@@ -116,13 +128,13 @@ class PLL_Sync_Post_REST {
 
 	/**
 	 * Add information to the translations_table field
-	 * to check if the user can synchronize the current post
+	 * to check if the user can synchronize the current post.
 	 *
 	 * @since 2.6
 	 *
-	 * @param array  $datas    Translations table row datas.
-	 * @param int    $post_id  Post to synchronize.
-	 * @param object $language Language to synchronize.
+	 * @param array        $datas    Translations table row datas.
+	 * @param int          $post_id  Post to synchronize.
+	 * @param PLL_Language $language Language to synchronize.
 	 * @return array
 	 */
 	public function translations_table( $datas, $post_id, $language ) {

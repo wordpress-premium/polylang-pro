@@ -9,14 +9,25 @@
  * @since 1.9
  */
 class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
+	/**
+	 * @var PLL_Model
+	 */
+	public $model;
 
 	/**
-	 * Constructor
+	 * Instance of a child class of PLL_Links_Model.
+	 *
+	 * @var PLL_Links_Model
+	 */
+	public $links_model;
+
+	/**
+	 * Constructor.
 	 *
 	 * @since 1.9
 	 *
-	 * @param object $slugs_model An instance of PLL_Translate_Slugs_Model.
-	 * @param object $curlang     Current language
+	 * @param PLL_Translate_Slugs_Model $slugs_model An instance of PLL_Translate_Slugs_Model.
+	 * @param PLL_Language              $curlang     Current language.
 	 */
 	public function __construct( &$slugs_model, &$curlang ) {
 		parent::__construct( $slugs_model, $curlang );
@@ -44,19 +55,21 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $url      The archive url in which want to translat a slug.
-	 * @param object $language The language.
+	 * @param string       $url      The archive url in which want to translat a slug.
+	 * @param PLL_Language $language The language.
 	 * @return string Modified url.
 	 */
 	public function pll_get_archive_url( $url, $language ) {
 		global $wp_rewrite;
 
 		if ( is_post_type_archive() ) {
+			/** @var WP_Post_Type */
 			$post_type = get_queried_object();
 			$url = $this->slugs_model->switch_translated_slug( $url, $language, 'archive_' . $post_type->name );
 		}
 
 		if ( is_tax( 'post_format' ) ) {
+			/** @var WP_Term */
 			$term = get_queried_object();
 
 			$url = $this->slugs_model->switch_translated_slug( $url, $language, 'post_format' );
@@ -81,32 +94,36 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 	}
 
 	/**
-	 * Modifies the canonical url with the translated slugs
+	 * Modifies the canonical url with the translated slugs.
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $redirect_url The canonical url to redirect to as evaluated in Polylang.
-	 * @param object $language     The language.
+	 * @param string       $redirect_url The canonical url to redirect to as evaluated in Polylang.
+	 * @param PLL_Language $language     The language.
 	 * @return string Modified canonical url.
 	 */
 	public function pll_check_canonical_url( $redirect_url, $language ) {
-		global $wp_query, $post, $wp_rewrite;
+		global $wp_rewrite;
 
 		$slugs = array();
 
 		if ( is_post_type_archive() ) {
-			$obj     = $wp_query->get_queried_object();
+			/** @var WP_Post_Type */
+			$obj     = get_queried_object();
 			$slugs[] = 'archive_' . $obj->name;
 		}
 
 		elseif ( is_single() || is_page() ) {
+			$post = get_post();
+
 			if ( isset( $post->ID ) && $this->model->is_translated_post_type( $post->post_type ) ) {
 				$slugs[] = $post->post_type;
 			}
 		}
 
 		elseif ( is_category() || is_tag() || is_tax() ) {
-			$obj = $wp_query->get_queried_object();
+			/** @var WP_Term */
+			$obj = get_queried_object();
 
 			if ( ! empty( $obj ) ) {
 				if ( $this->model->is_translated_taxonomy( $obj->taxonomy ) ) {
@@ -150,6 +167,8 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 	 * Especially important for the pagination base to avoid WP canonical url breaking
 	 *
 	 * @since 1.9
+	 *
+	 * @return void
 	 */
 	public function fix_wp_rewrite() {
 		global $wp_rewrite;

@@ -25,7 +25,7 @@ interface PLL_Import_File_Interface {
 	 * @since 2.7
 	 *
 	 * @param string $filepath The path on the filesystem where the import file is located.
-	 * @return bool|WP_Error
+	 * @return WP_Error|true
 	 */
 	public function import_from_file( $filepath );
 
@@ -35,7 +35,7 @@ interface PLL_Import_File_Interface {
 	 *
 	 * @since 2.7
 	 *
-	 * @return string
+	 * @return string|false
 	 */
 	public function get_source_lang();
 
@@ -44,7 +44,7 @@ interface PLL_Import_File_Interface {
 	 *
 	 * @since 2.7
 	 *
-	 * @return string
+	 * @return string|false
 	 */
 	public function get_target_language();
 
@@ -53,7 +53,7 @@ interface PLL_Import_File_Interface {
 	 *
 	 * @since 2.7
 	 *
-	 * @return Translations
+	 * @return array
 	 */
 	public function get_next_entry();
 
@@ -62,7 +62,7 @@ interface PLL_Import_File_Interface {
 	 *
 	 * @since 2.7
 	 *
-	 * @return string
+	 * @return string|false
 	 */
 	public function get_site_reference();
 }

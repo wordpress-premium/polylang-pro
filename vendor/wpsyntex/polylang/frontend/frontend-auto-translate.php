@@ -10,7 +10,17 @@
  * @since 1.1
  */
 class PLL_Frontend_Auto_Translate {
-	public $model, $curlang;
+	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
+	 * Current language.
+	 *
+	 * @var PLL_Language
+	 */
+	public $curlang;
 
 	/**
 	 * Constructor
@@ -56,7 +66,8 @@ class PLL_Frontend_Auto_Translate {
 	 *
 	 * @since 1.1
 	 *
-	 * @param object $query WP_Query object
+	 * @param WP_Query $query WP_Query object
+	 * @return void
 	 */
 	public function pre_get_posts( $query ) {
 		global $wpdb;
@@ -133,7 +144,7 @@ class PLL_Frontend_Auto_Translate {
 		foreach ( array_intersect( $this->model->get_translated_taxonomies(), get_taxonomies( array( '_builtin' => false ) ) ) as $taxonomy ) {
 			$tax = get_taxonomy( $taxonomy );
 			$arr = array();
-			if ( ! empty( $qv[ $tax->query_var ] ) ) {
+			if ( ! empty( $tax ) && ! empty( $qv[ $tax->query_var ] ) ) {
 				$sep = strpos( $qv[ $tax->query_var ], ',' ) !== false ? ',' : '+'; // Two possible separators
 				foreach ( explode( $sep, $qv[ $tax->query_var ] ) as $slug ) {
 					$arr[] = $this->get_translated_term_by( 'slug', $slug, $taxonomy );

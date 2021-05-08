@@ -4,7 +4,7 @@
  */
 
 /**
- * ACF compatibility
+ * This class is part of the ACF compatibility.
  * Adds a field setting to decide if the field must be copied, translated or synchronized.
  * And handles the list of metas to copy.
  *
@@ -13,8 +13,8 @@
 class PLL_ACF_Sync_Metas {
 
 	/**
-	 * Constructor
-	 * Setups actions and filters
+	 * Constructor.
+	 * Setups actions and filters.
 	 *
 	 * @since 2.7
 	 */
@@ -45,13 +45,14 @@ class PLL_ACF_Sync_Metas {
 	}
 
 	/**
-	 * Renders the translations setting
+	 * Renders the translations setting.
 	 *
 	 * @since 2.7
 	 *
 	 * @param array  $field   ACF field.
 	 * @param array  $choices An array of choices for the select (value as key and label as value).
 	 * @param string $default Default value for the select.
+	 * @return void
 	 */
 	protected function render_field_setting( $field, $choices, $default ) {
 		acf_render_field_setting( // Since ACF 5.7.10.
@@ -74,6 +75,7 @@ class PLL_ACF_Sync_Metas {
 	 * @since 2.7
 	 *
 	 * @param array $field ACF field.
+	 * @return void
 	 */
 	public function render_field_settings_text( $field ) {
 		$choices = array(
@@ -87,11 +89,12 @@ class PLL_ACF_Sync_Metas {
 	}
 
 	/**
-	 * Renders a default translations setting (no translate option)
+	 * Renders a default translations setting (no translate option).
 	 *
 	 * @since 2.7
 	 *
 	 * @param array $field ACF field.
+	 * @return void
 	 */
 	public function render_field_settings_default( $field ) {
 		$choices = array(
@@ -104,7 +107,7 @@ class PLL_ACF_Sync_Metas {
 	}
 
 	/**
-	 * Recursively constructs the map of translations properties for all metas
+	 * Recursively constructs the map of translations properties for all metas.
 	 *
 	 * @since 2.7
 	 *
@@ -112,6 +115,7 @@ class PLL_ACF_Sync_Metas {
 	 * @param string $name         Meta key.
 	 * @param array  $value        ACF field value.
 	 * @param array  $field        ACF field.
+	 * @return void
 	 */
 	protected function get_translations( &$translations, $name, $value, $field ) {
 		switch ( $field['type'] ) {
@@ -158,15 +162,15 @@ class PLL_ACF_Sync_Metas {
 	}
 
 	/**
-	 * Selects the metas to be copied or synchronized
+	 * Selects the metas to be copied or synchronized.
 	 *
 	 * @since 2.7
 	 *
-	 * @param array $metas List of custom fields names.
-	 * @param bool  $sync  True if it is synchronization, false if it is a copy.
-	 * @param int   $from  Id of the object from which we copy informations.
-	 * @param int   $to    Id of the object to which we copy informations.
-	 * @return array
+	 * @param string[]   $metas List of custom fields names.
+	 * @param bool       $sync  True if it is synchronization, false if it is a copy.
+	 * @param string|int $from  Id of the object from which we copy informations.
+	 * @param string|int $to    Id of the object to which we copy informations.
+	 * @return string[]
 	 */
 	public function copy_metas( $metas, $sync, $from, $to ) {
 		// Init the translations array.
@@ -212,25 +216,25 @@ class PLL_ACF_Sync_Metas {
 	 *
 	 * @since 2.7.4
 	 *
-	 * @param array $metas List of custom fields names.
-	 * @param bool  $sync  True if it is synchronization, false if it is a copy.
-	 * @param int   $from  Id of the object from which we copy informations.
-	 * @param int   $to    Id of the object to which we copy informations.
-	 * @return array
+	 * @param string[] $metas List of custom fields names.
+	 * @param bool     $sync  True if it is synchronization, false if it is a copy.
+	 * @param int      $from  Id of the object from which we copy informations.
+	 * @param int      $to    Id of the object to which we copy informations.
+	 * @return string[]
 	 */
 	public function copy_term_metas( $metas, $sync, $from, $to ) {
 		return $this->copy_metas( $metas, $sync, 'term_' . $from, 'term_' . $to );
 	}
 
 	/**
-	 * Selects the private ACF metas to be synchronized
+	 * Selects the private ACF metas to be synchronized.
 	 *
 	 * @since 2.7
 	 *
-	 * @param array $metas List of custom fields names.
-	 * @param bool  $sync  True if it is synchronization, false if it is a copy.
-	 * @param int   $from  Id of the object from which we copy informations.
-	 * @return array
+	 * @param string[] $metas List of custom fields names.
+	 * @param bool     $sync  True if it is synchronization, false if it is a copy.
+	 * @param int      $from  Id of the object from which we copy informations.
+	 * @return string[]
 	 */
 	public function copy_private_metas( $metas, $sync, $from ) {
 		if ( $sync ) {

@@ -4,17 +4,19 @@
  * @package Polylang-Pro
  */
 
-jQuery( document ).ready(
+jQuery(
 	function( $ ) {
 		var t = this;
 
-		$( '.editinline' ).click(
+		$( '.editinline' ).on(
+			'click',
 			function(){
-				$( '#pll-translate' ).find( '.cancel' ).click(); // Close the form on quick edit
+				$( '#pll-translate' ).find( '.cancel' ).trigger( 'click' ); // Close the form on quick edit
 			}
 		);
 
-		$( '#doaction, #doaction2' ).click(
+		$( '#doaction, #doaction2' ).on(
+			'click',
 			function( e ){
 				t.whichBulkButtonId = $( this ).attr( 'id' );
 				var n = t.whichBulkButtonId.substr( 2 );
@@ -31,7 +33,7 @@ jQuery( document ).ready(
 					// HTML prepended is hardcoded. So prepend is safe and as no need to be escaped.
 					$( 'table.widefat tbody' ).prepend( $( '#pll-translate' ) ).prepend( '<tr class="hidden"></tr>' ); // phpcs:ignore WordPressVIPMinimum.JS.HTMLExecutingFunctions.prepend
 				} else {
-					$( '#pll-translate' ).find( '.cancel' ).click();
+					$( '#pll-translate' ).find( '.cancel' ).trigger( 'click' );
 				}
 			}
 		);
@@ -47,20 +49,21 @@ jQuery( document ).ready(
 				$( '#pll-bulk-translate' ).append( $( '#pll-translate' ) ); //phpcs:ignore WordPressVIPMinimum.JS.HTMLExecutingFunctions.append
 
 				// Move focus back to the Bulk Action button that was activated.
-				$( '#' + t.whichBulkButtonId ).focus();
+				$( '#' + t.whichBulkButtonId ).trigger( 'focus' );
 			}
 		);
 
 		// Act when pressing enter or esc
-		$( '#pll-translate' ).keydown(
+		$( '#pll-translate' ).on(
+			'keydown',
 			function( event ){
-				if ( 13 === event.keyCode && ! $( event.target ).hasClass( 'cancel' ) ) {
+				if ( 'Enter' === event.key && ! $( event.target ).hasClass( 'cancel' ) ) {
 					event.preventDefault();
-					$( this ).find( 'input[type=submit]' ).click();
+					$( this ).find( 'input[type=submit]' ).trigger( 'click' );
 				}
-				if ( 27 === event.keyCode ) {
+				if ( 'Escape' === event.key ) {
 					event.preventDefault();
-					$( this ).find( '.cancel' ).click();
+					$( this ).find( '.cancel' ).trigger( 'click' );
 				}
 			}
 		);

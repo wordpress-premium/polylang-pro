@@ -9,8 +9,21 @@
  * @since 2.1
  */
 class PLL_Sync_Post_Button extends PLL_Metabox_Button {
+	/**
+	 * @var PLL_Model
+	 */
 	public $model;
+
+	/**
+	 * @var PLL_Sync_Post_Model
+	 */
 	protected $sync_model;
+
+	/**
+	 * The language corresponding to the button.
+	 *
+	 * @var PLL_Language
+	 */
 	protected $language;
 
 	/**
@@ -18,8 +31,8 @@ class PLL_Sync_Post_Button extends PLL_Metabox_Button {
 	 *
 	 * @since 2.1
 	 *
-	 * @param object $sync_model An instance of PLL_Sync_Post_Model.
-	 * @param object $language   The language.
+	 * @param PLL_Sync_Post_Model $sync_model An instance of PLL_Sync_Post_Model.
+	 * @param PLL_Language        $language   The language.
 	 */
 	public function __construct( $sync_model, $language ) {
 		$args = array(
@@ -44,6 +57,7 @@ class PLL_Sync_Post_Button extends PLL_Metabox_Button {
 	 * @since 2.6
 	 *
 	 * @param string $post_type The current post type.
+	 * @return void
 	 */
 	public function add_icon( $post_type ) {
 		global $post_ID;
@@ -80,7 +94,7 @@ class PLL_Sync_Post_Button extends PLL_Metabox_Button {
 		if ( ! empty( $term ) ) {
 			$language = $this->model->post->get_language( $post->ID ); // FIXME is it already evaluated?
 			$d        = maybe_unserialize( $term->description );
-			return isset( $d['sync'][ $this->language->slug ], $d['sync'][ $language->slug ] ) && $d['sync'][ $this->language->slug ] === $d['sync'][ $language->slug ];
+			return $language && isset( $d['sync'][ $this->language->slug ], $d['sync'][ $language->slug ] ) && $d['sync'][ $this->language->slug ] === $d['sync'][ $language->slug ];
 		}
 
 		return false;

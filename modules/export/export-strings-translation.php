@@ -24,25 +24,18 @@ class PLL_Export_Strings_Translation {
 	const NONCE_NAME = '_pll_translate_nonce';
 
 	/**
-	 * A class to handle file download
+	 * A class to handle file download.
 	 *
-	 * @var $downloader PLL_Export_Download_Zip
+	 * @var PLL_Export_Download_Zip
 	 */
 	private $downloader;
 
 	/**
 	 * Represents an export file.
 	 *
-	 * @var $export PLL_Export_File_Interface
+	 * @var PLL_Export_File_Interface
 	 */
 	private $export;
-
-	/**
-	 * Holds the strings registered for translation.
-	 *
-	 * @var array $strings Formatted by {@see PLL_Admin_Strings::get_strings()}.
-	 */
-	private $strings;
 
 	/**
 	 * Used to query languages and translations.
@@ -52,7 +45,7 @@ class PLL_Export_Strings_Translation {
 	private $model;
 
 	/**
-	 * Copy of Poylang options.
+	 * Stores the plugin options.
 	 *
 	 * @var array
 	 */
@@ -72,7 +65,6 @@ class PLL_Export_Strings_Translation {
 
 		$this->export = new PLL_Export_Multi_Files( new PLL_PO_Export() );
 
-		$this->strings = PLL_Admin_Strings::get_strings();
 		$this->downloader = new PLL_Export_Download_Zip();
 	}
 
@@ -83,6 +75,7 @@ class PLL_Export_Strings_Translation {
 	 *
 	 * @param array  $target_languages Array of languages slugs.
 	 * @param string $group            String translation context to export.
+	 * @return void
 	 */
 	public function send_strings_translation_to_export( $target_languages, $group ) {
 
@@ -99,7 +92,7 @@ class PLL_Export_Strings_Translation {
 			$mo = new PLL_MO();
 			$mo->import_from_db( $lang );
 
-			foreach ( $this->strings as $string ) {
+			foreach ( PLL_Admin_Strings::get_strings() as $string ) {
 				if ( ( $group === $string['context'] ) || '-1' === $group ) {
 					$mo_tr = $mo->translate( $string['string'] );
 					$args = array(
@@ -107,8 +100,9 @@ class PLL_Export_Strings_Translation {
 						'context' => $string['context'],
 					);
 
-					// Arrays use Windows line ending syntax. This is also performed in {@see Translations_Entry::key()}.
+					// Arrays use Windows line ending syntax. This is also performed in {@see Translation_Entry::key()}.
 					$source_string = str_replace( array( "\r\n", "\r" ), "\n", $string['string'] );
+					$mo_tr = str_replace( array( "\r\n", "\r" ), "\n", $mo_tr );
 					$this->export->add_translation_entry( 'string_translation', $source_string, $mo_tr, $args );
 				}
 			}

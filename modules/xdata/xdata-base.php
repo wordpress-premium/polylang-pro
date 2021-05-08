@@ -10,7 +10,28 @@
  * @since 2.0
  */
 abstract class PLL_Xdata_Base {
-	public $options, $model, $links_model;
+	/**
+	 * Stores the plugin options.
+	 *
+	 * @var array
+	 */
+	public $options;
+
+	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
+	 * @var PLL_Links_Model
+	 */
+	public $links_model;
+
+	/**
+	 * Session token.
+	 *
+	 * @var string
+	 */
 	private $token;
 
 	/**
@@ -109,8 +130,8 @@ abstract class PLL_Xdata_Base {
 	 *
 	 * @since 2.0
 	 *
-	 * @param string $lang The language slug.
-	 * @param array  $args Existing url parameters.
+	 * @param string              $lang The language slug.
+	 * @param (string|int|bool)[] $args Existing url parameters.
 	 * @return string The ajax url.
 	 */
 	public function ajax_url( $lang, $args ) {
@@ -205,6 +226,8 @@ abstract class PLL_Xdata_Base {
 	 * Writes cross domain data in a user session
 	 *
 	 * @since 2.0
+	 *
+	 * @return void
 	 */
 	public function xdata_get() {
 		// Whitelist origin + nonce verification.
@@ -227,6 +250,8 @@ abstract class PLL_Xdata_Base {
 	 * Redirect to the url requested by the usee
 	 *
 	 * @since 2.0
+	 *
+	 * @return void
 	 */
 	public function xdata_set() {
 		if ( empty( $_GET['key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
@@ -270,6 +295,7 @@ abstract class PLL_Xdata_Base {
 	 * @param int    $expiration  Duration in seconds the authentication cookie should be valid.
 	 * @param int    $user_id     User ID.
 	 * @param string $scheme      Authentication scheme. Values include 'auth', 'secure_auth', or 'logged_in'.
+	 * @return void
 	 */
 	public function set_auth_cookie( $auth_cookie, $expire, $expiration, $user_id, $scheme ) {
 		$cookie      = wp_parse_auth_cookie( $auth_cookie, $scheme );
@@ -335,8 +361,8 @@ abstract class PLL_Xdata_Base {
 	 *
 	 * @since 2.0
 	 *
-	 * @param array $urls List of allowed urls.
-	 * @return array Modified list of urls.
+	 * @param string[] $urls List of allowed urls.
+	 * @return string[] Modified list of urls.
 	 */
 	public function customize_allowed_urls( $urls ) {
 		foreach ( $this->links_model->get_hosts() as $host ) {
@@ -350,8 +376,8 @@ abstract class PLL_Xdata_Base {
 	 *
 	 * @since 2.0
 	 *
-	 * @param array $origins List of allowed urls.
-	 * @return array Modified list of urls.
+	 * @param string[] $origins List of allowed urls.
+	 * @return string[] Modified list of urls.
 	 */
 	public function allowed_http_origins( $origins ) {
 		foreach ( $this->links_model->get_hosts() as $host ) {

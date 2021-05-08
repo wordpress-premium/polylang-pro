@@ -9,6 +9,9 @@
  * @since 2.0
  */
 class PLL_Xdata_Domain extends PLL_Xdata_Base {
+	/**
+	 * @var PLL_Choose_Lang_Domain
+	 */
 	public $choose_lang;
 
 	/**
@@ -44,6 +47,7 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 	 * @since 2.0
 	 *
 	 * @param string $lang Language code.
+	 * @return void
 	 */
 	protected function maybe_set_cookie( $lang ) {
 		PLL_Cookie::set( $lang, array( 'samesite' => 'None' ) );
@@ -56,6 +60,7 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 	 * @since 2.0
 	 *
 	 * @param object $polylang Polylang object.
+	 * @return void
 	 */
 	public function pll_init( $polylang ) {
 		remove_filter( 'preview_post_link', array( $polylang->filters_links, 'preview_post_link' ), 20 );
@@ -67,6 +72,8 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 	 * Make sure the cookie is set on admin and not on ajax request to avoid infinite redirect loop
 	 *
 	 * @since 2.0
+	 *
+	 * @return void
 	 */
 	public function admin_init() {
 		if ( ! PLL() instanceof PLL_Frontend ) {
@@ -78,6 +85,8 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 	 * Outputs the link to the javascript request to main domain
 	 *
 	 * @since 2.0
+	 *
+	 * @return void
 	 */
 	public function check_request() {
 		$args = array(
@@ -98,6 +107,8 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 	 * Initiates a cross domain data transfer if the language has just changed
 	 *
 	 * @since 2.0
+	 *
+	 * @return void
 	 */
 	public function xdata_check() {
 		if ( ! isset( $_GET['nonce'], $_GET['redirect'] ) || ! $this->verify_nonce( sanitize_key( $_GET['nonce'] ), 'xdata_check' ) ) { // phpcs:ignore WordPress.Security.NonceVerification

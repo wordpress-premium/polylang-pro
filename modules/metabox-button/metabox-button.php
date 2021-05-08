@@ -9,7 +9,19 @@
  * @since 2.1
  */
 abstract class PLL_Metabox_Button {
-	public $id, $args;
+	/**
+	 * Id used for the css class.
+	 *
+	 * @var string
+	 */
+	public $id;
+
+	/**
+	 * Parameters passed to the constructor.
+	 *
+	 * @var array
+	 */
+	public $args;
 
 	/**
 	 * Constructor
@@ -61,6 +73,7 @@ abstract class PLL_Metabox_Button {
 	 * @since 2.1
 	 *
 	 * @param string $post_type The current post type.
+	 * @return void
 	 */
 	public function add_icon( $post_type ) {
 		if ( 'attachment' !== $post_type ) {
@@ -72,6 +85,8 @@ abstract class PLL_Metabox_Button {
 	 * Ajax response to a clic on the button
 	 *
 	 * @since 2.1
+	 *
+	 * @return void
 	 */
 	public function toggle() {
 		check_ajax_referer( 'pll_language', '_pll_nonce' );
@@ -86,7 +101,7 @@ abstract class PLL_Metabox_Button {
 			}
 		}
 
-		wp_die( -1 );
+		wp_die( 0 );
 	}
 
 	/**
@@ -127,30 +142,32 @@ abstract class PLL_Metabox_Button {
 	 * Enqueues script and style.
 	 *
 	 * @since 2.8
+	 *
+	 * @return void
 	 */
 	public function admin_enqueue_scripts() {
 		$screen = get_current_screen();
 
-		if ( in_array( $screen->base, array( 'post', 'media' ) ) && ! wp_script_is( 'pll_metabox_button', 'enqueued' ) ) {
+		if ( $screen && in_array( $screen->base, array( 'post', 'media' ) ) && ! wp_script_is( 'pll_metabox_button', 'enqueued' ) ) {
 			$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 			wp_enqueue_script(
 				'pll_metabox_button',
-				plugins_url( '/js/metabox-button' . $suffix . '.js', __FILE__ ),
+				plugins_url( '/js/build/metabox-button' . $suffix . '.js', POLYLANG_ROOT_FILE ),
 				array( 'jquery', 'wp-ajax-response', 'post' ),
 				POLYLANG_VERSION,
-				1
+				true
 			);
 
 			wp_localize_script(
 				'pll_metabox_button',
-				'confirm_text',
-				__( 'You are about to overwrite an existing translation. Are you sure you want to proceed?', 'polylang-pro' )
+				'pll_sync_post',
+				array( 'confirm_text' => __( 'You are about to overwrite an existing translation. Are you sure you want to proceed?', 'polylang-pro' ) )
 			);
 
 			wp_enqueue_style(
 				'pll_metabox_button',
-				plugins_url( '/css/metabox-button' . $suffix . '.css', __FILE__ ),
+				plugins_url( '/css/build/metabox-button' . $suffix . '.css', POLYLANG_ROOT_FILE ),
 				array(),
 				POLYLANG_VERSION
 			);

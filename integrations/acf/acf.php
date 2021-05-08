@@ -4,30 +4,28 @@
  */
 
 /**
- * Manages compatibility with Advanced Custom Fields Pro
- * Version tested 5.8.3
+ * Manages compatibility with Advanced Custom Fields Pro.
+ * Version tested 5.8.3.
  *
  * @since 2.0
  */
 class PLL_ACF {
 	/**
-	 * Instance of PLL_ACF_Sync_Metas
-	 *
-	 * @var object
+	 * @var PLL_ACF_Sync_Metas
 	 */
 	public $sync_metas;
 
 	/**
-	 * Instance of PLL_ACF_Auto_Translate
-	 *
-	 * @var object
+	 * @var PLL_ACF_Auto_Translate
 	 */
 	public $auto_translate;
 
 	/**
-	 * Initializes filters for ACF
+	 * Initializes filters for ACF.
 	 *
 	 * @since 2.0
+	 *
+	 * @return void
 	 */
 	public function init() {
 		add_filter( 'acf/get_taxonomies', array( $this, 'get_taxonomies' ) );
@@ -50,21 +48,23 @@ class PLL_ACF {
 	}
 
 	/**
-	 * Prevents ACF to display our private taxonomies
+	 * Prevents ACF to display our private taxonomies.
 	 *
 	 * @since 2.8
 	 *
-	 * @param array $taxonomies Taxonomy names.
-	 * @return array
+	 * @param string[] $taxonomies Taxonomy names.
+	 * @return string[]
 	 */
 	public function get_taxonomies( $taxonomies ) {
 		return array_diff( $taxonomies, get_taxonomies( array( '_pll' => true ) ) );
 	}
 
 	/**
-	 * Deactivate synchronization for ACF field groups
+	 * Deactivates the synchronization for ACF field groups.
 	 *
 	 * @since 2.1
+	 *
+	 * @return void
 	 */
 	public function remove_sync() {
 		foreach ( pll_languages_list() as $lang ) {
@@ -73,11 +73,12 @@ class PLL_ACF {
 	}
 
 	/**
-	 * Duplicate the field group if content duplication is activated
+	 * Duplicates the field group if content duplication is activated.
 	 *
 	 * @since 2.3
 	 *
-	 * @param object $post Current post object
+	 * @param WP_Post $post Current post object.
+	 * @return void
 	 */
 	public function duplicate_field_group( $post ) {
 		if ( PLL()->model->is_translated_post_type( 'acf-field-group' ) && 'post-new.php' === $GLOBALS['pagenow'] && isset( $_GET['from_post'], $_GET['new_lang'] ) ) {
@@ -95,7 +96,7 @@ class PLL_ACF {
 	}
 
 	/**
-	 * Recursively searches a field by its name in an array of fields
+	 * Recursively searches a field by its name in an array of fields.
 	 *
 	 * @since 2.3
 	 *
@@ -121,7 +122,7 @@ class PLL_ACF {
 	}
 
 	/**
-	 * Translates a clone field when creating a new field group translation
+	 * Translates a clone field when creating a new field group translation.
 	 *
 	 * @since 2.3
 	 *
@@ -169,7 +170,7 @@ class PLL_ACF {
 	}
 
 	/**
-	 * Allow page on front and page for posts translations to match the corresponding page type
+	 * Allows page on front and page for posts translations to match the corresponding page type.
 	 *
 	 * @since 2.0
 	 *
@@ -205,13 +206,13 @@ class PLL_ACF {
 	}
 
 	/**
-	 * Add the Field Groups post type to the list of translatable post types
+	 * Add the Field Groups post type to the list of translatable post types.
 	 *
 	 * @since 2.0
 	 *
-	 * @param array $post_types  List of post types.
-	 * @param bool  $is_settings True when displaying the list of custom post types in Polylang settings.
-	 * @return array
+	 * @param string[] $post_types  List of post types.
+	 * @param bool     $is_settings True when displaying the list of custom post types in Polylang settings.
+	 * @return string[]
 	 */
 	public function get_post_types( $post_types, $is_settings ) {
 		if ( $is_settings ) {
@@ -225,24 +226,26 @@ class PLL_ACF {
 	 *
 	 * @since 2.8.4
 	 *
-	 * @param array $types List of post type names for which Polylang manages the bulk translate.
-	 * @return array
+	 * @param string[] $types List of post type names for which Polylang manages the bulk translate.
+	 * @return string[]
 	 */
 	public function bulk_translate_post_types( $types ) {
 		return array_diff( $types, array( 'acf-field-group' ) );
 	}
 
 	/**
-	 * Enqueues javascript to react to a language change in the post metabox
+	 * Enqueues javascript to react to a language change in the post metabox.
 	 *
 	 * @since 2.0
+	 *
+	 * @return void
 	 */
 	public function admin_enqueue_scripts() {
 		global $pagenow, $typenow;
 
 		if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ) ) && ! in_array( $typenow, array( 'acf-field-group', 'attachment' ) ) && PLL()->model->is_translated_post_type( $typenow ) ) {
 			$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-			wp_enqueue_script( 'pll_acf', plugins_url( '/js/acf' . $suffix . '.js', __FILE__ ), array( 'acf-input' ), POLYLANG_VERSION );
+			wp_enqueue_script( 'pll_acf', plugins_url( '/js/build/acf' . $suffix . '.js', POLYLANG_ROOT_FILE ), array( 'acf-input' ), POLYLANG_VERSION );
 		}
 	}
 
@@ -250,6 +253,8 @@ class PLL_ACF {
 	 * Ajax response for changing the language in the post metabox
 	 *
 	 * @since 2.0
+	 *
+	 * @return void
 	 */
 	public function acf_post_lang_choice() {
 		check_ajax_referer( 'pll_language', '_pll_nonce' );

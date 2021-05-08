@@ -4,7 +4,7 @@
  * @package Polylang-Pro
  */
 
-jQuery( document ).ready(
+jQuery(
 	function( $ ) {
 		$( '#ml_box' ).on(
 			'click',
@@ -14,7 +14,7 @@ jQuery( document ).ready(
 				var id = $( this ).attr( 'id' );
 				var post_id = $( '#htr_lang_' + id.replace( 'pll_sync_post[', '' ).replace( ']', '' ) ).val();
 
-				if ( 'undefined' == typeof( post_id ) || 0 == post_id || value || confirm( confirm_text ) ) {
+				if ( 'undefined' == typeof( post_id ) || 0 == post_id || value || confirm( pll_sync_post.confirm_text ) ) {
 					var data = {
 						action:     'toggle_' + id,
 						value:      value,

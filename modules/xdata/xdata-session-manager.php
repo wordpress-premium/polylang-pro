@@ -17,6 +17,7 @@ class PLL_Xdata_Session_Manager {
 	 * @param string $key     A unique hash key.
 	 * @param array  $data    Data to store in the session.
 	 * @param int    $user_id Optional, user id.
+	 * @return void
 	 */
 	public function set( $key, $data, $user_id = 0 ) {
 		if ( empty( $user_id ) ) {
