@@ -24,6 +24,8 @@ class PLL_Cache_Compat {
 		if ( ! defined( 'WP_ROCKET_VERSION' ) || version_compare( WP_ROCKET_VERSION, '3.0.5', '<' ) ) {
 			add_action( 'wp', array( $this, 'do_not_cache_site_home' ) );
 		}
+
+		add_action( 'clean_post_cache', array( $this, 'clean_post_cache' ), 1 );
 	}
 
 	/**
@@ -42,21 +44,30 @@ class PLL_Cache_Compat {
 		$domain   = ( 2 === PLL()->options['force_lang'] ) ? wp_parse_url( PLL()->links_model->home, PHP_URL_HOST ) : COOKIE_DOMAIN;
 		$samesite = ( 3 === PLL()->options['force_lang'] ) ? 'None' : 'Lax';
 
+		/** This filter is documented in include/cookie.php */
+		$expiration = apply_filters( 'pll_cookie_expiration', YEAR_IN_SECONDS );
+
+		if ( $expiration > 0 ) {
+			$format = 'var expirationDate = new Date();
+				expirationDate.setTime( expirationDate.getTime() + %7$d * 1000 );
+				document.cookie = "%1$s=%2$s; expires=" + expirationDate.toUTCString() + "; path=%3$s%4$s%5$s%6$s";';
+		} else {
+			$format = 'document.cookie = "%1$s=%2$s; path=%3$s%4$s%5$s%6$s";';
+		}
+
 		$js = sprintf(
-			'(function() {
-				var expirationDate = new Date();
-				expirationDate.setTime( expirationDate.getTime() + %d * 1000 );
-				document.cookie = "%s=%s; expires=" + expirationDate.toUTCString() + "; path=%s%s%s%s";
-			}());',
-			esc_js( apply_filters( 'pll_cookie_expiration', YEAR_IN_SECONDS ) ),
+			"(function() {
+				{$format}
+			}());\n",
 			esc_js( PLL_COOKIE ),
 			esc_js( pll_current_language() ),
 			esc_js( COOKIEPATH ),
 			$domain ? '; domain=' . esc_js( $domain ) : '',
 			is_ssl() ? '; secure' : '',
-			'; SameSite=' . $samesite
+			'; SameSite=' . $samesite,
+			esc_js( $expiration )
 		);
-		echo '<script type="text/javascript">' . $js . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		echo "<script type='text/javascript'>\n" . $js . "</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 
 	/**
@@ -68,6 +79,22 @@ class PLL_Cache_Compat {
 	public function do_not_cache_site_home() {
 		if ( ! defined( 'DONOTCACHEPAGE' ) && PLL()->options['browser'] && PLL()->options['hide_default'] && is_front_page() && pll_current_language() === pll_default_language() ) {
 			define( 'DONOTCACHEPAGE', true );
+		}
+	}
+
+	/**
+	 * Defines the current language as the current post language when cleaning the post cache.
+	 *
+	 * This allows cache plugins to clean the right post type archive cache.
+	 *
+	 * @since 3.0.5
+	 *
+	 * @param int $post_id Post id.
+	 */
+	public function clean_post_cache( $post_id ) {
+		$lang = PLL()->model->post->get_language( $post_id );
+		if ( $lang ) {
+			PLL()->curlang = $lang;
 		}
 	}
 }

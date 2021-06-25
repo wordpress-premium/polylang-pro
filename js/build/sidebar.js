@@ -188,8 +188,12 @@ __webpack_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: external {"this":["wp","element"]}
 var external_this_wp_element_ = __webpack_require__(2);
+// EXTERNAL MODULE: external {"this":["wp","data"]}
+var external_this_wp_data_ = __webpack_require__(197);
 // EXTERNAL MODULE: external {"this":["wp","plugins"]}
 var external_this_wp_plugins_ = __webpack_require__(601);
+// EXTERNAL MODULE: external "lodash"
+var external_lodash_ = __webpack_require__(804);
 // EXTERNAL MODULE: external {"this":["wp","editPost"]}
 var external_this_wp_editPost_ = __webpack_require__(219);
 // EXTERNAL MODULE: external {"this":["wp","i18n"]}
@@ -209,10 +213,6 @@ var possibleConstructorReturn_default = /*#__PURE__*/__webpack_require__.n(possi
 // EXTERNAL MODULE: ./node_modules/@babel/runtime/helpers/getPrototypeOf.js
 var getPrototypeOf = __webpack_require__(754);
 var getPrototypeOf_default = /*#__PURE__*/__webpack_require__.n(getPrototypeOf);
-// EXTERNAL MODULE: external {"this":["wp","data"]}
-var external_this_wp_data_ = __webpack_require__(197);
-// EXTERNAL MODULE: external "lodash"
-var external_lodash_ = __webpack_require__(804);
 // EXTERNAL MODULE: external {"this":["wp","apiFetch"]}
 var external_this_wp_apiFetch_ = __webpack_require__(839);
 var external_this_wp_apiFetch_default = /*#__PURE__*/__webpack_require__.n(external_this_wp_apiFetch_);
@@ -2276,7 +2276,6 @@ function metabox_isNativeReflectConstruct() { if (typeof Reflect === "undefined"
  */
 
 
-
 /**
  * Internal dependencies
  */
@@ -2297,27 +2296,12 @@ var MetaBox = /*#__PURE__*/function (_Component) {
 
     return _super.apply(this, arguments);
   }
+  /**
+   * Render the language metabox
+   */
+
 
   createClass_default()(MetaBox, [{
-    key: "componentDidMount",
-    value: function componentDidMount() {
-      var fromPost = (0,external_this_wp_data_.select)(MODULE_KEY).getFromPost();
-      var lang = (0,external_this_wp_data_.select)(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('lang');
-      var translations = (0,external_this_wp_data_.select)(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('translations');
-      var translations_table = (0,external_this_wp_data_.select)(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('translations_table');
-      var translatedPosts = getTranslatedPosts(translations, translations_table, lang); // if we come from another post for creating a new one, we have to update translations from the original post
-
-      if (!(0,external_lodash_.isNil)(fromPost) && !(0,external_lodash_.isNil)(fromPost.id)) {
-        (0,external_this_wp_data_.dispatch)(MODULE_CORE_EDITOR_KEY).editPost({
-          translations: convertMapToObject(translatedPosts)
-        });
-      }
-    }
-    /**
-     * Render the language metabox
-     */
-
-  }, {
     key: "render",
     value: function render() {
       // phpcs:disable WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore, WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter
@@ -2560,13 +2544,28 @@ var store = (0,external_this_wp_data_.registerStore)(MODULE_KEY, {
  */
 
 function initializeStore() {
-  // call to getLanguages to force call to resolvers and initialize state
-  var languages = (0,external_this_wp_data_.select)(MODULE_KEY).getLanguages(); // call to getCurrentUser to force call to resolvers and initialize state
+  // Call to getLanguages to force call to resolvers and initialize state.
+  var languages = (0,external_this_wp_data_.select)(MODULE_KEY).getLanguages(); // Call to getCurrentUser to force call to resolvers and initialize state.
 
-  var currentUser = (0,external_this_wp_data_.select)(MODULE_KEY).getCurrentUser(); // save url params espacially when a new translation is creating
+  var currentUser = (0,external_this_wp_data_.select)(MODULE_KEY).getCurrentUser(); // Save url params espacially when a new translation is creating.
 
   saveURLParams();
 }
+/**
+ * Set a promise for waiting for the current post has been fully loaded and languages list is correctly initialized before making other processes.
+ */
+
+var initializeLanguages = new Promise(function (resolve, reject) {
+  var unsubscribe = (0,external_this_wp_data_.subscribe)(function () {
+    var languages = (0,external_this_wp_data_.select)(MODULE_KEY).getLanguages();
+    var currentPost = (0,external_this_wp_data_.select)(MODULE_CORE_EDITOR_KEY).getCurrentPost();
+
+    if (!(0,external_lodash_.isEmpty)(currentPost) && languages.size > 0) {
+      unsubscribe();
+      resolve();
+    }
+  });
+});
 /**
  * Save query string parameters from URL. They could be needed after
  * They could be null if they does not exist
@@ -2649,9 +2648,13 @@ var translation = isPrimitivesComponents ? (0,external_this_wp_element_.createEl
 
 
 
+
+
 /**
  * Internal dependencies
  */
+
+
 
 
 
@@ -2667,14 +2670,29 @@ var PolylangSidebar = function PolylangSidebar() {
   // phpcs:disable WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore, WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter
   return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(sidebar, null), (0,external_this_wp_element_.createElement)(menu_item, null)); // phpcs:enable WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore, WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter
 };
-/**
- * Register plugin polylang-sidebar
- */
+
+initializeLanguages.then(function () {
+  // If we come from another post for creating a new one, we have to update translations from the original post.
+  var fromPost = (0,external_this_wp_data_.select)(MODULE_KEY).getFromPost();
+
+  if (!(0,external_lodash_.isNil)(fromPost) && !(0,external_lodash_.isNil)(fromPost.id)) {
+    var lang = (0,external_this_wp_data_.select)(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('lang');
+    var translations = (0,external_this_wp_data_.select)(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('translations');
+    var translations_table = (0,external_this_wp_data_.select)(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('translations_table');
+    var translatedPosts = getTranslatedPosts(translations, translations_table, lang);
+    (0,external_this_wp_data_.dispatch)(MODULE_CORE_EDITOR_KEY).editPost({
+      translations: convertMapToObject(translatedPosts)
+    });
+  }
+  /**
+   * Register plugin polylang-sidebar
+   */
 
 
-(0,external_this_wp_plugins_.registerPlugin)("polylang-sidebar", {
-  icon: library_translation,
-  render: PolylangSidebar
+  (0,external_this_wp_plugins_.registerPlugin)("polylang-sidebar", {
+    icon: library_translation,
+    render: PolylangSidebar
+  });
 });
 
 /***/ }),

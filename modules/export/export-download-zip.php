@@ -104,7 +104,9 @@ class PLL_Export_Download_Zip {
 	 * @return void
 	 */
 	private function download() {
-		ob_clean();
+		if ( ob_get_length() > 0 ) {
+			ob_clean();
+		}
 
 		readfile( $this->filepath ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_readfile
 		wp_delete_file( $this->filepath );

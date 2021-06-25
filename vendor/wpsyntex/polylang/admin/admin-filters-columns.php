@@ -247,6 +247,13 @@ class PLL_Admin_Filters_Columns {
 	 * @return string[] modified List of columns.
 	 */
 	public function add_term_column( $columns ) {
+		$screen = get_current_screen();
+
+		// Avoid displaying languages in screen options when editing a term.
+		if ( $screen instanceof WP_Screen && 'term' === $screen->base ) {
+			return $columns;
+		}
+
 		return $this->add_column( $columns, 'posts' );
 	}
 

@@ -36,7 +36,7 @@ const initializeConfimationModal = () => {
 				switch ( what ) { // phpcs:ignore PEAR.Functions.FunctionCallSignature.Indent
 					case 'yes':
 						// Confirm the new language.
-						languagesList.data( 'old-value', languagesList.children( ':selected' )[0].value );
+						languagesList.data( 'old-value', languagesList.children( ':selected' ).first().val() );
 						confirm();
 						break;
 					case 'no':
@@ -102,7 +102,7 @@ const initializeConfimationModal = () => {
 
 const initializeLanguageOldValue = () => {
 	// Keep the old language value to be able to compare to the new one and revert to it if necessary.
-	languagesList.attr( 'data-old-value', languagesList.children( ':selected' )[0].value );
+	languagesList.attr( 'data-old-value', languagesList.children( ':selected' ).first().val() );
 };
 
 
