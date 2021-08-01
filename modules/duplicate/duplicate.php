@@ -32,6 +32,6 @@ class PLL_Duplicate extends PLL_Metabox_Button {
 		$this->options      = &$polylang->options;
 		$this->sync_content = &$polylang->sync_content;
 
-		add_action( 'add_meta_boxes', array( $this, 'new_post_translation' ), 2 ); // Classic editor, before PLL_Admin_Sync.
+		add_filter( 'use_block_editor_for_post', array( $this, 'new_post_translation' ), 2000 ); // After class instanciation and before terms and post metas are copied in Polylang.
 	}
 }

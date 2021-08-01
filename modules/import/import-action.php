@@ -36,7 +36,7 @@ class PLL_Import_Action {
 	/**
 	 * Instance of PLL_Import_File_Interface.
 	 *
-	 * @var PLL_Import_File
+	 * @var PLL_Import_Uploader
 	 */
 	private $import_factory;
 
@@ -49,7 +49,7 @@ class PLL_Import_Action {
 	 */
 	public function __construct( $model ) {
 		$this->model = $model;
-		$this->import_factory = new PLL_Import_File();
+		$this->import_factory = new PLL_Import_Uploader();
 	}
 
 	/**
@@ -98,7 +98,7 @@ class PLL_Import_Action {
 
 		$entry = $import->get_next_entry();
 
-		if ( PLL_Import_Export::STRINGS_TRANSLATION === $entry['type'] ) {
+		if ( PLL_Import_Export::STRINGS_TRANSLATIONS === $entry['type'] ) {
 			$updated = $this->create_string_translations_on_import( $entry['data'], $this->model->get_language( $import->get_target_language() ) );
 
 			if ( is_wp_error( $updated ) ) {
@@ -131,7 +131,7 @@ class PLL_Import_Action {
 	 *
 	 * @since 2.7
 	 *
-	 * @param PLL_Import_File_Interface $import Import file.
+	 * @param PLL_Import_File $import Import file.
 	 * @return bool|WP_Error
 	 */
 	public function is_data_valid_for_import( $import ) {
@@ -144,8 +144,7 @@ class PLL_Import_Action {
 		if ( false === $locale ) {
 			return new WP_Error( 'pll_import_no_language', esc_html__( 'Error: No target languages have been provided in the imported file.', 'polylang-pro' ) );
 		}
-
-		if ( ! in_array( $locale, $this->model->get_languages_list( array( 'fields' => 'w3c' ) ) ) ) {
+		if ( ! $this->model->get_language( $locale ) ) {
 			return new WP_Error( 'pll_import_wrong_language', esc_html__( "Error: You are trying to import a file in a language which doesn't exist on your site.", 'polylang-pro' ) );
 		}
 

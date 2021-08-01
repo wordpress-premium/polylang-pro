@@ -15,3 +15,7 @@
 	float: right;
 	margin: 13px 7px;
 }
+
+.rtl #pll-duplicate {
+	float: left;
+}

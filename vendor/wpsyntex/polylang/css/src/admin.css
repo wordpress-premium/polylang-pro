@@ -3,6 +3,19 @@
 	width: 95%;
 }
 
+#add-lang label {
+	margin: 0.35em 0 0.5em;
+}
+
+.pll-legend {
+	display: block;
+	padding: 2px 0;
+	color: #1d2327;
+	font-weight: 400;
+	text-shadow: none;
+	margin: 0.35em 0 0.5em;
+}
+
 .column-locale,
 .languages .column-slug {
 	width : 15%
@@ -28,11 +41,6 @@
 }
 .pll-circle:before{
 	content: "\25cf";
-}
-
-.form-field input[type="radio"] {
-	width: auto;
-	margin-right: 2px;
 }
 
 /* about Polylang metabox */
@@ -187,8 +195,17 @@
 }
 
 /* languages metabox in post.php */
+#ml_box p {
+	margin-top: 1em;
+}
+
 #post-translations p {
 	float: left;
+	margin-top: 1em;
+}
+
+.rtl #post-translations p {
+	float: right;
 }
 
 #post-translations table {
@@ -222,13 +239,15 @@
 	width: auto;
 }
 
-.pll-column-icon {
-	text-align: center;
-}
-
 #select-post-language .pll-select-flag {
 	padding: 4px;
-	margin-right: 32px;
+	margin-right: 10px;
+}
+
+.rtl #select-post-language .pll-select-flag {
+    padding: 4px;
+    margin-right: 0px;
+    margin-left: 10px;
 }
 
 /* specific cases for media */
@@ -311,6 +330,14 @@
 #wpadminbar #wp-admin-bar-languages .ab-icon:before {
 	content: "\f326";
 	top: 1px;
+}
+
+#wp-admin-bar-languages.pll-filtered-languages {
+	background: #a03f3f;
+}
+/* Enforce white color for WordPress admin light theme. */
+#wpadminbar #wp-admin-bar-languages.pll-filtered-languages span.ab-label{
+		color: #fff;
 }
 
 /* Notices */

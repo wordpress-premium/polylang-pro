@@ -10,7 +10,21 @@
  *
  * @since 2.7
  */
-class PLL_PO_Export implements PLL_Export_File_Interface {
+class PLL_PO_Export extends PLL_Export_File {
+
+	/**
+	 * The registered target languages
+	 *
+	 * @var string
+	 */
+	protected $target_language;
+
+	/**
+	 * The registered source_language
+	 *
+	 * @var string
+	 */
+	protected $source_language;
 
 	/**
 	 * Po object.
@@ -18,20 +32,6 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	 * @var PO
 	 */
 	private $po;
-
-	/**
-	 * The registered source_language
-	 *
-	 * @var string
-	 */
-	private $source_language;
-
-	/**
-	 * The registered target languages
-	 *
-	 * @var string
-	 */
-	private $target_language;
 
 	/**
 	 * PLL_Export_Interface constructor.
@@ -42,6 +42,15 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	public function __construct() {
 		require_once ABSPATH . '/wp-includes/pomo/po.php';
 		$this->po = new PO();
+	}
+
+	/**
+	 * @since 3.1
+	 *
+	 * @return string
+	 */
+	public function get_source_language() {
+		return $this->source_language;
 	}
 
 	/**
@@ -56,6 +65,15 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	public function set_source_language( $source_language ) {
 		$this->source_language = $source_language;
 		$this->po->set_header( 'Language-Source', $source_language );
+	}
+
+	/**
+	 * @since 3.1
+	 *
+	 * @return string
+	 */
+	public function get_target_language() {
+		return $this->target_language;
 	}
 
 	/**
@@ -81,7 +99,6 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	 */
 	public function set_site_reference( $url ) {
 		$this->po->set_header( 'Site-Reference', $url );
-
 	}
 
 	/**
@@ -169,13 +186,11 @@ class PLL_PO_Export implements PLL_Export_File_Interface {
 	}
 
 	/**
-	 * Returns the name of the file to export.
-	 *
-	 * @since 2.7
+	 * @since 3.1
 	 *
 	 * @return string
 	 */
-	public function get_filename() {
-		return $this->source_language . '_' . $this->target_language . '.po';
+	public function get_extension() {
+		return 'po';
 	}
 }

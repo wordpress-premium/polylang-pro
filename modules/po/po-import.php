@@ -10,7 +10,7 @@
  *
  * @since 2.7
  */
-class PLL_PO_Import implements  PLL_Import_File_Interface {
+class PLL_PO_Import extends PLL_Import_File {
 
 	/**
 	 * Po object.
@@ -53,10 +53,11 @@ class PLL_PO_Import implements  PLL_Import_File_Interface {
 	 * Get the source language
 	 *
 	 * @since 2.7
+	 * @since 3.1 Renamed from PLL_PO_Import::get_source_lang()
 	 *
 	 * @return string|false
 	 */
-	public function get_source_lang() {
+	public function get_source_language() {
 		if ( ! empty( $this->po->headers['Language-Source'] ) ) {
 			return $this->po->headers['Language-Source'];
 		}
@@ -101,7 +102,7 @@ class PLL_PO_Import implements  PLL_Import_File_Interface {
 	public function get_next_entry() {
 		return array(
 			'id'   => null,
-			'type' => PLL_Import_Export::STRINGS_TRANSLATION,
+			'type' => PLL_Import_Export::STRINGS_TRANSLATIONS,
 			'data' => $this->po,
 		);
 	}

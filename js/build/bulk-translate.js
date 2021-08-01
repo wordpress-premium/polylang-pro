@@ -1,3 +1,4 @@
+var __webpack_exports__ = {};
 /**
  * Bulk translate
  *

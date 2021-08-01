@@ -34,9 +34,11 @@ class PLL_Export_Download_Zip {
 	/**
 	 * Creates a new zip containing several files
 	 *
+	 * @since 2.7
+	 *
 	 * @see https://www.php.net/manual/class.ziparchive.php PHP ZipArchive library
 	 *
-	 * @param PLL_Export_File_Interface $export An instance representing a file, or a collection of files to be exported as zip.
+	 * @param PLL_Export_Multi_Files $export A collection of files to be exported as zip.
 	 * @return bool true if file have been created.
 	 */
 	public function create( $export ) {
@@ -54,12 +56,8 @@ class PLL_Export_Download_Zip {
 			return false;
 		}
 
-		if ( $export instanceof Iterator ) {
-			foreach ( $export as $export_file ) {
-				$zip->addFromString( $export_file->get_filename(), $export_file->export() );
-			}
-		} else {
-			$zip->addFromString( $export->get_filename(), $export->export() );
+		foreach ( $export as $export_file ) {
+			$zip->addFromString( $export_file->get_filename(), $export_file->export() );
 		}
 
 		if ( ! $zip->close() ) {

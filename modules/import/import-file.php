@@ -4,93 +4,59 @@
  */
 
 /**
- * Handles file verifications.
- * Instantiates the right import classes according to the file type.
+ * Interface PLL_Import_File_Interface
+ *
+ * Each class implementing this interface shall be the representation of a single file to be imported
  *
  * @since 2.7
+ * @since 3.1 Renamed from PLL_Import_File_Interface
  */
-class PLL_Import_File {
+abstract class PLL_Import_File {
 	/**
-	 * Used to set supported file formats.
-	 *
-	 * @var string
-	 */
-	const SUPPORTED_FORMATS = array(
-		'po' => 'text/x-po',
-	);
-
-	/**
-	 * Stores the properties of the uploaded file
+	 * Import the translations from a file.
 	 *
 	 * @since 2.7
 	 *
-	 * @var array {
-	 *   string $file Path to the current location of the file.
-	 *   string $type MIME type of the uploaded file.
-	 *   string $error Message for errors having occurred during file upload.
-	 * }
+	 * @param string $filepath The path on the filesystem where the import file is located.
+	 * @return WP_Error|true
 	 */
-	private $upload;
+	abstract public function import_from_file( $filepath );
 
 	/**
-	 * Deletes the file when no longer needed.
+	 *
+	 * Get the language of the source
 	 *
 	 * @since 2.7
+	 * @since 3.1 Renamed from PLL_Import_File_Interface::get_source_lang()
+	 *
+	 * @return string|false
 	 */
-	public function __destruct() {
-		if ( isset( $this->upload['file'] ) ) {
-			wp_delete_file( $this->upload['file'] );
-		}
-	}
+	abstract public function get_source_language();
 
 	/**
-	 * Handles uploading a file.
-	 * Returns an import class instance according to the upload file type.
+	 * Get the target language
 	 *
 	 * @since 2.7
 	 *
-	 * @param string $filepath Path to the current location of the uploaded file.
-	 * @return PLL_Import_File_Interface|WP_Error
+	 * @return string|false
 	 */
-	public function load( $filepath ) {
-		add_filter( 'upload_mimes', array( $this, 'allowed_mimes' ) ); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
-
-		$overrides = array(
-			'test_form' => false,
-		);
-
-		$this->upload = wp_handle_upload( $filepath, $overrides );
-
-		if ( isset( $this->upload['error'] ) ) {
-			return new WP_Error( 'pll_import_upload_error', esc_html( $this->upload['error'] ) );
-		}
-
-		switch ( $this->upload['type'] ) {
-			case 'text/x-po':
-				$import = new PLL_PO_Import();
-				$error = $import->import_from_file( $this->upload['file'] );
-				return is_wp_error( $error ) ? $error : $import;
-			default:
-				return new WP_Error(
-					'pll_import_wrong_format',
-					sprintf(
-						/* translators: %s is a suite of comma separate file formats */
-						esc_html__( 'Error: Wrong file format. The supported file formats are: %s.', 'polylang-pro' ),
-						strtoupper( implode( ', ', array_keys( self::SUPPORTED_FORMATS ) ) )
-					)
-				);
-		}
-	}
+	abstract public function get_target_language();
 
 	/**
-	 * Adds translation files formats to the list of allowed mime types
+	 * Get the next content to import.
 	 *
 	 * @since 2.7
 	 *
-	 * @param array $mimes List of allowed mime types.
-	 * @return array Modified list of allowed mime types.
+	 * @return array
 	 */
-	public function allowed_mimes( $mimes ) {
-		return array_merge( $mimes, self::SUPPORTED_FORMATS );
-	}
+	abstract public function get_next_entry();
+
+	/**
+	 * Get the site reference
+	 *
+	 * @since 2.7
+	 *
+	 * @return string|false
+	 */
+	abstract public function get_site_reference();
 }

@@ -1,63 +1,60 @@
 <?php
 /**
- * @package Polylang
+ * @package Polylang-Pro
  */
 
 /**
- * Settings class to advertize the Share slugs module
+ * Settings class to display information for the Share slugs module.
  *
- * @since 1.9
+ * @since 3.1
  */
-class PLL_Settings_Share_Slug extends PLL_Settings_Module {
+class PLL_Settings_Share_Slug extends PLL_Settings_Preview_Share_Slug {
 	/**
-	 * Stores the display order priority.
+	 * Constructor.
 	 *
-	 * @var int
-	 */
-	public $priority = 70;
-
-	/**
-	 * Constructor
+	 * @since 3.1
 	 *
-	 * @since 1.9
-	 *
-	 * @param object $polylang polylang object
+	 * @param object $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
-		parent::__construct(
-			$polylang,
-			array(
-				'module'      => 'share-slugs',
-				'title'       => __( 'Share slugs', 'polylang' ),
-				'description' => __( 'Allows to share the same url slug across languages for posts and terms.', 'polylang' ),
-			)
-		);
+		parent::__construct( $polylang );
 
-		if ( class_exists( 'PLL_Share_Post_Slug', true ) && get_option( 'permalink_structure' ) ) {
+		if ( get_option( 'permalink_structure' ) ) {
 			add_action( 'admin_print_footer_scripts', array( $this, 'print_js' ) );
 		}
 	}
 
 	/**
-	 * Tells if the module is active
+	 * Returns the module description.
+	 *
+	 * @since 3.1
+	 *
+	 * @return string
+	 */
+	protected function get_description() {
+		return parent::get_description() . ' ' . __( 'The module is automatically deactivated when using plain permalinks or when the language is set from the content in the URL modifications.', 'polylang-pro' );
+	}
+
+	/**
+	 * Tells if the module is active.
 	 *
 	 * @since 1.9
 	 *
 	 * @return bool
 	 */
 	public function is_active() {
-		return class_exists( 'PLL_Share_Post_Slug', true ) && $this->options['force_lang'] && get_option( 'permalink_structure' );
+		return $this->options['force_lang'] && get_option( 'permalink_structure' );
 	}
 
 	/**
-	 * Displays upgrade message
+	 * Avoid displaying the upgrade message.
 	 *
 	 * @since 1.9
 	 *
 	 * @return string
 	 */
 	public function get_upgrade_message() {
-		return class_exists( 'PLL_Share_Post_Slug', true ) ? '' : $this->default_upgrade_message();
+		return '';
 	}
 
 	/**

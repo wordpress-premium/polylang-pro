@@ -53,6 +53,7 @@ class PLL_Settings_Url extends PLL_Settings_Module {
 	 */
 	protected function force_lang() {
 		?>
+		<p class="description"><?php esc_html_e( 'Some themes or plugins may not be fully compatible with the language defined by the content or by domains.', 'polylang' ); ?></p>
 		<label>
 			<?php
 			printf(
@@ -180,7 +181,7 @@ class PLL_Settings_Url extends PLL_Settings_Module {
 			printf(
 				'<input name="redirect_lang" type="checkbox" value="1" %s/> %s',
 				checked( $this->options['redirect_lang'], 1, false ),
-				esc_html__( 'The front page url contains the language code instead of the page name or page id', 'polylang' )
+				esc_html__( 'The front page URL contains the language code instead of the page name or page id', 'polylang' )
 			);
 			?>
 		</label>

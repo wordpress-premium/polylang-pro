@@ -51,6 +51,11 @@ abstract class PLL_Admin_Base extends PLL_Base {
 	public $static_pages;
 
 	/**
+	 * @var PLL_Admin_Default_Term
+	 */
+	public $default_term;
+
+	/**
 	 * Setups actions needed on all admin pages.
 	 *
 	 * @since 1.8
@@ -88,6 +93,8 @@ abstract class PLL_Admin_Base extends PLL_Base {
 		$this->links = new PLL_Admin_Links( $this ); // FIXME needed here ?
 		$this->static_pages = new PLL_Admin_Static_Pages( $this ); // FIXME needed here ?
 		$this->filters_links = new PLL_Filters_Links( $this ); // FIXME needed here ?
+		$this->default_term = new PLL_Admin_Default_Term( $this );
+		$this->default_term->add_hooks();
 
 		// Filter admin language for users
 		// We must not call user info before WordPress defines user roles in wp-settings.php
@@ -457,15 +464,21 @@ abstract class PLL_Admin_Base extends PLL_Base {
 		 */
 		$items = apply_filters( 'pll_admin_languages_filter', array_merge( array( $all_item ), $this->model->get_languages_list() ) );
 
+		$menu = array(
+			'id'    => 'languages',
+			'title' => $selected->flag . $title,
+			'href'  => esc_url( add_query_arg( 'lang', $selected->slug, remove_query_arg( 'paged' ) ) ),
+			'meta'  => array(
+				'title' => __( 'Filters content by language', 'polylang' ),
+			),
+		);
+
+		if ( 'all' !== $selected->slug ) {
+			$menu['meta']['class'] = 'pll-filtered-languages';
+		}
+
 		if ( ! empty( $items ) ) {
-			$wp_admin_bar->add_menu(
-				array(
-					'id'    => 'languages',
-					'title' => $selected->flag . $title,
-					'href'  => esc_url( add_query_arg( 'lang', $selected->slug, remove_query_arg( 'paged' ) ) ),
-					'meta'  => array( 'title' => __( 'Filters content by language', 'polylang' ) ),
-				)
-			);
+			$wp_admin_bar->add_menu( $menu );
 		}
 
 		foreach ( $items as $lang ) {

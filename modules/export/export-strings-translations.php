@@ -7,8 +7,10 @@
  * Handles the admin action of exporting strings translations.
  *
  * @since 2.7
+ * @since 3.1 Renamed from 'PLL_Export_Strings_Translation'
  */
-class PLL_Export_Strings_Translation {
+class PLL_Export_Strings_Translations {
+
 	/**
 	 * Used to set the action's name in forms.
 	 *
@@ -33,7 +35,7 @@ class PLL_Export_Strings_Translation {
 	/**
 	 * Represents an export file.
 	 *
-	 * @var PLL_Export_File_Interface
+	 * @var PLL_Export_Multi_Files
 	 */
 	private $export;
 
@@ -52,18 +54,31 @@ class PLL_Export_Strings_Translation {
 	private $options;
 
 	/**
+	 * @var PLL_File_Format_Factory
+	 */
+	private $file_format_factory;
+
+	/**
 	 * PLL_Export_Strings_Translation constructor.
 	 *
-	 * @since 2.7
-	 *
-	 * @param PLL_Model $model            Polylang model.
+	 * @param string    $file_extension The file's extension, {@see PLL_File_Format_Factory::from_extension()}.
+	 * @param PLL_Model $model Polylang model.
 	 * @param array     $polylang_options Polylang options.
+	 *
+	 * @return void
+	 * @since 2.7
+	 * @since 3.1 Add the $string parameter.
 	 */
-	public function __construct( $model, $polylang_options ) {
+	public function __construct( $file_extension, $model, $polylang_options ) {
 		$this->options = $polylang_options;
 		$this->model = $model;
+		$this->file_format_factory = new PLL_File_Format_Factory();
 
-		$this->export = new PLL_Export_Multi_Files( new PLL_PO_Export() );
+		$file_format = $this->file_format_factory->from_extension( $file_extension );
+
+		$export_format = $file_format->get_export();
+
+		$this->export = new PLL_Export_Multi_Files( $export_format );
 
 		$this->downloader = new PLL_Export_Download_Zip();
 	}
@@ -87,7 +102,7 @@ class PLL_Export_Strings_Translation {
 
 			$this->export->set_site_reference( get_site_url() );
 
-			$this->export->set_source_reference( PLL_Import_Export::STRINGS_TRANSLATION );
+			$this->export->set_source_reference( PLL_Import_Export::STRINGS_TRANSLATIONS );
 
 			$mo = new PLL_MO();
 			$mo->import_from_db( $lang );
@@ -118,4 +133,5 @@ class PLL_Export_Strings_Translation {
 			);
 		}
 	}
+
 }

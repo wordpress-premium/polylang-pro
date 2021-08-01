@@ -117,7 +117,8 @@ class PLL_Sync_Post_REST {
 	 */
 	public function after_insert_post( $post ) {
 		if ( isset( $post->ID ) ) { // Test to avoid a warning with WooCommerce.
-			foreach ( array_keys( $this->sync_model->get( $post->ID ) ) as $lang ) {
+			$synchronized_posts = array_diff( $this->sync_model->get( $post->ID ), array( $post->ID ) );
+			foreach ( array_keys( $synchronized_posts ) as $lang ) {
 				if ( $this->sync_model->current_user_can_synchronize( $post->ID, $lang ) ) {
 					$tr_id = $this->sync_model->copy_post( $post->ID, $lang, false );
 					is_sticky( $post->ID ) ? stick_post( $tr_id ) : unstick_post( $tr_id ); // copy_post() doesn't handle sticky posts.

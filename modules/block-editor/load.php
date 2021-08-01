@@ -10,12 +10,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action(
 	'pll_init',
 	function( $polylang ) {
-		// Testing register_block_type to ensure backward compatibility with WP < 5.0
-		if ( function_exists( 'register_block_type' ) && $polylang->model->get_languages_list() && pll_use_block_editor_plugin() ) {
+		if ( $polylang->model->get_languages_list() && pll_use_block_editor_plugin() ) {
 			if ( $polylang instanceof PLL_Admin ) {
 				$polylang->block_editor_plugin = new PLL_Block_Editor_Plugin( $polylang );
 			}
 
+			if ( $polylang instanceof PLL_Frontend ) {
+				$polylang->filters_widgets_blocks = new PLL_Frontend_Filters_Widgets_Blocks( $polylang );
+			}
+
+			$polylang->widget_editor = new PLL_Widget_Editor_Language_Attribute();
 			$polylang->switcher_block = new PLL_Block_Editor_Switcher_Block( $polylang );
 		}
 	}

@@ -2,10 +2,10 @@
 Contributors: Chouby, manooweb, raaaahman, marianne38, sebastienserre
 Donate link: https://polylang.pro
 Tags: multilingual, bilingual, translate, translation, language, multilanguage, international, localization
-Requires at least: 5.1
-Tested up to: 5.7
+Requires at least: 5.4
+Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 3.0.5
+Stable tag: 3.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -78,6 +78,35 @@ Don't hesitate to [give your feedback](http://wordpress.org/support/view/plugin-
 
 == Changelog ==
 
+= 3.1 (2021-07-27) =
+
+* Add compatibility with WordPress 5.8
+* Raise Minimum WordPress version to 5.4
+* Pro: Allow to filter blocks by language in the widget block editor
+* Pro: Allow to export and import XLIFF files for string translations
+* Pro: Add the language switcher in the navigation block (experimental)
+* Pro: Replace dashicons by svg icons in the block editor
+* Pro: The Events Calendar: Add compatibility with Views V2 (only for sites using only one domain)
+* Pro: Fix + icon displayed in the block editor sidebar when the user cannot create a translation
+* Add a warning section to the site health for posts and terms without languages #825
+* Require the simplexml extension in the site health if a wpml-config.xml is found #827
+* Remove the information about the WPML compabitility mode in settings #843
+* The browser preferred language detection is now deactivated by default
+* The media are now untranslated by default
+* Highlight the language filter in the admin toolbar when it's active #821
+* Allow to query comments in multiple languages (just as posts and terms) #840
+* Don't disable the translation input field in the classic metabox #841 Props Onatcer
+* Optimize all images including flags #848 Props lowwebtech
+* Don't redirect if WordPress doesn't validate the redirect url to avoid redirects to /wp-admin/ #879
+* Fix media appearing to have a language after the language is changed in the media library grid view  #807
+* Fix media not all deleted when bulk deleting from the grid view of the media library #830
+* Fix when more than one language switcher are added to the same menu #853
+* Fix PHP notice when adding a CPT archive link to a menu #868 Props davidwebca
+
+= 3.0.6 (2021-06-22) =
+
+* Fix a conflict with the WooCommerce cart translation and cache plugins #876
+
 = 3.0.5 (2021-06-08) =
 
 * Pro: fix original post not assigned to a new translation when the languages sidebar is closed
@@ -103,7 +132,7 @@ Don't hesitate to [give your feedback](http://wordpress.org/support/view/plugin-
 * Move hreflang attributes higher in the head section #771
 * Fix custom flags not working (introduced in 3.0)
 * Fix translation of the confirmation modal when changing the language of a post
-* Fix js and css not loaded when Polylang is used as a mu-plugin ((introduced in 3.0))
+* Fix js and css not loaded when Polylang is used as a mu-plugin (introduced in 3.0)
 * Fix support for html5 stylesheet link tags #775
 * Fix possible warning in frontend-filters-links.php
 * Yoast SEO Premium: Take over the multilingual compatibility removed in Yoast SEO Premium 15.8 #796

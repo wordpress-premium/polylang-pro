@@ -1,3 +1,4 @@
+var __webpack_exports__ = {};
 /**
  * Handles the options in the language switcher nav menu metabox.
  *

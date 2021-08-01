@@ -8,13 +8,13 @@
  *
  * @since 2.7
  */
-class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
+class PLL_Export_Multi_Files implements Iterator {
 	/**
 	 * Contains all the different files to export
 	 *
 	 * Each file is referenced with a key composed of its source and target languages
 	 *
-	 * @var array Associative array of PLL_Export_File_Interface
+	 * @var array Associative array of PLL_Export_File
 	 */
 	private $export_files = array();
 
@@ -28,7 +28,7 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	private $export_filenames;
 
 	/**
-	 * Index of the PLL_Export_File_Interface instance being currently processed. This instanc is stored in {@see PLL_Export_Multi_Files::$export_files}.
+	 * Index of the PLL_Export_File instance being currently processed. This instanc is stored in {@see PLL_Export_Multi_Files::$export_files}.
 	 *
 	 * @var int
 	 */
@@ -37,7 +37,7 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	/**
 	 * The export file currently in use to add translations into.
 	 *
-	 * @var PLL_Export_File_Interface
+	 * @var PLL_Export_File
 	 */
 	private $current_file;
 
@@ -53,7 +53,7 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	 *
 	 * FIXME: At this point, only the class matters, as a new instance will be generated for each new target language, {@see PLL_Export_Multi_Files::set_target_language()}.
 	 *
-	 * @var PLL_Export_File_Interface
+	 * @var PLL_Export_File
 	 */
 	private $base_instance;
 
@@ -62,7 +62,7 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	 *
 	 * @since 2.7
 	 *
-	 * @param PLL_Export_File_Interface $base_instance An instance of the class that defines an individual export file.
+	 * @param PLL_Export_File $base_instance An instance of the class that defines an individual export file.
 	 */
 	public function __construct( $base_instance ) {
 		$this->base_instance = $base_instance;
@@ -146,22 +146,11 @@ class PLL_Export_Multi_Files implements PLL_Export_File_Interface, Iterator {
 	}
 
 	/**
-	 * Returns the name of the current file to export.
-	 *
-	 * @since 2.7
-	 *
-	 * @return string
-	 */
-	public function get_filename() {
-		return $this->current_file->get_filename();
-	}
-
-	/**
 	 * From {@see Iterator}. Returns the current instance of the export file abstraction.
 	 *
 	 * @since 2.7
 	 *
-	 * @return PLL_Export_File_Interface
+	 * @return PLL_Export_File
 	 */
 	public function current() {
 		return $this->export_files[ $this->export_filenames[ $this->current_index ] ];

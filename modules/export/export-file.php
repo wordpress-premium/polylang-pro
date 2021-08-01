@@ -9,8 +9,23 @@
  * Each class implementing this interface shall be the representation of a single file to be exported
  *
  * @since 2.7
+ * @since 3.1 Renamed from 'PLL_Export_File_Interface'
  */
-interface PLL_Export_File_Interface {
+abstract class PLL_Export_File {
+	/**
+	 * @since 3.1
+	 *
+	 * @return string
+	 */
+	abstract public function get_extension();
+
+	/**
+	 * @since 3.1
+	 *
+	 * @return string
+	 */
+	abstract public function get_source_language();
+
 	/**
 	 *
 	 * Set source language to export
@@ -20,7 +35,14 @@ interface PLL_Export_File_Interface {
 	 * @param string $source_language Locale.
 	 * @return void
 	 */
-	public function set_source_language( $source_language );
+	abstract public function set_source_language( $source_language );
+
+	/**
+	 * @since 3.1
+	 *
+	 * @return string
+	 */
+	abstract public function get_target_language();
 
 	/**
 	 *
@@ -31,7 +53,7 @@ interface PLL_Export_File_Interface {
 	 * @param string $target_language Target language.
 	 * @return void
 	 */
-	public function set_target_language( $target_language );
+	abstract public function set_target_language( $target_language );
 
 	/**
 	 *
@@ -45,7 +67,7 @@ interface PLL_Export_File_Interface {
 	 * @param array  $args   Optional, an array of additional arguments, like an identifier for the string, its context, comments for translators, etc.
 	 * @return void
 	 */
-	public function add_translation_entry( $type, $source, $target = '', $args = array() );
+	abstract public function add_translation_entry( $type, $source, $target = '', $args = array() );
 
 	/**
 	 * Adds a reference to a source of translations entries.
@@ -56,7 +78,7 @@ interface PLL_Export_File_Interface {
 	 * @param string $id   Optional, a unique identifier to retrieve the data in the database.
 	 * @return void
 	 */
-	public function set_source_reference( $type, $id = '' );
+	abstract public function set_source_reference( $type, $id = '' );
 
 	/**
 	 * Adds a reference to the site from which the file has been exported.
@@ -66,7 +88,7 @@ interface PLL_Export_File_Interface {
 	 * @param string $url Absolute URL of the current site exporting content.
 	 * @return void
 	 */
-	public function set_site_reference( $url );
+	abstract public function set_site_reference( $url );
 
 	/**
 	 * Returns the content of the file
@@ -75,7 +97,7 @@ interface PLL_Export_File_Interface {
 	 *
 	 * @return string
 	 */
-	public function export();
+	abstract public function export();
 
 	/**
 	 * Returns the name of the file to export.
@@ -84,5 +106,12 @@ interface PLL_Export_File_Interface {
 	 *
 	 * @return string
 	 */
-	public function get_filename();
+	public function get_filename() {
+		$source_language = $this->get_source_language();
+		$target_language = $this->get_target_language();
+		$datenow = gmdate( 'Y-m-d-G:i:s' );
+		$extension = $this->get_extension();
+
+		return "{$source_language}_{$target_language}_{$datenow}.{$extension}";
+	}
 }

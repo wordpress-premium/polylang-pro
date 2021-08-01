@@ -1,6 +1,7 @@
 /******/ "use strict";
+var __webpack_exports__ = {};
 
-;// CONCATENATED MODULE: ./vendor/wpsyntex/polylang/js/lib/confirmation-modal.js
+;// CONCATENATED MODULE: ./vendor/wpsyntex/polylang/js/src/lib/confirmation-modal.js
 /**
  * @package Polylang
  */
@@ -101,7 +102,7 @@ const initializeLanguageOldValue = () => {
 	languagesList.attr( 'data-old-value', languagesList.children( ':selected' ).first().val() );
 };
 
-;// CONCATENATED MODULE: ./vendor/wpsyntex/polylang/js/classic-editor.js
+;// CONCATENATED MODULE: ./vendor/wpsyntex/polylang/js/src/classic-editor.js
 /**
  * @package Polylang
  */

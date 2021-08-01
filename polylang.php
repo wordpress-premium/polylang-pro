@@ -10,8 +10,8 @@
  * Plugin Name:       Polylang Pro
  * Plugin URI:        https://polylang.pro
  * Description:       Adds multilingual capability to WordPress
- * Version:           3.0.5
- * Requires at least: 5.1
+ * Version:           3.1-rc1
+ * Requires at least: 5.4
  * Requires PHP:      5.6
  * Author:            WP SYNTEX
  * Author URI:        https://polylang.pro

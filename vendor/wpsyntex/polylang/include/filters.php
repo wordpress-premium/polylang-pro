@@ -69,9 +69,6 @@ class PLL_Filters {
 		// Converts the locale to a valid W3C locale
 		add_filter( 'language_attributes', array( $this, 'language_attributes' ) );
 
-		// Prevents deleting all the translations of the default category
-		add_filter( 'map_meta_cap', array( $this, 'fix_delete_default_category' ), 10, 4 );
-
 		// Translate the site title in emails sent to users
 		add_filter( 'password_change_email', array( $this, 'translate_user_email' ) );
 		add_filter( 'email_change_email', array( $this, 'translate_user_email' ) );
@@ -99,24 +96,38 @@ class PLL_Filters {
 	 * Get the language to filter a comments query.
 	 *
 	 * @since 2.0
+	 * @since 3.1 Always returns an array. Renamed from get_comments_queried_language().
 	 *
-	 * @param WP_Comment_Query $query  WP_Comment_Query object.
-	 * @return PLL_Language|false The language to use in the filter, false otherwise.
+	 * @param WP_Comment_Query $query WP_Comment_Query object.
+	 * @return PLL_Language[] The languages to use in the filter.
 	 */
-	protected function get_comments_queried_language( $query ) {
+	protected function get_comments_queried_languages( $query ) {
 		// Don't filter comments if comment ids or post ids are specified.
 		$plucked = wp_array_slice_assoc( $query->query_vars, array( 'comment__in', 'parent', 'post_id', 'post__in', 'post_parent' ) );
 		$fields = array_filter( $plucked );
 		if ( ! empty( $fields ) ) {
-			return false;
+			return array();
 		}
 
 		// Don't filter comments if a non translated post type is specified.
 		if ( ! empty( $query->query_vars['post_type'] ) && ! $this->model->is_translated_post_type( $query->query_vars['post_type'] ) ) {
-			return false;
+			return array();
 		}
 
-		return empty( $query->query_vars['lang'] ) ? $this->curlang : $this->model->get_language( $query->query_vars['lang'] );
+		// If comments are queried with a 'lang' parameter, keeps only language codes.
+		if ( isset( $query->query_vars['lang'] ) ) {
+			$languages = is_string( $query->query_vars['lang'] ) ? explode( ',', $query->query_vars['lang'] ) : $query->query_vars['lang'];
+			if ( is_array( $languages ) ) {
+				$languages = array_map( array( $this->model, 'get_language' ), $languages );
+				return array_filter( $languages );
+			}
+		}
+
+		if ( ! empty( $this->curlang ) ) {
+			return array( $this->curlang );
+		}
+
+		return array();
 	}
 
 	/**
@@ -130,9 +141,10 @@ class PLL_Filters {
 	 * @return void
 	 */
 	public function parse_comment_query( $query ) {
-		$lang = $this->get_comments_queried_language( $query );
-		if ( $lang ) {
-			$key = '_' . $lang->slug;
+		$lang = $this->get_comments_queried_languages( $query );
+		if ( ! empty( $lang ) ) {
+			$lang = wp_list_pluck( $lang, 'slug' );
+			$key = '_' . implode( ',', $lang );
 			$query->query_vars['cache_domain'] = empty( $query->query_vars['cache_domain'] ) ? 'pll' . $key : $query->query_vars['cache_domain'] . $key;
 		}
 	}
@@ -150,9 +162,11 @@ class PLL_Filters {
 	public function comments_clauses( $clauses, $query ) {
 		global $wpdb;
 
-		$lang = $this->get_comments_queried_language( $query );
+		$lang = $this->get_comments_queried_languages( $query );
 
 		if ( ! empty( $lang ) ) {
+			$lang = wp_list_pluck( $lang, 'slug' );
+
 			// If this clause is not already added by WP.
 			if ( ! strpos( $clauses['join'], '.ID' ) ) {
 				$clauses['join'] .= " JOIN $wpdb->posts ON $wpdb->posts.ID = $wpdb->comments.comment_post_ID";
@@ -206,8 +220,8 @@ class PLL_Filters {
 				),
 			);
 
-			// Take care that 'exclude' argument accepts integer or strings too
-			$args['exclude'] = array_merge( wp_parse_id_list( $args['exclude'] ), get_posts( $r ) );
+			// Take care that 'exclude' argument accepts integer or strings too.
+			$args['exclude'] = array_merge( wp_parse_id_list( $args['exclude'] ), get_posts( $r ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
 			$pages = get_pages( $args );
 		}
 
@@ -281,33 +295,8 @@ class PLL_Filters {
 	}
 
 	/**
-	 * Prevents deleting all the translations of the default category
-	 *
-	 * @since 2.1
-	 *
-	 * @param array  $caps    The user's actual capabilities.
-	 * @param string $cap     Capability name.
-	 * @param int    $user_id The user ID.
-	 * @param array  $args    Adds the context to the cap. The category id.
-	 * @return array
-	 */
-	public function fix_delete_default_category( $caps, $cap, $user_id, $args ) {
-		if ( 'delete_term' === $cap ) {
-			$term = get_term( reset( $args ) ); // Since WP 4.4, we can get the term to get the taxonomy
-			if ( $term instanceof WP_Term ) {
-				$default_cat = get_option( 'default_' . $term->taxonomy );
-				if ( $default_cat && array_intersect( $args, $this->model->term->get_translations( $default_cat ) ) ) {
-					$caps[] = 'do_not_allow';
-				}
-			}
-		}
-
-		return $caps;
-	}
-
-	/**
-	 * Translates the site title in emails sent to the user (change email, reset password).
-	 * It is necessary to filter the email because WP evaluates the site title before calling switch_to_locale().
+	 * Translates the site title in emails sent to the user (change email, reset password)
+	 * It is necessary to filter the email because WP evaluates the site title before calling switch_to_locale()
 	 *
 	 * @since 2.1.3
 	 *

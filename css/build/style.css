@@ -5,6 +5,13 @@
  * Breakpoints & Media Queries
  */
 /**
+ * SCSS Variables.
+ *
+ * Please use variables from this sheet to ensure consistency across the UI.
+ * Don't add to this sheet unless you're pretty sure the value will be reused in many places.
+ * For example, don't add rules to this sheet that affect block visuals. It's purely for UI.
+ */
+/**
  * Colors
  */
 /**
@@ -24,13 +31,14 @@
  * Editor widths.
  */
 /**
- * Block UI.
- */
-/**
- * Border radii.
+ * Block & Editor UI.
  */
 /**
  * Block paddings.
+ */
+/**
+ * React Native specific.
+ * These variables do not appear to be used anywhere else.
  */
 /**
  * Breakpoint mixins
@@ -59,6 +67,9 @@
  */
 /**
  * Reset the WP Admin page styles for Gutenberg-like pages.
+ */
+/**
+ * These are default block editor widths in case the theme doesn't provide them.
  */
 .flag {
   width: 16px;
@@ -109,6 +120,10 @@
   margin: 7px 0 0;
 }
 
+.rtl #pll-duplicate {
+  float: left;
+}
+
 .pll-button {
   height: auto;
 }
@@ -118,6 +133,10 @@
 
 .pll-metabox-location .components-button.has-icon {
   min-width: auto;
+}
+
+.pll-metabox-error.components-notice {
+  margin: 0;
 }
 
 .translation-input {
@@ -172,4 +191,14 @@
   background: color(theme(primary) shade(15%));
   color: #fff;
   outline: none;
+}
+
+.block-editor-block-inspector #select-post-language {
+  margin: 10px auto 5px auto;
+}
+.block-editor-block-inspector #select-post-language .pll-translation-icon {
+  margin-right: 10px;
+  padding: 2px;
+  display: inline-block;
+  vertical-align: middle;
 }

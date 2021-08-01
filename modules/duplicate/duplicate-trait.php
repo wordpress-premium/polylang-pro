@@ -59,14 +59,16 @@ trait PLL_Duplicate_Trait {
 	 * Fires the content copy
 	 *
 	 * @since 2.5
+	 * @since 3.1 Add $is_block_editor param as the method is now hooked to the filter use_block_editor_for_post.
 	 *
-	 * @return void
+	 * @param bool $is_block_editor Whether the post can be edited or not.
+	 * @return bool
 	 */
-	public function new_post_translation() {
+	public function new_post_translation( $is_block_editor ) {
 		global $post;
 		static $done = false;
 
-		if ( ! $done && 'post-new.php' === $GLOBALS['pagenow'] && isset( $_GET['from_post'], $_GET['new_lang'] ) ) {
+		if ( ! empty( $post ) && ! $done && 'post-new.php' === $GLOBALS['pagenow'] && isset( $_GET['from_post'], $_GET['new_lang'] ) ) {
 			check_admin_referer( 'new-post-translation' );
 
 			if ( $this->is_active() ) {
@@ -84,5 +86,7 @@ trait PLL_Duplicate_Trait {
 				add_filter( 'pll_maybe_translate_term', array( $this->sync_content, 'duplicate_term' ), 10, 3 );
 			}
 		}
+
+		return $is_block_editor;
 	}
 }

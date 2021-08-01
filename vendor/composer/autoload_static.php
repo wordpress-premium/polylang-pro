@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
+class ComposerStaticInitef3d8b9dc4d38ccfaab67eaf36bbb2d0
 {
     public static $classMap = array (
         'PLL_ACF' => __DIR__ . '/../..' . '/integrations/acf/acf.php',
@@ -20,6 +20,7 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
         'PLL_Admin_Base' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-base.php',
         'PLL_Admin_Block_Editor' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-block-editor.php',
         'PLL_Admin_Classic_Editor' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-classic-editor.php',
+        'PLL_Admin_Default_Term' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-default-term.php',
         'PLL_Admin_Filters' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-filters.php',
         'PLL_Admin_Filters_Columns' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-filters-columns.php',
         'PLL_Admin_Filters_Media' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/admin-filters-media.php',
@@ -39,6 +40,7 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
         'PLL_Admin_Sync' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/sync/admin-sync.php',
         'PLL_Aqua_Resizer' => __DIR__ . '/..' . '/wpsyntex/polylang/integrations/aqua-resizer/aqua-resizer.php',
         'PLL_Base' => __DIR__ . '/..' . '/wpsyntex/polylang/include/base.php',
+        'PLL_Block_Editor_Filter_Preload_Paths' => __DIR__ . '/..' . '/wpsyntex/polylang/admin/block-editor-filter-preload-paths.php',
         'PLL_Block_Editor_Plugin' => __DIR__ . '/../..' . '/modules/block-editor/block-editor-plugin.php',
         'PLL_Block_Editor_Switcher_Block' => __DIR__ . '/../..' . '/modules/block-editor/block-editor-switcher-block.php',
         'PLL_Bulk_Translate' => __DIR__ . '/../..' . '/modules/bulk-translate/bulk-translate.php',
@@ -56,6 +58,7 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
         'PLL_Choose_Lang_Url' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/choose-lang-url.php',
         'PLL_Content_Blocks' => __DIR__ . '/../..' . '/integrations/content-blocks/content-blocks.php',
         'PLL_Cookie' => __DIR__ . '/..' . '/wpsyntex/polylang/include/cookie.php',
+        'PLL_DOM_Document' => __DIR__ . '/../..' . '/modules/dom/dom-document.php',
         'PLL_Divi_Builder' => __DIR__ . '/../..' . '/integrations/divi/divi-builder.php',
         'PLL_Domain_Mapping' => __DIR__ . '/..' . '/wpsyntex/polylang/integrations/domain-mapping/domain-mapping.php',
         'PLL_Duplicate' => __DIR__ . '/../..' . '/modules/duplicate/duplicate.php',
@@ -63,11 +66,13 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
         'PLL_Duplicate_REST' => __DIR__ . '/../..' . '/modules/duplicate/duplicate-rest.php',
         'PLL_Duplicate_Trait' => __DIR__ . '/../..' . '/modules/duplicate/duplicate-trait.php',
         'PLL_Export_Download_Zip' => __DIR__ . '/../..' . '/modules/export/export-download-zip.php',
-        'PLL_Export_File_Interface' => __DIR__ . '/../..' . '/modules/export/export-file-interface.php',
+        'PLL_Export_File' => __DIR__ . '/../..' . '/modules/export/export-file.php',
         'PLL_Export_Multi_Files' => __DIR__ . '/../..' . '/modules/export/export-multi-files.php',
-        'PLL_Export_Strings_Translation' => __DIR__ . '/../..' . '/modules/export/export-strings-translation.php',
+        'PLL_Export_Strings_Translations' => __DIR__ . '/../..' . '/modules/export/export-strings-translations.php',
         'PLL_FLBuilder' => __DIR__ . '/../..' . '/integrations/beaver-builder/flbuilder.php',
         'PLL_Featured_Content' => __DIR__ . '/..' . '/wpsyntex/polylang/integrations/jetpack/featured-content.php',
+        'PLL_File_Format' => __DIR__ . '/../..' . '/modules/import-export/file-format.php',
+        'PLL_File_Format_Factory' => __DIR__ . '/../..' . '/modules/import-export/file-format-factory.php',
         'PLL_Filters' => __DIR__ . '/..' . '/wpsyntex/polylang/include/filters.php',
         'PLL_Filters_Links' => __DIR__ . '/..' . '/wpsyntex/polylang/include/filters-links.php',
         'PLL_Filters_Sanitization' => __DIR__ . '/..' . '/wpsyntex/polylang/include/filters-sanitization.php',
@@ -77,6 +82,8 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
         'PLL_Frontend_Filters' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/frontend-filters.php',
         'PLL_Frontend_Filters_Links' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/frontend-filters-links.php',
         'PLL_Frontend_Filters_Search' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/frontend-filters-search.php',
+        'PLL_Frontend_Filters_Widgets' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/frontend-filters-widgets.php',
+        'PLL_Frontend_Filters_Widgets_Blocks' => __DIR__ . '/../..' . '/modules/block-editor/frontend-filters-widgets-blocks.php',
         'PLL_Frontend_Links' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/frontend-links.php',
         'PLL_Frontend_Nav_Menu' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/frontend-nav-menu.php',
         'PLL_Frontend_Static_Pages' => __DIR__ . '/..' . '/wpsyntex/polylang/frontend/frontend-static-pages.php',
@@ -84,7 +91,8 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
         'PLL_Import_Action' => __DIR__ . '/../..' . '/modules/import/import-action.php',
         'PLL_Import_Export' => __DIR__ . '/../..' . '/modules/import-export/import-export.php',
         'PLL_Import_File' => __DIR__ . '/../..' . '/modules/import/import-file.php',
-        'PLL_Import_File_Interface' => __DIR__ . '/../..' . '/modules/import/import-file-interface.php',
+        'PLL_Import_Uploader' => __DIR__ . '/../..' . '/modules/import/import-uploader.php',
+        'PLL_Import_Xliff_Iterator' => __DIR__ . '/../..' . '/modules/xliff/import-xliff-iterator.php',
         'PLL_Install' => __DIR__ . '/..' . '/wpsyntex/polylang/install/install.php',
         'PLL_Install_Base' => __DIR__ . '/..' . '/wpsyntex/polylang/install/install-base.php',
         'PLL_Integrations' => __DIR__ . '/..' . '/wpsyntex/polylang/integrations/integrations.php',
@@ -110,6 +118,7 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
         'PLL_No_Category_Base' => __DIR__ . '/..' . '/wpsyntex/polylang/integrations/no-category-base/no-category-base.php',
         'PLL_OLT_Manager' => __DIR__ . '/..' . '/wpsyntex/polylang/include/olt-manager.php',
         'PLL_PO_Export' => __DIR__ . '/../..' . '/modules/po/po-export.php',
+        'PLL_PO_Format' => __DIR__ . '/../..' . '/modules/po/po-format.php',
         'PLL_PO_Import' => __DIR__ . '/../..' . '/modules/po/po-import.php',
         'PLL_Plugin_Updater' => __DIR__ . '/..' . '/wpsyntex/polylang/install/plugin-updater.php',
         'PLL_Pro' => __DIR__ . '/../..' . '/include/pro.php',
@@ -128,11 +137,12 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
         'PLL_Settings_Licenses' => __DIR__ . '/..' . '/wpsyntex/polylang/settings/settings-licenses.php',
         'PLL_Settings_Media' => __DIR__ . '/..' . '/wpsyntex/polylang/settings/settings-media.php',
         'PLL_Settings_Module' => __DIR__ . '/..' . '/wpsyntex/polylang/settings/settings-module.php',
-        'PLL_Settings_Share_Slug' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/share-slug/settings-share-slug.php',
+        'PLL_Settings_Preview_Share_Slug' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/share-slug/settings-preview-share-slug.php',
+        'PLL_Settings_Preview_Translate_Slugs' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/translate-slugs/settings-preview-translate-slugs.php',
+        'PLL_Settings_Share_Slug' => __DIR__ . '/../..' . '/modules/share-slug/settings-share-slug.php',
         'PLL_Settings_Sync' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/sync/settings-sync.php',
-        'PLL_Settings_Translate_Slugs' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/translate-slugs/settings-translate-slugs.php',
+        'PLL_Settings_Translate_Slugs' => __DIR__ . '/../..' . '/modules/translate-slugs/settings-translate-slugs.php',
         'PLL_Settings_Url' => __DIR__ . '/..' . '/wpsyntex/polylang/settings/settings-url.php',
-        'PLL_Settings_WPML' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/wpml/settings-wpml.php',
         'PLL_Share_Post_Slug' => __DIR__ . '/../..' . '/modules/share-slug/share-post-slug.php',
         'PLL_Share_Term_Slug' => __DIR__ . '/../..' . '/modules/share-slug/share-term-slug.php',
         'PLL_Sitemaps' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/sitemaps/sitemaps.php',
@@ -173,6 +183,7 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
         'PLL_Walker_Dropdown' => __DIR__ . '/..' . '/wpsyntex/polylang/include/walker-dropdown.php',
         'PLL_Walker_List' => __DIR__ . '/..' . '/wpsyntex/polylang/include/walker-list.php',
         'PLL_Widget_Calendar' => __DIR__ . '/..' . '/wpsyntex/polylang/include/widget-calendar.php',
+        'PLL_Widget_Editor_Language_Attribute' => __DIR__ . '/../..' . '/modules/block-editor/widget-editor-language-attribute.php',
         'PLL_Widget_Languages' => __DIR__ . '/..' . '/wpsyntex/polylang/include/widget-languages.php',
         'PLL_Wizard' => __DIR__ . '/..' . '/wpsyntex/polylang/modules/wizard/wizard.php',
         'PLL_Wizard_Pro' => __DIR__ . '/../..' . '/modules/wizard/wizard-pro.php',
@@ -181,6 +192,9 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
         'PLL_Xdata_Domain' => __DIR__ . '/../..' . '/modules/xdata/xdata-domain.php',
         'PLL_Xdata_Session_Manager' => __DIR__ . '/../..' . '/modules/xdata/xdata-session-manager.php',
         'PLL_Xdata_Subdomain' => __DIR__ . '/../..' . '/modules/xdata/xdata-subdomain.php',
+        'PLL_Xliff_Export' => __DIR__ . '/../..' . '/modules/xliff/xliff-export.php',
+        'PLL_Xliff_Format' => __DIR__ . '/../..' . '/modules/xliff/xliff-format.php',
+        'PLL_Xliff_Import' => __DIR__ . '/../..' . '/modules/xliff/xliff-import.php',
         'PLL_Yarpp' => __DIR__ . '/..' . '/wpsyntex/polylang/integrations/yarpp/yarpp.php',
         'Polylang' => __DIR__ . '/..' . '/wpsyntex/polylang/include/class-polylang.php',
     );
@@ -188,7 +202,7 @@ class ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->classMap = ComposerStaticInit08005fcbd683d52cf08f43a643a15ec6::$classMap;
+            $loader->classMap = ComposerStaticInitef3d8b9dc4d38ccfaab67eaf36bbb2d0::$classMap;
 
         }, null, ClassLoader::class);
     }

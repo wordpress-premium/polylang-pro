@@ -323,7 +323,7 @@ class PLL_Sync_Content {
 	 * @return string Translated text
 	 */
 	public function translate_content( $content ) {
-		if ( function_exists( 'parse_blocks' ) && function_exists( 'has_blocks' ) && has_blocks( $content ) ) {
+		if ( has_blocks( $content ) ) {
 			$blocks  = parse_blocks( $content );
 			$blocks  = $this->translate_blocks( $blocks );
 			$content = serialize_blocks( $blocks );

@@ -399,44 +399,6 @@ class PLL_Model {
 	}
 
 	/**
-	 * Create a default category for a language
-	 *
-	 * @since 1.2
-	 *
-	 * @param object|string|int $lang language
-	 * @return void
-	 */
-	public function create_default_category( $lang ) {
-		$lang = $this->get_language( $lang );
-
-		// create a new category
-		// FIXME this is translated in admin language when we would like it in $lang
-		$cat_name = __( 'Uncategorized', 'polylang' );
-		$cat_slug = sanitize_title( $cat_name . '-' . $lang->slug );
-		$cat = wp_insert_term( $cat_name, 'category', array( 'slug' => $cat_slug ) );
-
-		// check that the category was not previously created ( in case the language was deleted and recreated )
-		$cat = isset( $cat->error_data['term_exists'] ) ? $cat->error_data['term_exists'] : $cat['term_id'];
-
-		// set language
-		$this->term->set_language( (int) $cat, $lang );
-
-		// this is a translation of the default category
-		$default = (int) get_option( 'default_category' );
-		$translations = $this->term->get_translations( $default );
-		if ( empty( $translations ) ) {
-			if ( $lg = $this->term->get_language( $default ) ) {
-				$translations[ $lg->slug ] = $default;
-			}
-			else {
-				$translations = array();
-			}
-		}
-
-		$this->term->save_translations( (int) $cat, $translations );
-	}
-
-	/**
 	 * It is possible to have several terms with the same name in the same taxonomy ( one per language )
 	 * but the native term_exists() will return true even if only one exists.
 	 * So here the function adds the language parameter.
@@ -633,5 +595,112 @@ class PLL_Model {
 		$class = apply_filters( 'pll_links_model', $class );
 
 		return new $class( $this );
+	}
+
+	/**
+	 * Returns posts and terms ids without language ( used in settings ).
+	 *
+	 * @since 0.9
+	 * @since 2.2.6 Add the $limit argument.
+	 *
+	 * @param int $limit Max number of posts or terms to return. Defaults to -1 (no limit).
+	 * @return array {
+	 *     Objects without language.
+	 *
+	 *     @type int[] $posts Array of post ids.
+	 *     @type int[] $terms Array of term ids.
+	 * }
+	 */
+	public function get_objects_with_no_lang( $limit = -1 ) {
+		/**
+		 * Filters the max number of posts or terms to return when searching objects with no language.
+		 * This filter can be used to decrease the memory usage in case the number of objects
+		 * without language is too big. Using a negative value is equivalent to have no limit.
+		 *
+		 * @since 2.2.6
+		 *
+		 * @param int $limit Max number of posts or terms to retrieve from the database.
+		 */
+		$limit = (int) apply_filters( 'get_objects_with_no_lang_limit', $limit );
+
+		$posts = $this->get_posts_with_no_lang( $this->get_translated_post_types(), $limit );
+		$terms = $this->get_terms_with_no_lang( $this->get_translated_taxonomies(), $limit );
+
+		/**
+		 * Filters the list of untranslated posts ids and terms ids
+		 *
+		 * @since 0.9
+		 *
+		 * @param array|false $objects false if no ids found, list of post and/or term ids otherwise.
+		 */
+		return apply_filters( 'pll_get_objects_with_no_lang', empty( $posts ) && empty( $terms ) ? false : array( 'posts' => $posts, 'terms' => $terms ) );
+	}
+
+	/**
+	 * Returns ids of post without language.
+	 *
+	 * @since 3.1
+	 *
+	 * @param string|string[] $post_types A translated post type or an array of translated post types.
+	 * @param int             $limit      Max number of posts to return.
+	 * @return int[]
+	 */
+	public function get_posts_with_no_lang( $post_types, $limit ) {
+		return get_posts(
+			array(
+				'numberposts' => $limit,
+				'nopaging'    => $limit <= 0,
+				'post_type'   => $post_types,
+				'post_status' => 'any',
+				'fields'      => 'ids',
+				'tax_query'   => array(
+					array(
+						'taxonomy' => 'language',
+						'terms'    => $this->get_languages_list( array( 'fields' => 'term_id' ) ),
+						'operator' => 'NOT IN',
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Returns ids of terms without language.
+	 *
+	 * @since 3.1
+	 *
+	 * @param string|string[] $taxonomies A translated taxonomy or an array of taxonomies post types.
+	 * @param int             $limit      Max number of terms to return.
+	 * @return int[]
+	 */
+	public function get_terms_with_no_lang( $taxonomies, $limit ) {
+		global $wpdb;
+
+		$taxonomies = (array) $taxonomies;
+
+		$sql = sprintf(
+			"SELECT {$wpdb->term_taxonomy}.term_id FROM {$wpdb->term_taxonomy}
+			WHERE taxonomy IN ('%s')
+			AND {$wpdb->term_taxonomy}.term_id NOT IN (
+				SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id IN (%s)
+			)
+			%s",
+			implode( "','", array_map( 'esc_sql', $taxonomies ) ),
+			implode( ',', array_map( 'intval', $this->get_languages_list( array( 'fields' => 'tl_term_taxonomy_id' ) ) ) ),
+			$limit > 0 ? sprintf( 'LIMIT %d', intval( $limit ) ) : ''
+		);
+
+		$key          = md5( $sql );
+		$last_changed = wp_cache_get_last_changed( 'terms' );
+		$cache_key    = "terms_no_lang:{$key}:{$last_changed}";
+
+		$term_ids = wp_cache_get( $cache_key, 'terms' );
+
+		if ( false === $term_ids ) {
+			$term_ids = $wpdb->get_col( $sql ); // PHPCS:ignore WordPress.DB.PreparedSQL.NotPrepared
+			wp_cache_set( $cache_key, $term_ids, 'terms' );
+		}
+
+		return $term_ids;
 	}
 }

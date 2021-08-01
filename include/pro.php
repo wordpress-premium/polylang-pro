@@ -19,7 +19,6 @@ class PLL_Pro {
 	 * @since 2.6
 	 */
 	public function __construct() {
-		require_once __DIR__ . '/../include/functions.php';
 		$load_scripts = glob( POLYLANG_PRO_DIR . '/integrations/*/load.php', GLOB_NOSORT );
 		if ( is_array( $load_scripts ) ) {
 			foreach ( $load_scripts as $load_script ) {
@@ -42,7 +41,7 @@ class PLL_Pro {
 	public function init( &$polylang ) {
 		if ( $polylang instanceof PLL_Admin_Base ) {
 			load_plugin_textdomain( 'polylang-pro' );
-			//new PLL_License( POLYLANG_PRO_FILE, 'Polylang Pro', POLYLANG_VERSION, 'WP SYNTEX' );
+			new PLL_License( POLYLANG_PRO_FILE, 'Polylang Pro', POLYLANG_VERSION, 'WP SYNTEX' );
 			new PLL_T15S( 'polylang-pro', 'https://packages.translationspress.com/wp-syntex/polylang-pro/packages.json' );
 
 			// Download Polylang language packs.

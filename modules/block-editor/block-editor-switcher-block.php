@@ -52,6 +52,8 @@ class PLL_Block_Editor_Switcher_Block {
 		add_filter( 'rest_pre_dispatch', array( $this, 'get_rest_query_params' ), 10, 3 );
 		// Register language switcher block.
 		add_action( 'init', array( $this, 'register_block_polylang_language_switcher' ) );
+
+		add_filter( 'widget_types_to_hide_from_legacy_widget_block', array( $this, 'hide_legacy_widget' ) );
 	}
 
 	/**
@@ -70,19 +72,102 @@ class PLL_Block_Editor_Switcher_Block {
 			$attributes['hide_if_empty'] = 0;
 			$attributes['hide_if_no_translation'] = 0; // Force not to hide the language for the block preview even if the option is checked.
 		}
+
 		$switcher = new PLL_Switcher();
 		$switcher_output = $switcher->the_languages( $this->links, $attributes );
+
 		$wrap_tag = '<ul class="pll-switcher">%s</ul>';
 		if ( $attributes['dropdown'] ) {
 			$wrap_tag = '<div class="pll-switcher">%s</div>';
 		}
+
 		if ( empty( $switcher_output ) ) {
-			return '';
+			$render_language_switcher = '';
 		} else {
-			return sprintf( $wrap_tag, $switcher_output );
+			$render_language_switcher = sprintf( $wrap_tag, $switcher_output );
 		}
+		return $render_language_switcher;
 	}
 
+	/**
+	 * Renders the `polylang/language-switcher-inner-block` on server.
+	 *
+	 * Adds CSS classes specific to the `core/navigation` children on top of the Language Switcher HTML.
+	 *
+	 * @since 3.1
+	 *
+	 * @param array $attributes Block attributes, also contains CSS classes.
+	 * @return string
+	 */
+	public function render_block_polylang_inner_language_switcher( $attributes = array() ) {
+		$attributes['echo'] = 0;
+		if ( $this->is_block_editor ) {
+			$attributes['admin_render'] = 1;
+			$attributes['admin_current_lang'] = $this->admin_current_lang;
+			$attributes['hide_if_empty'] = 0;
+			$attributes['hide_if_no_translation'] = 0; // Force not to hide the language for the block preview even if the option is checked.
+		}
+
+		$attributes['classes'] = array( 'wp-block-navigation-link' );
+		$attributes['link_classes'] = array( 'wp-block-navigation-link__content' );
+
+		$switcher = new PLL_Switcher();
+		// We want a list to display on the frontend.
+		$switcher_output = $switcher->the_languages( $this->links, array_merge( $attributes, array( 'dropdown' => false ) ) );
+
+		$wrap_tag = '%s';
+		if ( $attributes['dropdown'] && ! $this->is_block_editor ) {
+			// Wrap output in HTML similar to what Gutenberg generates from our legacy Language Switcher when theme supports the 'block-nav-menus' option {@see https://github.com/WordPress/gutenberg/blob/f2a2a6885dbeeecda5e7ae00437ff3d72e53c2f3/lib/navigation.php#L180 gutenberg_convert_menu_items_to_blocks()}.
+
+			$args = array_merge_recursive(
+				$attributes,
+				array(
+					'classes' => array( 'has-child' ),
+					'raw' => true,
+				)
+			);
+
+			$current_lang = array_filter(
+				$switcher->the_languages( $this->links, $args ),
+				function( $element ) {
+					return true === $element['current_lang'];
+				}
+			);
+			$current_lang = array_pop( $current_lang );
+			// $args['raw'] will try to display our flag url {@see PLL_Switcher::get_elements()}.
+			$current_lang['flag'] = $args['show_flags'] ? $this->model->get_language( PLL()->curlang )->get_display_flag() : '';
+			// Default args are processed inside {@see PLL_Switcher::the_languages()}.
+			$args = wp_parse_args( $args, PLL_Switcher::DEFAULTS );
+
+			$wrap_tag = '';
+			$walker = new PLL_Walker_List();
+			$walker->start_el( $wrap_tag, (object) $current_lang, 1, $args );
+
+			$wrap_tag = str_replace( '<li', '<li id="#pll-switcher"', $wrap_tag );
+			$wrap_tag = str_replace(
+				'</li>',
+				'<span class="wp-block-navigation-link__submenu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" role="img" aria-hidden="true" focusable="false"><path d="M1.50002 4L6.00002 8L10.5 4" stroke-width="1.5"></path></svg></span><ul class="submenu-container">%s</ul></li>',
+				$wrap_tag
+			);
+		}
+
+		if ( empty( $switcher_output ) ) {
+			$render_language_switcher = '';
+		} else {
+			$render_language_switcher = sprintf( $wrap_tag, $switcher_output );
+		}
+		return $render_language_switcher;
+	}
+
+	/**
+	 * Renders the language switcher with the given attributes.
+	 *
+	 * @since 3.1
+	 *
+	 * @param array  $attributes Array of arguments to pass to {@see PLL_Switcher::the_languages()}.
+	 * @param string $wrap_tag   Optional HTML elements to wrap the switcher in. Should include the '%s' replacement character at the place the switcher elements are expected.
+	 * @return string
+	 */
 	/**
 	 * Registers the `polylang/language-switcher` block.
 	 *
@@ -133,17 +218,29 @@ class PLL_Block_Editor_Switcher_Block {
 				'default' => $default,
 			);
 		};
+
 		register_block_type(
 			'polylang/language-switcher',
 			array(
-				'editor_script'   => $script_handle,
-				'attributes'      => $attributes,
+				'editor_script' => $script_handle,
+				'attributes' => $attributes,
 				'render_callback' => array( $this, 'render_block_polylang_language_switcher' ),
 			)
 		);
+
+		register_block_type(
+			'polylang/language-switcher-inner-block',
+			array(
+				'editor_script' => $script_handle,
+				'attributes' => $attributes,
+				'render_callback' => array( $this, 'render_block_polylang_inner_language_switcher' ),
+			)
+		);
+
 		// Translated strings used in JS code
 		wp_set_script_translations( $script_handle, 'polylang-pro' );
 	}
+
 	/**
 	 * Get REST parameters for language switcher block
 	 *
@@ -163,5 +260,17 @@ class PLL_Block_Editor_Switcher_Block {
 			$this->admin_current_lang = $request->get_param( 'lang' );
 		}
 		return $result;
+	}
+
+	/**
+	 * Unoffers the language switcher from the legacy widget block.
+	 *
+	 * @since 3.1
+	 *
+	 * @param string[] $widgets An array of excluded widget-type IDs.
+	 * @return string[]
+	 */
+	public function hide_legacy_widget( $widgets ) {
+		return array_merge( $widgets, array( 'polylang' ) );
 	}
 }
