@@ -3,7 +3,7 @@
     "type": "wordpress-plugin",
 	"description": "With over 500,000 installs, Polylang is the most popular multilingual plugin available on the WordPress directory. You write your posts, pages and create categories and post tags as usual, and assign a language to each of them.",
 	"homepage": "https://polylang.pro",
-	"version": "3.1.0",
+	"version": "3.1.0"
     "require": {
         "composer/installers": ">=1.6"
     },
