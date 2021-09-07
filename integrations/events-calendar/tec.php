@@ -962,8 +962,6 @@ class PLL_TEC {
 	 * @return bool|null             Whether the request is a TEC REST API request. Null if not ready to answer yet.
 	 */
 	protected function is_tec_rest_request( $requested_url = null ) {
-		global $wp_rewrite;
-
 		if ( ! isset( $this->is_tec_rest_request['views_v2_is_enabled'] ) ) {
 			if ( ! function_exists( 'tribe_events_views_v2_is_enabled' ) ) {
 				return null;
@@ -995,13 +993,14 @@ class PLL_TEC {
 		if ( false === strpos( $requested_url, '/admin-ajax.php' ) ) {
 			// Test against the REST URL.
 			if ( ! isset( $this->is_tec_rest_request['tec_rest_url_pattern'] ) ) {
-				// We test `$wp_rewrite` to prevent `get_rest_url()` to explode.
-				if ( empty( $wp_rewrite ) && get_option( 'permalink_structure' ) ) {
+				$url = $this->get_tec_rest_url( true );
+
+				if ( empty( $url ) ) {
+					// `$wp_rewrite` is probably not set yet.
 					return null;
 				}
 
-				$this->is_tec_rest_request['tec_rest_url_pattern'] = $this->get_tec_rest_url( true );
-				$this->is_tec_rest_request['tec_rest_url_pattern'] = preg_replace( '@[#?].*$@', '', $this->is_tec_rest_request['tec_rest_url_pattern'] );
+				$this->is_tec_rest_request['tec_rest_url_pattern'] = preg_replace( '@[#?].*$@', '', $url );
 				$this->is_tec_rest_request['tec_rest_url_pattern'] = sprintf( '@^%s[/?#]@i', preg_quote( $this->is_tec_rest_request['tec_rest_url_pattern'], '@' ) );
 			}
 
@@ -1012,7 +1011,7 @@ class PLL_TEC {
 
 		// Test against the admin ajax URL.
 		if ( ! isset( $this->is_tec_rest_request['tec_ajax_url_action'] ) ) {
-			$this->is_tec_rest_request['tec_ajax_url_action'] = $this->get_tec_rest_url( true );
+			$this->is_tec_rest_request['tec_ajax_url_action'] = $this->get_tec_rest_url( false );
 			$this->is_tec_rest_request['tec_ajax_url_action'] = $this->get_query_arg_from_url( $this->is_tec_rest_request['tec_ajax_url_action'], 'action' );
 		}
 
@@ -1241,15 +1240,31 @@ class PLL_TEC {
 	 * @since 3.1
 	 *
 	 * @param  bool $enable_rest True to get the REST URL. False to get the admin ajax URL.
-	 * @return string
+	 * @return string|null       The REST URL. Null if too soon to be determinated: this may happen when requesting the
+	 *                           the real REST URL (`$enable_rest` is true) but `$wp_rewrite` is not ready.
 	 */
 	protected function get_tec_rest_url( $enable_rest ) {
+		global $wp_rewrite;
+
+		if ( $enable_rest ) {
+			// In this case, `Rest_Endpoint->get_url()` will use `get_rest_url()`.
+			if ( is_multisite() && get_blog_option( 0, 'permalink_structure' ) || get_option( 'permalink_structure' ) ) { // See the same test done in `get_rest_url()`.
+				// We test `$wp_rewrite` to prevent `get_rest_url()` to explode.
+				if ( ! $wp_rewrite instanceof WP_Rewrite ) {
+					return null;
+				}
+			}
+		}
+
+		// Force `Rest_Endpoint->is_available()`'s behavior with this filter callback.
+		$priority = 100000;
 		$callback = function () use ( $enable_rest ) {
 			return (bool) $enable_rest;
 		};
-		add_filter( 'tribe_events_views_v2_rest_endpoint_available', $callback );
+
+		add_filter( 'tribe_events_views_v2_rest_endpoint_available', $callback, $priority );
 		$url = ( new Rest_Endpoint() )->get_url();
-		remove_filter( 'tribe_events_views_v2_rest_endpoint_available', $callback );
+		remove_filter( 'tribe_events_views_v2_rest_endpoint_available', $callback, $priority );
 
 		return $url;
 	}
