@@ -12,7 +12,9 @@ if ( $polylang->model->get_languages_list() ) {
 		'pll_settings_modules',
 		function( $modules ) {
 			$k = array_search( 'PLL_Settings_Preview_Share_Slug', $modules );
-			$modules[ $k ] = 'PLL_Settings_Share_Slug';
+			if ( $k ) {
+				$modules[ $k ] = 'PLL_Settings_Share_Slug';
+			}
 			return $modules;
 		},
 		20 // After Polylang.

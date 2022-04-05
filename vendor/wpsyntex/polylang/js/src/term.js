@@ -67,7 +67,8 @@ jQuery(
 						data,
 						function( response ) {
 							if ( response ) {
-								var res = wpAjax.parseAjaxResponse( response, 'ajax-response' );
+								// Target a non existing WP HTML id to avoid a conflict with WP ajax requests.
+								var res = wpAjax.parseAjaxResponse( response, 'pll-ajax-response' );
 								$.each(
 									res.responses,
 									function() {
@@ -89,7 +90,8 @@ jQuery(
 					switch ( data['action'] ) {
 						// when adding a term, the new term_id is in the ajax response
 						case 'add-tag':
-							res = wpAjax.parseAjaxResponse( xhr.responseXML, 'ajax-response' );
+							// Target a non existing WP HTML id to avoid a conflict with WP ajax requests.
+							res = wpAjax.parseAjaxResponse( xhr.responseXML, 'pll-ajax-response' );
 							$.each(
 								res.responses,
 								function() {
@@ -185,7 +187,8 @@ jQuery(
 					ajaxurl,
 					data,
 					function( response ) {
-						var res = wpAjax.parseAjaxResponse( response, 'ajax-response' );
+						// Target a non existing WP HTML id to avoid a conflict with WP ajax requests.
+						var res = wpAjax.parseAjaxResponse( response, 'pll-ajax-response' );
 						$.each(
 							res.responses,
 							function() {

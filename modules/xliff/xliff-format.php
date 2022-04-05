@@ -27,8 +27,8 @@ class PLL_Xliff_Format extends PLL_File_Format {
 	 * @since 3.1
 	 */
 	public function __construct() {
-		// MIME type do not use same notation for PHP versions < 7.0
-		if ( PHP_VERSION_ID < 70000 ) {
+		// MIME type does not use same notation for PHP versions < 7.2.
+		if ( version_compare( phpversion(), '7.2', '<' ) ) {
 			$this->mime_type = 'application/xml';
 		}
 	}

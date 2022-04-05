@@ -12,7 +12,9 @@ if ( $polylang->model->get_languages_list() ) {
 		'pll_settings_modules',
 		function( $modules ) {
 			$k = array_search( 'PLL_Settings_Preview_Translate_Slugs', $modules );
-			$modules[ $k ] = 'PLL_Settings_Translate_Slugs';
+			if ( $k ) {
+				$modules[ $k ] = 'PLL_Settings_Translate_Slugs';
+			}
 			return $modules;
 		},
 		20 // After Polylang.

@@ -291,27 +291,35 @@ class PLL_Sync_Content {
 	 * @return string
 	 */
 	public function translate_html( $content ) {
-		$textarr = wp_html_split( $content ); // Since 4.2.3
-
 		if ( $this->options['media_support'] ) {
-			$tr_id = false;
+			$textarr = wp_html_split( $content ); // Since 4.2.3
+
+			$img_ids = array();
 			foreach ( $textarr as $i => $text ) {
 				// Translate img class and alternative text
 				if ( 0 === strpos( $text, '<img' ) ) {
-					$tr_id = $this->translate_img( $textarr[ $i ] );
-
-					// Translate <figcaption> if any
-					if ( $tr_id && isset( $textarr[ $i + 2 ] ) && '<figcaption>' === $textarr[ $i + 2 ] ) {
-						$tr_post = get_post( $tr_id );
-						if ( ! empty( $tr_post->post_excerpt ) ) {
-							$textarr[ $i + 3 ] = $tr_post->post_excerpt;
-						}
-					}
+					$img_ids[] = $this->translate_img( $textarr[ $i ] );
 				}
 			}
+
+			$new_content = implode( $textarr );
+			$key = 0;
+			return preg_replace_callback(
+				'@(?<before><figcaption.*?>)(.+?)(?<after></figcaption>)@',
+				function ( $matches ) use ( $img_ids, &$key ) {
+					$tr_post = get_post( $img_ids[ $key ] );
+					$key++;
+					if ( ! empty( $tr_post->post_excerpt ) ) {
+						return $matches['before'] . $tr_post->post_excerpt . $matches['after'];
+					} else {
+						return $matches[0];
+					}
+				},
+				$new_content
+			);
 		}
 
-		return implode( $textarr );
+		return $content;
 	}
 
 	/**
@@ -444,7 +452,8 @@ class PLL_Sync_Content {
 						break;
 
 					case 'core/gallery':
-						if ( is_array( $block['attrs']['ids'] ) ) {
+						if ( isset( $block['attrs']['ids'] ) && is_array( $block['attrs']['ids'] ) ) {
+							// Backward compatibility with WP < 5.9.
 							foreach ( $block['attrs']['ids'] as $n => $id ) {
 								$blocks[ $k ]['attrs']['ids'][ $n ] = $this->translate_media( $id );
 							}
