@@ -1,854 +1,84 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 757:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-module.exports = __webpack_require__(666);
-
-
-/***/ }),
-
-/***/ 666:
-/***/ ((module) => {
-
-/**
- * Copyright (c) 2014-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-var runtime = (function (exports) {
-  "use strict";
-
-  var Op = Object.prototype;
-  var hasOwn = Op.hasOwnProperty;
-  var undefined; // More compressible than void 0.
-  var $Symbol = typeof Symbol === "function" ? Symbol : {};
-  var iteratorSymbol = $Symbol.iterator || "@@iterator";
-  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
-  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
-
-  function define(obj, key, value) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-    return obj[key];
-  }
-  try {
-    // IE 8 has a broken Object.defineProperty that only works on DOM objects.
-    define({}, "");
-  } catch (err) {
-    define = function(obj, key, value) {
-      return obj[key] = value;
-    };
-  }
-
-  function wrap(innerFn, outerFn, self, tryLocsList) {
-    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
-    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
-    var generator = Object.create(protoGenerator.prototype);
-    var context = new Context(tryLocsList || []);
-
-    // The ._invoke method unifies the implementations of the .next,
-    // .throw, and .return methods.
-    generator._invoke = makeInvokeMethod(innerFn, self, context);
-
-    return generator;
-  }
-  exports.wrap = wrap;
-
-  // Try/catch helper to minimize deoptimizations. Returns a completion
-  // record like context.tryEntries[i].completion. This interface could
-  // have been (and was previously) designed to take a closure to be
-  // invoked without arguments, but in all the cases we care about we
-  // already have an existing method we want to call, so there's no need
-  // to create a new function object. We can even get away with assuming
-  // the method takes exactly one argument, since that happens to be true
-  // in every case, so we don't have to touch the arguments object. The
-  // only additional allocation required is the completion record, which
-  // has a stable shape and so hopefully should be cheap to allocate.
-  function tryCatch(fn, obj, arg) {
-    try {
-      return { type: "normal", arg: fn.call(obj, arg) };
-    } catch (err) {
-      return { type: "throw", arg: err };
-    }
-  }
-
-  var GenStateSuspendedStart = "suspendedStart";
-  var GenStateSuspendedYield = "suspendedYield";
-  var GenStateExecuting = "executing";
-  var GenStateCompleted = "completed";
-
-  // Returning this object from the innerFn has the same effect as
-  // breaking out of the dispatch switch statement.
-  var ContinueSentinel = {};
-
-  // Dummy constructor functions that we use as the .constructor and
-  // .constructor.prototype properties for functions that return Generator
-  // objects. For full spec compliance, you may wish to configure your
-  // minifier not to mangle the names of these two functions.
-  function Generator() {}
-  function GeneratorFunction() {}
-  function GeneratorFunctionPrototype() {}
-
-  // This is a polyfill for %IteratorPrototype% for environments that
-  // don't natively support it.
-  var IteratorPrototype = {};
-  IteratorPrototype[iteratorSymbol] = function () {
-    return this;
-  };
-
-  var getProto = Object.getPrototypeOf;
-  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
-  if (NativeIteratorPrototype &&
-      NativeIteratorPrototype !== Op &&
-      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
-    // This environment has a native %IteratorPrototype%; use it instead
-    // of the polyfill.
-    IteratorPrototype = NativeIteratorPrototype;
-  }
-
-  var Gp = GeneratorFunctionPrototype.prototype =
-    Generator.prototype = Object.create(IteratorPrototype);
-  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
-  GeneratorFunctionPrototype.constructor = GeneratorFunction;
-  GeneratorFunction.displayName = define(
-    GeneratorFunctionPrototype,
-    toStringTagSymbol,
-    "GeneratorFunction"
-  );
-
-  // Helper for defining the .next, .throw, and .return methods of the
-  // Iterator interface in terms of a single ._invoke method.
-  function defineIteratorMethods(prototype) {
-    ["next", "throw", "return"].forEach(function(method) {
-      define(prototype, method, function(arg) {
-        return this._invoke(method, arg);
-      });
-    });
-  }
-
-  exports.isGeneratorFunction = function(genFun) {
-    var ctor = typeof genFun === "function" && genFun.constructor;
-    return ctor
-      ? ctor === GeneratorFunction ||
-        // For the native GeneratorFunction constructor, the best we can
-        // do is to check its .name property.
-        (ctor.displayName || ctor.name) === "GeneratorFunction"
-      : false;
-  };
-
-  exports.mark = function(genFun) {
-    if (Object.setPrototypeOf) {
-      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
-    } else {
-      genFun.__proto__ = GeneratorFunctionPrototype;
-      define(genFun, toStringTagSymbol, "GeneratorFunction");
-    }
-    genFun.prototype = Object.create(Gp);
-    return genFun;
-  };
-
-  // Within the body of any async function, `await x` is transformed to
-  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
-  // `hasOwn.call(value, "__await")` to determine if the yielded value is
-  // meant to be awaited.
-  exports.awrap = function(arg) {
-    return { __await: arg };
-  };
-
-  function AsyncIterator(generator, PromiseImpl) {
-    function invoke(method, arg, resolve, reject) {
-      var record = tryCatch(generator[method], generator, arg);
-      if (record.type === "throw") {
-        reject(record.arg);
-      } else {
-        var result = record.arg;
-        var value = result.value;
-        if (value &&
-            typeof value === "object" &&
-            hasOwn.call(value, "__await")) {
-          return PromiseImpl.resolve(value.__await).then(function(value) {
-            invoke("next", value, resolve, reject);
-          }, function(err) {
-            invoke("throw", err, resolve, reject);
-          });
-        }
-
-        return PromiseImpl.resolve(value).then(function(unwrapped) {
-          // When a yielded Promise is resolved, its final value becomes
-          // the .value of the Promise<{value,done}> result for the
-          // current iteration.
-          result.value = unwrapped;
-          resolve(result);
-        }, function(error) {
-          // If a rejected Promise was yielded, throw the rejection back
-          // into the async generator function so it can be handled there.
-          return invoke("throw", error, resolve, reject);
-        });
-      }
-    }
-
-    var previousPromise;
-
-    function enqueue(method, arg) {
-      function callInvokeWithMethodAndArg() {
-        return new PromiseImpl(function(resolve, reject) {
-          invoke(method, arg, resolve, reject);
-        });
-      }
-
-      return previousPromise =
-        // If enqueue has been called before, then we want to wait until
-        // all previous Promises have been resolved before calling invoke,
-        // so that results are always delivered in the correct order. If
-        // enqueue has not been called before, then it is important to
-        // call invoke immediately, without waiting on a callback to fire,
-        // so that the async generator function has the opportunity to do
-        // any necessary setup in a predictable way. This predictability
-        // is why the Promise constructor synchronously invokes its
-        // executor callback, and why async functions synchronously
-        // execute code before the first await. Since we implement simple
-        // async functions in terms of async generators, it is especially
-        // important to get this right, even though it requires care.
-        previousPromise ? previousPromise.then(
-          callInvokeWithMethodAndArg,
-          // Avoid propagating failures to Promises returned by later
-          // invocations of the iterator.
-          callInvokeWithMethodAndArg
-        ) : callInvokeWithMethodAndArg();
-    }
-
-    // Define the unified helper method that is used to implement .next,
-    // .throw, and .return (see defineIteratorMethods).
-    this._invoke = enqueue;
-  }
-
-  defineIteratorMethods(AsyncIterator.prototype);
-  AsyncIterator.prototype[asyncIteratorSymbol] = function () {
-    return this;
-  };
-  exports.AsyncIterator = AsyncIterator;
-
-  // Note that simple async functions are implemented on top of
-  // AsyncIterator objects; they just return a Promise for the value of
-  // the final result produced by the iterator.
-  exports.async = function(innerFn, outerFn, self, tryLocsList, PromiseImpl) {
-    if (PromiseImpl === void 0) PromiseImpl = Promise;
-
-    var iter = new AsyncIterator(
-      wrap(innerFn, outerFn, self, tryLocsList),
-      PromiseImpl
-    );
-
-    return exports.isGeneratorFunction(outerFn)
-      ? iter // If outerFn is a generator, return the full iterator.
-      : iter.next().then(function(result) {
-          return result.done ? result.value : iter.next();
-        });
-  };
-
-  function makeInvokeMethod(innerFn, self, context) {
-    var state = GenStateSuspendedStart;
-
-    return function invoke(method, arg) {
-      if (state === GenStateExecuting) {
-        throw new Error("Generator is already running");
-      }
-
-      if (state === GenStateCompleted) {
-        if (method === "throw") {
-          throw arg;
-        }
-
-        // Be forgiving, per 25.3.3.3.3 of the spec:
-        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
-        return doneResult();
-      }
-
-      context.method = method;
-      context.arg = arg;
-
-      while (true) {
-        var delegate = context.delegate;
-        if (delegate) {
-          var delegateResult = maybeInvokeDelegate(delegate, context);
-          if (delegateResult) {
-            if (delegateResult === ContinueSentinel) continue;
-            return delegateResult;
-          }
-        }
-
-        if (context.method === "next") {
-          // Setting context._sent for legacy support of Babel's
-          // function.sent implementation.
-          context.sent = context._sent = context.arg;
-
-        } else if (context.method === "throw") {
-          if (state === GenStateSuspendedStart) {
-            state = GenStateCompleted;
-            throw context.arg;
-          }
-
-          context.dispatchException(context.arg);
-
-        } else if (context.method === "return") {
-          context.abrupt("return", context.arg);
-        }
-
-        state = GenStateExecuting;
-
-        var record = tryCatch(innerFn, self, context);
-        if (record.type === "normal") {
-          // If an exception is thrown from innerFn, we leave state ===
-          // GenStateExecuting and loop back for another invocation.
-          state = context.done
-            ? GenStateCompleted
-            : GenStateSuspendedYield;
-
-          if (record.arg === ContinueSentinel) {
-            continue;
-          }
-
-          return {
-            value: record.arg,
-            done: context.done
-          };
-
-        } else if (record.type === "throw") {
-          state = GenStateCompleted;
-          // Dispatch the exception by looping back around to the
-          // context.dispatchException(context.arg) call above.
-          context.method = "throw";
-          context.arg = record.arg;
-        }
-      }
-    };
-  }
-
-  // Call delegate.iterator[context.method](context.arg) and handle the
-  // result, either by returning a { value, done } result from the
-  // delegate iterator, or by modifying context.method and context.arg,
-  // setting context.delegate to null, and returning the ContinueSentinel.
-  function maybeInvokeDelegate(delegate, context) {
-    var method = delegate.iterator[context.method];
-    if (method === undefined) {
-      // A .throw or .return when the delegate iterator has no .throw
-      // method always terminates the yield* loop.
-      context.delegate = null;
-
-      if (context.method === "throw") {
-        // Note: ["return"] must be used for ES3 parsing compatibility.
-        if (delegate.iterator["return"]) {
-          // If the delegate iterator has a return method, give it a
-          // chance to clean up.
-          context.method = "return";
-          context.arg = undefined;
-          maybeInvokeDelegate(delegate, context);
-
-          if (context.method === "throw") {
-            // If maybeInvokeDelegate(context) changed context.method from
-            // "return" to "throw", let that override the TypeError below.
-            return ContinueSentinel;
-          }
-        }
-
-        context.method = "throw";
-        context.arg = new TypeError(
-          "The iterator does not provide a 'throw' method");
-      }
-
-      return ContinueSentinel;
-    }
-
-    var record = tryCatch(method, delegate.iterator, context.arg);
-
-    if (record.type === "throw") {
-      context.method = "throw";
-      context.arg = record.arg;
-      context.delegate = null;
-      return ContinueSentinel;
-    }
-
-    var info = record.arg;
-
-    if (! info) {
-      context.method = "throw";
-      context.arg = new TypeError("iterator result is not an object");
-      context.delegate = null;
-      return ContinueSentinel;
-    }
-
-    if (info.done) {
-      // Assign the result of the finished delegate to the temporary
-      // variable specified by delegate.resultName (see delegateYield).
-      context[delegate.resultName] = info.value;
-
-      // Resume execution at the desired location (see delegateYield).
-      context.next = delegate.nextLoc;
-
-      // If context.method was "throw" but the delegate handled the
-      // exception, let the outer generator proceed normally. If
-      // context.method was "next", forget context.arg since it has been
-      // "consumed" by the delegate iterator. If context.method was
-      // "return", allow the original .return call to continue in the
-      // outer generator.
-      if (context.method !== "return") {
-        context.method = "next";
-        context.arg = undefined;
-      }
-
-    } else {
-      // Re-yield the result returned by the delegate method.
-      return info;
-    }
-
-    // The delegate iterator is finished, so forget it and continue with
-    // the outer generator.
-    context.delegate = null;
-    return ContinueSentinel;
-  }
-
-  // Define Generator.prototype.{next,throw,return} in terms of the
-  // unified ._invoke helper method.
-  defineIteratorMethods(Gp);
-
-  define(Gp, toStringTagSymbol, "Generator");
-
-  // A Generator should always return itself as the iterator object when the
-  // @@iterator function is called on it. Some browsers' implementations of the
-  // iterator prototype chain incorrectly implement this, causing the Generator
-  // object to not be returned from this call. This ensures that doesn't happen.
-  // See https://github.com/facebook/regenerator/issues/274 for more details.
-  Gp[iteratorSymbol] = function() {
-    return this;
-  };
-
-  Gp.toString = function() {
-    return "[object Generator]";
-  };
-
-  function pushTryEntry(locs) {
-    var entry = { tryLoc: locs[0] };
-
-    if (1 in locs) {
-      entry.catchLoc = locs[1];
-    }
-
-    if (2 in locs) {
-      entry.finallyLoc = locs[2];
-      entry.afterLoc = locs[3];
-    }
-
-    this.tryEntries.push(entry);
-  }
-
-  function resetTryEntry(entry) {
-    var record = entry.completion || {};
-    record.type = "normal";
-    delete record.arg;
-    entry.completion = record;
-  }
-
-  function Context(tryLocsList) {
-    // The root entry object (effectively a try statement without a catch
-    // or a finally block) gives us a place to store values thrown from
-    // locations where there is no enclosing try statement.
-    this.tryEntries = [{ tryLoc: "root" }];
-    tryLocsList.forEach(pushTryEntry, this);
-    this.reset(true);
-  }
-
-  exports.keys = function(object) {
-    var keys = [];
-    for (var key in object) {
-      keys.push(key);
-    }
-    keys.reverse();
-
-    // Rather than returning an object with a next method, we keep
-    // things simple and return the next function itself.
-    return function next() {
-      while (keys.length) {
-        var key = keys.pop();
-        if (key in object) {
-          next.value = key;
-          next.done = false;
-          return next;
-        }
-      }
-
-      // To avoid creating an additional object, we just hang the .value
-      // and .done properties off the next function object itself. This
-      // also ensures that the minifier will not anonymize the function.
-      next.done = true;
-      return next;
-    };
-  };
-
-  function values(iterable) {
-    if (iterable) {
-      var iteratorMethod = iterable[iteratorSymbol];
-      if (iteratorMethod) {
-        return iteratorMethod.call(iterable);
-      }
-
-      if (typeof iterable.next === "function") {
-        return iterable;
-      }
-
-      if (!isNaN(iterable.length)) {
-        var i = -1, next = function next() {
-          while (++i < iterable.length) {
-            if (hasOwn.call(iterable, i)) {
-              next.value = iterable[i];
-              next.done = false;
-              return next;
-            }
-          }
-
-          next.value = undefined;
-          next.done = true;
-
-          return next;
-        };
-
-        return next.next = next;
-      }
-    }
-
-    // Return an iterator with no values.
-    return { next: doneResult };
-  }
-  exports.values = values;
-
-  function doneResult() {
-    return { value: undefined, done: true };
-  }
-
-  Context.prototype = {
-    constructor: Context,
-
-    reset: function(skipTempReset) {
-      this.prev = 0;
-      this.next = 0;
-      // Resetting context._sent for legacy support of Babel's
-      // function.sent implementation.
-      this.sent = this._sent = undefined;
-      this.done = false;
-      this.delegate = null;
-
-      this.method = "next";
-      this.arg = undefined;
-
-      this.tryEntries.forEach(resetTryEntry);
-
-      if (!skipTempReset) {
-        for (var name in this) {
-          // Not sure about the optimal order of these conditions:
-          if (name.charAt(0) === "t" &&
-              hasOwn.call(this, name) &&
-              !isNaN(+name.slice(1))) {
-            this[name] = undefined;
-          }
-        }
-      }
-    },
-
-    stop: function() {
-      this.done = true;
-
-      var rootEntry = this.tryEntries[0];
-      var rootRecord = rootEntry.completion;
-      if (rootRecord.type === "throw") {
-        throw rootRecord.arg;
-      }
-
-      return this.rval;
-    },
-
-    dispatchException: function(exception) {
-      if (this.done) {
-        throw exception;
-      }
-
-      var context = this;
-      function handle(loc, caught) {
-        record.type = "throw";
-        record.arg = exception;
-        context.next = loc;
-
-        if (caught) {
-          // If the dispatched exception was caught by a catch block,
-          // then let that catch block handle the exception normally.
-          context.method = "next";
-          context.arg = undefined;
-        }
-
-        return !! caught;
-      }
-
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        var record = entry.completion;
-
-        if (entry.tryLoc === "root") {
-          // Exception thrown outside of any try block that could handle
-          // it, so set the completion value of the entire function to
-          // throw the exception.
-          return handle("end");
-        }
-
-        if (entry.tryLoc <= this.prev) {
-          var hasCatch = hasOwn.call(entry, "catchLoc");
-          var hasFinally = hasOwn.call(entry, "finallyLoc");
-
-          if (hasCatch && hasFinally) {
-            if (this.prev < entry.catchLoc) {
-              return handle(entry.catchLoc, true);
-            } else if (this.prev < entry.finallyLoc) {
-              return handle(entry.finallyLoc);
-            }
-
-          } else if (hasCatch) {
-            if (this.prev < entry.catchLoc) {
-              return handle(entry.catchLoc, true);
-            }
-
-          } else if (hasFinally) {
-            if (this.prev < entry.finallyLoc) {
-              return handle(entry.finallyLoc);
-            }
-
-          } else {
-            throw new Error("try statement without catch or finally");
-          }
-        }
-      }
-    },
-
-    abrupt: function(type, arg) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.tryLoc <= this.prev &&
-            hasOwn.call(entry, "finallyLoc") &&
-            this.prev < entry.finallyLoc) {
-          var finallyEntry = entry;
-          break;
-        }
-      }
-
-      if (finallyEntry &&
-          (type === "break" ||
-           type === "continue") &&
-          finallyEntry.tryLoc <= arg &&
-          arg <= finallyEntry.finallyLoc) {
-        // Ignore the finally entry if control is not jumping to a
-        // location outside the try/catch block.
-        finallyEntry = null;
-      }
-
-      var record = finallyEntry ? finallyEntry.completion : {};
-      record.type = type;
-      record.arg = arg;
-
-      if (finallyEntry) {
-        this.method = "next";
-        this.next = finallyEntry.finallyLoc;
-        return ContinueSentinel;
-      }
-
-      return this.complete(record);
-    },
-
-    complete: function(record, afterLoc) {
-      if (record.type === "throw") {
-        throw record.arg;
-      }
-
-      if (record.type === "break" ||
-          record.type === "continue") {
-        this.next = record.arg;
-      } else if (record.type === "return") {
-        this.rval = this.arg = record.arg;
-        this.method = "return";
-        this.next = "end";
-      } else if (record.type === "normal" && afterLoc) {
-        this.next = afterLoc;
-      }
-
-      return ContinueSentinel;
-    },
-
-    finish: function(finallyLoc) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.finallyLoc === finallyLoc) {
-          this.complete(entry.completion, entry.afterLoc);
-          resetTryEntry(entry);
-          return ContinueSentinel;
-        }
-      }
-    },
-
-    "catch": function(tryLoc) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.tryLoc === tryLoc) {
-          var record = entry.completion;
-          if (record.type === "throw") {
-            var thrown = record.arg;
-            resetTryEntry(entry);
-          }
-          return thrown;
-        }
-      }
-
-      // The context.catch method must only be called with a location
-      // argument that corresponds to a known catch block.
-      throw new Error("illegal catch attempt");
-    },
-
-    delegateYield: function(iterable, resultName, nextLoc) {
-      this.delegate = {
-        iterator: values(iterable),
-        resultName: resultName,
-        nextLoc: nextLoc
-      };
-
-      if (this.method === "next") {
-        // Deliberately forget the last sent value so that we don't
-        // accidentally pass it on to the delegate.
-        this.arg = undefined;
-      }
-
-      return ContinueSentinel;
-    }
-  };
-
-  // Regardless of whether this script is executing as a CommonJS module
-  // or not, return the runtime object so that we can declare the variable
-  // regeneratorRuntime in the outer scope, which allows this module to be
-  // injected easily by `bin/regenerator --include-runtime script.js`.
-  return exports;
-
-}(
-  // If this script is executing as a CommonJS module, use module.exports
-  // as the regeneratorRuntime namespace. Otherwise create a new empty
-  // object. Either way, the resulting object will be used to initialize
-  // the regeneratorRuntime variable at the top of this file.
-   true ? module.exports : 0
-));
-
-try {
-  regeneratorRuntime = runtime;
-} catch (accidentalStrictMode) {
-  // This module should not be running in strict mode, so the above
-  // assignment should always work unless something is misconfigured. Just
-  // in case runtime.js accidentally runs in strict mode, we can escape
-  // strict mode using a global Function call. This could conceivably fail
-  // if a Content Security Policy forbids using Function, but in that case
-  // the proper solution is to fix the accidental strict mode problem. If
-  // you've misconfigured your bundler to force strict mode and applied a
-  // CSP to forbid Function, and you're not willing to fix either of those
-  // problems, please detail your unique predicament in a GitHub issue.
-  Function("r", "regeneratorRuntime = r")(runtime);
-}
-
-
-/***/ }),
-
-/***/ 804:
+/***/ 991:
 /***/ ((module) => {
 
 module.exports = (function() { return this["lodash"]; }());
 
 /***/ }),
 
-/***/ 839:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["apiFetch"]; }());
-
-/***/ }),
-
-/***/ 599:
+/***/ 538:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["blockEditor"]; }());
 
 /***/ }),
 
-/***/ 677:
+/***/ 733:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["blocks"]; }());
 
 /***/ }),
 
-/***/ 587:
+/***/ 893:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["components"]; }());
 
 /***/ }),
 
-/***/ 390:
+/***/ 576:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["compose"]; }());
 
 /***/ }),
 
-/***/ 197:
+/***/ 15:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["data"]; }());
 
 /***/ }),
 
-/***/ 2:
+/***/ 293:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["element"]; }());
 
 /***/ }),
 
-/***/ 501:
+/***/ 761:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["hooks"]; }());
 
 /***/ }),
 
-/***/ 57:
+/***/ 122:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["i18n"]; }());
 
 /***/ }),
 
-/***/ 684:
+/***/ 776:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["primitives"]; }());
 
 /***/ }),
 
-/***/ 173:
+/***/ 169:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["serverSideRender"]; }());
 
 /***/ }),
 
-/***/ 696:
+/***/ 470:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["url"]; }());
@@ -931,25 +161,24 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: external {"this":["wp","element"]}
-var external_this_wp_element_ = __webpack_require__(2);
+var external_this_wp_element_ = __webpack_require__(293);
 // EXTERNAL MODULE: external {"this":["wp","i18n"]}
-var external_this_wp_i18n_ = __webpack_require__(57);
+var external_this_wp_i18n_ = __webpack_require__(122);
 // EXTERNAL MODULE: external "lodash"
-var external_lodash_ = __webpack_require__(804);
+var external_lodash_ = __webpack_require__(991);
 // EXTERNAL MODULE: external {"this":["wp","compose"]}
-var external_this_wp_compose_ = __webpack_require__(390);
+var external_this_wp_compose_ = __webpack_require__(576);
 // EXTERNAL MODULE: external {"this":["wp","hooks"]}
-var external_this_wp_hooks_ = __webpack_require__(501);
+var external_this_wp_hooks_ = __webpack_require__(761);
 // EXTERNAL MODULE: external {"this":["wp","data"]}
-var external_this_wp_data_ = __webpack_require__(197);
+var external_this_wp_data_ = __webpack_require__(15);
 // EXTERNAL MODULE: external {"this":["wp","blockEditor"]}
-var external_this_wp_blockEditor_ = __webpack_require__(599);
+var external_this_wp_blockEditor_ = __webpack_require__(538);
 // EXTERNAL MODULE: external {"this":["wp","components"]}
-var external_this_wp_components_ = __webpack_require__(587);
+var external_this_wp_components_ = __webpack_require__(893);
 // EXTERNAL MODULE: external {"this":["wp","primitives"]}
-var external_this_wp_primitives_ = __webpack_require__(684);
+var external_this_wp_primitives_ = __webpack_require__(776);
 ;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/duplication.js
-
 
 /**
  * Duplication icon - admin-page Dashicon.
@@ -962,8 +191,8 @@ var external_this_wp_primitives_ = __webpack_require__(684);
  */
 
 
-var isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-var duplication = isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
+const duplication = isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
@@ -973,7 +202,6 @@ var duplication = isPrimitivesComponents ? (0,external_this_wp_element_.createEl
 })) : 'admin-page';
 /* harmony default export */ const library_duplication = ((/* unused pure expression or super */ null && (duplication)));
 ;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/pencil.js
-
 
 /**
  * Pencil icon - edit Dashicon.
@@ -986,8 +214,8 @@ var duplication = isPrimitivesComponents ? (0,external_this_wp_element_.createEl
  */
 
 
-var pencil_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-var pencil = pencil_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const pencil_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
+const pencil = pencil_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
@@ -997,7 +225,6 @@ var pencil = pencil_isPrimitivesComponents ? (0,external_this_wp_element_.create
 })) : 'edit';
 /* harmony default export */ const library_pencil = ((/* unused pure expression or super */ null && (pencil)));
 ;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/plus.js
-
 
 /**
  * Plus icon - plus Dashicon.
@@ -1010,8 +237,8 @@ var pencil = pencil_isPrimitivesComponents ? (0,external_this_wp_element_.create
  */
 
 
-var plus_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-var plus = plus_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const plus_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
+const plus = plus_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
@@ -1021,7 +248,6 @@ var plus = plus_isPrimitivesComponents ? (0,external_this_wp_element_.createElem
 })) : 'plus';
 /* harmony default export */ const library_plus = ((/* unused pure expression or super */ null && (plus)));
 ;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/synchronization.js
-
 
 /**
  * Synchronization icon - controls-repeat Dashicon.
@@ -1034,8 +260,8 @@ var plus = plus_isPrimitivesComponents ? (0,external_this_wp_element_.createElem
  */
 
 
-var synchronization_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-var synchronization = synchronization_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const synchronization_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
+const synchronization = synchronization_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
@@ -1045,7 +271,6 @@ var synchronization = synchronization_isPrimitivesComponents ? (0,external_this_
 })) : 'controls-repeat';
 /* harmony default export */ const library_synchronization = ((/* unused pure expression or super */ null && (synchronization)));
 ;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/translation.js
-
 
 /**
  * Translation icon - translation Dashicon.
@@ -1058,8 +283,8 @@ var synchronization = synchronization_isPrimitivesComponents ? (0,external_this_
  */
 
 
-var translation_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-var translation = translation_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const translation_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
+const translation = translation_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
@@ -1068,6 +293,80 @@ var translation = translation_isPrimitivesComponents ? (0,external_this_wp_eleme
   d: "M11 7H9.49c-.63 0-1.25.3-1.59.7L7 5H4.13l-2.39 7h1.69l.74-2H7v4H2c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h7c1.1 0 2 .9 2 2v2zM6.51 9H4.49l1-2.93zM10 8h7c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2h-7c-1.1 0-2-.9-2-2v-7c0-1.1.9-2 2-2zm7.25 5v-1.08h-3.17V9.75h-1.16v2.17H9.75V13h1.28c.11.85.56 1.85 1.28 2.62-.87.36-1.89.62-2.31.62-.01.02.22.97.2 1.46.84 0 2.21-.5 3.28-1.15 1.09.65 2.48 1.15 3.34 1.15-.02-.49.2-1.44.2-1.46-.43 0-1.49-.27-2.38-.63.7-.77 1.14-1.77 1.25-2.61h1.36zm-3.81 1.93c-.5-.46-.85-1.13-1.01-1.93h2.09c-.17.8-.51 1.47-1 1.93l-.04.03s-.03-.02-.04-.03z"
 })) : 'translation';
 /* harmony default export */ const library_translation = (translation);
+;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/trash.js
+
+/**
+ * Trash icon - trash Dashicon.
+ *
+ * @package Polylang-Pro
+ */
+
+/**
+ * WordPress dependencies
+ */
+
+
+const trash_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
+const trash = trash_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+  width: "20",
+  height: "20",
+  xmlns: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 20 20"
+}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
+  d: "M12 4h3c.6 0 1 .4 1 1v1H3V5c0-.6.5-1 1-1h3c.2-1.1 1.3-2 2.5-2s2.3.9 2.5 2zM8 4h3c-.2-.6-.9-1-1.5-1S8.2 3.4 8 4zM4 7h11l-.9 10.1c0 .5-.5.9-1 .9H5.9c-.5 0-.9-.4-1-.9L4 7z"
+})) : 'trash';
+/* harmony default export */ const library_trash = ((/* unused pure expression or super */ null && (trash)));
+;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/star.js
+
+/**
+ * Star icon - star-filled Dashicon.
+ *
+ * @package Polylang-Pro
+ */
+
+/**
+ * WordPress dependencies
+ */
+
+
+const star_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
+const star = star_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+  width: "20",
+  height: "20",
+  xmlns: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 20 20"
+}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
+  d: "m10 1 3 6 6 .75-4.12 4.62L16 19l-6-3-6 3 1.13-6.63L1 7.75 7 7z"
+})) : 'star-filled';
+/* harmony default export */ const library_star = ((/* unused pure expression or super */ null && (star)));
+;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/submenu.js
+
+/**
+ * Submenu icon
+ *
+ * @package Polylang-Pro
+ */
+
+/**
+ * WordPress dependencies
+ */
+
+/**
+ * External dependencies
+ */
+
+const submenu_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
+const SubmenuIcon = () => submenu_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+  xmlns: "http://www.w3.org/2000/svg",
+  width: "12",
+  height: "12",
+  viewBox: "0 0 12 12",
+  fill: "none"
+}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
+  d: "M1.50002 4L6.00002 8L10.5 4",
+  strokeWidth: "1.5"
+})) : 'submenu';
+/* harmony default export */ const submenu = (SubmenuIcon);
 ;// CONCATENATED MODULE: ./modules/block-editor/js/icons/index.js
 /**
  * Icons library
@@ -1079,12 +378,60 @@ var translation = translation_isPrimitivesComponents ? (0,external_this_wp_eleme
 
 
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/components/language-dropdown.js
 
+
+
+
+;// CONCATENATED MODULE: ./modules/block-editor/js/components/language-flag.js
 
 /**
  * @package Polylang-Pro
  */
+
+/**
+ * External dependencies.
+ */
+
+
+/**
+ * Internal dependencies.
+ */
+
+
+/**
+ * Display a flag icon for a given language.
+ *
+ * @since 3.1
+ * @since 3.2 Now its own component.
+ *
+ * @param {Object} A language object.
+ *
+ * @return {Object}
+ */
+function LanguageFlag(_ref) {
+  let {
+    language
+  } = _ref;
+  return !(0,external_lodash_.isNil)(language) ? !(0,external_lodash_.isEmpty)(language.flag_url) ? (0,external_this_wp_element_.createElement)("span", {
+    className: "pll-select-flag"
+  }, (0,external_this_wp_element_.createElement)("img", {
+    src: language.flag_url,
+    alt: language.name,
+    title: language.name,
+    className: "flag"
+  })) : (0,external_this_wp_element_.createElement)("abbr", null, language.slug, (0,external_this_wp_element_.createElement)("span", {
+    className: "screen-reader-text"
+  }, language.name)) : (0,external_this_wp_element_.createElement)("span", {
+    className: "pll-translation-icon"
+  }, library_translation);
+}
+/* harmony default export */ const language_flag = (LanguageFlag);
+;// CONCATENATED MODULE: ./modules/block-editor/js/components/language-dropdown.js
+
+/**
+ * @package Polylang-Pro
+ */
+
 // External dependencies
 
 
@@ -1100,29 +447,27 @@ var translation = translation_isPrimitivesComponents ? (0,external_this_wp_eleme
  *
  * @return {Object} A dropdown selector for languages.
  */
-
 function LanguageDropdown(_ref) {
-  var handleChange = _ref.handleChange,
-      children = _ref.children,
-      _ref$selectedLanguage = _ref.selectedLanguage,
-      selectedLanguage = _ref$selectedLanguage === void 0 ? null : _ref$selectedLanguage,
-      _ref$defaultValue = _ref.defaultValue,
-      defaultValue = _ref$defaultValue === void 0 ? '' : _ref$defaultValue;
-  var selectedLanguageSlug = selectedLanguage !== null && selectedLanguage !== void 0 && selectedLanguage.slug ? selectedLanguage.slug : defaultValue;
+  let {
+    handleChange,
+    children,
+    selectedLanguage = null,
+    defaultValue = ''
+  } = _ref;
+  const selectedLanguageSlug = selectedLanguage?.slug ? selectedLanguage.slug : defaultValue;
   return (0,external_this_wp_element_.createElement)("div", {
     id: "select-post-language"
-  }, (0,external_this_wp_element_.createElement)(LanguageFlag, {
+  }, (0,external_this_wp_element_.createElement)(language_flag, {
     language: selectedLanguage
   }), children && (0,external_this_wp_element_.createElement)("select", {
     value: selectedLanguageSlug,
-    onChange: function onChange(event) {
-      return handleChange(event);
-    },
+    onChange: event => handleChange(event),
     id: "pll_post_lang_choice",
     name: "pll_post_lang_choice",
     className: "post_lang_choice"
   }, children));
 }
+
 /**
  * Map languages objects as options for a <select> tag.
  *
@@ -1132,14 +477,16 @@ function LanguageDropdown(_ref) {
  *
  * @return {Object} A list of <option> tags to be used in a <select> tag.
  */
-
-
 function LanguagesOptionsList(_ref2) {
-  var languages = _ref2.languages;
-  return Array.from(languages.values()).map(function (_ref3) {
-    var slug = _ref3.slug,
-        name = _ref3.name,
-        w3c = _ref3.w3c;
+  let {
+    languages
+  } = _ref2;
+  return Array.from(languages.values()).map(_ref3 => {
+    let {
+      slug,
+      name,
+      w3c
+    } = _ref3;
     return (0,external_this_wp_element_.createElement)("option", {
       value: slug,
       lang: w3c,
@@ -1147,33 +494,6 @@ function LanguagesOptionsList(_ref2) {
     }, name);
   });
 }
-/**
- * Display a flag icon for a given language.
- *
- * @since 3.1
- *
- *  @param {Object} A language object.
- *
- *  @return {Object}
- */
-
-
-function LanguageFlag(_ref4) {
-  var language = _ref4.language;
-  return !(0,external_lodash_.isNil)(language) ? !(0,external_lodash_.isEmpty)(language.flag_url) ? (0,external_this_wp_element_.createElement)("span", {
-    className: "pll-select-flag"
-  }, (0,external_this_wp_element_.createElement)("img", {
-    src: language.flag_url,
-    alt: language.name,
-    title: language.name,
-    className: "flag"
-  })) : (0,external_this_wp_element_.createElement)("abbr", null, language.slug, (0,external_this_wp_element_.createElement)("span", {
-    className: "screen-reader-text"
-  }, language.name)) : (0,external_this_wp_element_.createElement)("span", {
-    className: "pll-translation-icon"
-  }, library_translation);
-}
-
 
 ;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/settings.js
 /**
@@ -1181,39 +501,25 @@ function LanguageFlag(_ref4) {
  *
  * @package Polylang-Pro
  */
-var settings_MODULE_KEY = 'pll/metabox';
-var settings_MODULE_CORE_EDITOR_KEY = 'core/editor';
-var MODULE_CORE_KEY = 'core';
-var DEFAULT_STATE = {
+const settings_MODULE_KEY = 'pll/metabox';
+const settings_MODULE_CORE_EDITOR_KEY = 'core/editor';
+const settings_MODULE_SITE_EDITOR_KEY = 'core/edit-site';
+const settings_MODULE_POST_EDITOR_KEY = 'core/edit-post';
+const settings_MODULE_CORE_KEY = 'core';
+const DEFAULT_STATE = {
   languages: [],
   selectedLanguage: {},
   translatedPosts: {},
-  fromPost: null
+  fromPost: null,
+  currentTemplatePart: {}
 };
+const UNTRANSLATABLE_POST_TYPE = (/* unused pure expression or super */ null && (['wp_template', 'wp_global_styles']));
+const POST_TYPE_WITH_TRASH = (/* unused pure expression or super */ null && (['page']));
+const settings_TEMPLATE_PART_SLUG_SEPARATOR = '___'; // Its value must be synchronized with its equivalent in PHP @see PLL_FSE_Template_Slug::SEPARATOR
+const settings_TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN = '[a-z_-]+'; // Its value must be synchronized with it equivalent in PHP @see PLL_FSE_Template_Slug::SEPARATOR
 
-;// CONCATENATED MODULE: ./node_modules/@babel/runtime/helpers/esm/defineProperty.js
-function _defineProperty(obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-
-  return obj;
-}
-// EXTERNAL MODULE: ./node_modules/@babel/runtime/regenerator/index.js
-var regenerator = __webpack_require__(757);
-var regenerator_default = /*#__PURE__*/__webpack_require__.n(regenerator);
-// EXTERNAL MODULE: external {"this":["wp","apiFetch"]}
-var external_this_wp_apiFetch_ = __webpack_require__(839);
-var external_this_wp_apiFetch_default = /*#__PURE__*/__webpack_require__.n(external_this_wp_apiFetch_);
 // EXTERNAL MODULE: external {"this":["wp","url"]}
-var external_this_wp_url_ = __webpack_require__(696);
+var external_this_wp_url_ = __webpack_require__(470);
 ;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/utils.js
 /**
  * WordPress Dependencies
@@ -1225,67 +531,99 @@ var external_this_wp_url_ = __webpack_require__(696);
 
 
 /**
- * Convert array of object to a map
- *
- * @param {type} array to convert
- * @param {type} key in the object used as key to build map
- * @returns {Map}
+ * Internal dependencies
  */
 
+
+/**
+ * Converts array of object to a map.
+ *
+ * @param {array} array Array to convert.
+ * @param {*}     key   The key in the object used as key to build the map.
+ * @returns {Map}
+ */
 function convertArrayToMap(array, key) {
-  var map = new Map();
+  const map = new Map();
   array.reduce(function (accumulator, currentValue) {
     accumulator.set(currentValue[key], currentValue);
     return accumulator;
   }, map);
   return map;
 }
+
 /**
- * Convert map to an associative array
+ * Converts map to an associative array.
  *
- * @param {Map} map to convert
+ * @param {Map} map The map to convert.
  * @returns {Object}
  */
-
 function utils_convertMapToObject(map) {
-  var object = {};
+  const object = {};
   map.forEach(function (value, key, map) {
-    var obj = this;
+    const obj = this;
     this[key] = isBoolean(value) ? value.toString() : value;
   }, object);
   return object;
 }
+
 /**
- * Return if a block-based editor is for post type.
+ * Checks whether the current screen is block-based post type editor.
  *
  * @returns {boolean} True if block editor for post type; false otherwise.
  */
-
 function isPostTypeBlockEditor() {
   return !!document.getElementById('editor');
 }
-/**
- * Return the post type URL for REST API calls
- *
- * @param {string} post type name
- * @returns {string}
- */
 
-function getPostsUrl(name) {
-  var postTypes = select('core').getEntitiesByKind('postType');
-  var postType = find(postTypes, {
-    name: name
-  });
-  return postType.baseURL;
+/**
+ * Checks whether the current screen is the block-based widgets editor.
+ *
+ * @returns {boolean} True if we are in the widgets block editor; false otherwise.
+ */
+function isWidgetsBlockEditor() {
+  return !!document.getElementById('widgets-editor');
 }
-/**
- * Get all query string parameters and convert them in a URLSearchParams object
- *
- * @returns {object}
- */
 
+/**
+ * Checks whether the current screen is the customizer widgets editor.
+ *
+ * @returns {boolean} True if we are in the customizer widgets editor; false otherwise.
+ */
+function isWidgetsCustomizerEditor() {
+  return !!document.getElementById('customize-controls');
+}
+
+/**
+ * Checks whether the current screen is the site editor.
+ * Takes in account if Gutenberg is activated.
+ *
+ * @returns {boolean} True if site editor screen, false otherwise.
+ */
+function isSiteBlockEditor() {
+  return !!(document.getElementById('site-editor') || document.getElementById('edit-site-editor'));
+}
+
+/**
+ * Returns the post type URL for REST API calls or undefined if the user hasn't the rights.
+ *
+ * @param {string} name The post type name.
+ * @returns {string|undefined}
+ */
+function getPostsUrl(name) {
+  const postTypes = select('core').getEntitiesByKind('postType');
+  const postType = find(postTypes, {
+    name
+  });
+  return postType?.baseURL;
+}
+
+/**
+ * Gets all query string parameters and convert them in a URLSearchParams object.
+ *
+ * @returns {Object}
+ */
 function utils_getSearchParams() {
-  // Variable window.location.search is just read for creating and returning a URLSearchParams object to be able to manipulate it more easily
+  // Variable window.location.search is just read for creating and returning a URLSearchParams object to be able to manipulate it more easily.
   if (!isEmpty(window.location.search)) {
     // phpcs:ignore WordPressVIPMinimum.JS.Window.location
     return new URLSearchParams(window.location.search); // phpcs:ignore WordPressVIPMinimum.JS.Window.location
@@ -1293,89 +631,101 @@ function utils_getSearchParams() {
     return null;
   }
 }
+
 /**
- * Get selected language
+ * Gets selected language.
  *
- * @param string Post language code
- * @returns {Object} Selected Language
+ * @param {string} lang The post language code.
+ * @returns {Object} The selected language.
  */
-
 function getSelectedLanguage(lang) {
-  var languages = select(MODULE_KEY).getLanguages(); // Pick up this language as selected in languages list
-
+  const languages = select(MODULE_KEY).getLanguages();
+  // Pick up this language as selected in languages list
   return languages.get(lang);
 }
+
 /**
- * Get translated posts
+ * Gets the default language.
  *
- * @param array ids of translated posts
+ * @returns {Object} The default Language.
+ */
+function getDefaultLanguage() {
+  const languages = select(MODULE_KEY).getLanguages();
+  return Array.from(languages.values()).find(lang => lang.is_default);
+}
+
+/**
+ * Checks if the given language is the default one.
+ *
+ * @param {string} lang The language code to compare with.
+ * @returns {boolean} True if the given language is the default one.
+ */
+function isDefaultLanguage(lang) {
+  return lang === getDefaultLanguage().slug;
+}
+
+/**
+ * Gets translated posts.
+ *
+ * @param {Object}                  translations       The translated posts object with language codes as keys and ids as values.
+ * @param {Object.<string, Object>} translations_table The translations table data with language codes as keys and data object as values.
  * @returns {Map}
  */
-
 function utils_getTranslatedPosts(translations, translations_table, lang) {
-  var translationsTable = getTranslationsTable(translations_table, lang);
-  var fromPost = select(MODULE_KEY).getFromPost();
-  var translatedPosts = new Map(Object.entries([]));
-
+  const translationsTable = getTranslationsTable(translations_table, lang);
+  const fromPost = select(MODULE_KEY).getFromPost();
+  let translatedPosts = new Map(Object.entries([]));
   if (!isUndefined(translations)) {
     translatedPosts = new Map(Object.entries(translations));
-  } // phpcs:disable PEAR.Functions.FunctionCallSignature.Indent
+  }
   // If we come from another post for creating a new one, we have to update translated posts from the original post
   // to be able to update translations attribute of the post
-
-
   if (!isNil(fromPost) && !isNil(fromPost.id)) {
-    translationsTable.forEach(function (translationData, lang) {
+    translationsTable.forEach((translationData, lang) => {
       if (!isNil(translationData.translated_post) && !isNil(translationData.translated_post.id)) {
         translatedPosts.set(lang, translationData.translated_post.id);
       }
     });
-  } // phpcs:enable PEAR.Functions.FunctionCallSignature.Indent
-
-
+  }
   return translatedPosts;
 }
+
 /**
- * Get synchronized posts
+ * Gets synchronized posts.
  *
- * @param array ids of synchronized posts
+ * @param {Object.<string, boolean>} pll_sync_post The synchronized posts object with language codes as keys and boolean values to say if the post is synchronized or not.
  * @returns {Map}
  */
-
 function getSynchronizedPosts(pll_sync_post) {
-  var synchronizedPosts = new Map(Object.entries([]));
-
+  let synchronizedPosts = new Map(Object.entries([]));
   if (!isUndefined(pll_sync_post)) {
     synchronizedPosts = new Map(Object.entries(pll_sync_post));
   }
-
   return synchronizedPosts;
 }
+
 /**
- * Get translations table
+ * Gets translations table.
  *
- * @param object translations table datas
- * @param string language code
+ * @param {Object.<string, Object>} translationsTableDatas The translations table data object with language codes as keys and data object as values.
  * @returns {Map}
  */
-
-function getTranslationsTable(translationsTableDatas, lang) {
-  var translationsTable = new Map(Object.entries([])); // get translations table datas from post
-
+function getTranslationsTable(translationsTableDatas) {
+  let translationsTable = new Map(Object.entries([]));
+  // get translations table datas from post
   if (!isUndefined(translationsTableDatas)) {
     // Build translations table map with language slug as key
     translationsTable = new Map(Object.entries(translationsTableDatas));
   }
-
   return translationsTable;
 }
-/**
- * Is the request for saving ?
- *
- * @param {type} options the initial request
- * @returns {Boolean}
- */
 
+/**
+ * Checks if the given request is for saving.
+ *
+ * @param {Object} options The initial request.
+ * @returns {Boolean} True if the request is for saving.
+ */
 function isSaveRequest(options) {
   // If data is defined we are in a PUT or POST request method otherwise a GET request method
   // Test options.method property isn't efficient because most of REST request which use fetch API doesn't pass this property.
@@ -1387,20 +737,9 @@ function isSaveRequest(options) {
     return false;
   }
 }
-/**
- * Add is_block_editor parameter to the request in a block editor context
- *
- * @param {type} options the initial request
- * @returns {undefined}
- */
 
-function addIsBlockEditorToRequest(options) {
-  options.path = addQueryArgs(options.path, {
-    is_block_editor: true
-  });
-}
 /**
- * Is the request concerned the current post type ?
+ * Checks if the given request concerns the current post type.
  *
  * Useful when saving a reusable block contained in another post type.
  * Indeed a reusable block is also a post, but its saving request doesn't concern the post currently edited.
@@ -1409,54 +748,135 @@ function addIsBlockEditorToRequest(options) {
  *
  * @see https://github.com/polylang/polylang/issues/437 - Reusable block has no language when it's saved from another post type editing.
  *
- * @param {type} options the initial request
- * @returns {Boolean}
+ * @param {Object} options the initial request
+ * @returns {boolean} True if the request concerns the current post.
  */
-
 function isCurrentPostRequest(options) {
-  // Save translation datas is needed for all post types only
-  // it's done by verifying options.path matches with one of baseURL of all post types
-  // and compare current post id with this sent in the request
+  // Saving translation data is needed only for all post types.
+  // It's done by verifying options.path matches with one of baseURL of all post types
+  // and compare current post id with this sent in the request.
+
   // List of post type baseURLs.
-  var postTypeURLs = map(select('core').getEntitiesByKind('postType'), property('baseURL')); // Id from the post currently edited.
+  const postTypeURLs = map(select('core').getEntitiesByKind('postType'), property('baseURL'));
 
-  var postId = select('core/editor').getCurrentPostId(); // Id from the REST request.
-  // options.data never isNil here because it's already verified before in isSaveRequest() function
+  // Id from the post currently edited.
+  const postId = select('core/editor').getCurrentPostId();
 
-  var id = options.data.id; // Return true
+  // Id from the REST request.
+  // options.data never isNil here because it's already verified before in isSaveRequest() function.
+  const id = options.data.id;
+
+  // Return true
   // if REST request baseURL matches with one of the known post type baseURLs
   // and the id from the post currently edited corresponds on the id passed to the REST request
   // Return false otherwise
-
   return -1 !== postTypeURLs.findIndex(function (element) {
-    return new RegExp("".concat(escapeRegExp(element))).test(options.path); // phpcs:ignore WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore, WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter
+    return new RegExp(`${escapeRegExp(element)}`).test(options.path);
   }) && postId === id;
 }
+
 /**
- * Add language to the request
+ * Checks if the given REST request is for the creation of a new template part translation.
  *
- * @param {type} options the initial request
- * @param {string} currentLanguage A language code.
- * @returns {undefined}
+ * @param {Object} options The initial request.
+ * @returns {Boolean} True if the request concerns a template part translation creation.
  */
+function isTemplatePartTranslationCreationRequest(options) {
+  return 'POST' === options.method && options.path.match(/^\/wp\/v2\/template-parts(?:\/|\?|$)/) && !isNil(options.data.from_post) && !isNil(options.data.lang);
+}
 
+/**
+ * Checks if the given REST request is for the creation of a new template part.
+ *
+ * @param {Object} options The initial request.
+ * @returns {Boolean} True if the request concerns a template part creation.
+ */
+function isNewTemplatePartCreationRequest(options) {
+  return 'POST' === options.method && options.path.match(/^\/wp\/v2\/template-parts(?:\/|\?|$)/) && isNil(options.data.from_post) && isNil(options.data.lang);
+}
+
+/**
+ * Adds language as query string parameter to the given request.
+ *
+ * @param {Object} options         The initial request.
+ * @param {string} currentLanguage The language code to add to the request.
+ */
 function addLanguageToRequest(options, currentLanguage) {
-  var filterLang = isUndefined(options.filterLang) || options.filterLang;
-
-  if (filterLang) {
+  const hasLangArg = hasQueryArg(options.path, 'lang');
+  const filterLang = isUndefined(options.filterLang) || options.filterLang;
+  if (filterLang && !hasLangArg) {
     options.path = addQueryArgs(options.path, {
       lang: currentLanguage
     });
   }
 }
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/store/index.js
 
+/**
+ * Adds `include_untranslated` parameter to the request.
+ *
+ * @param {Object} options The initial request.
+ * @returns {void}
+ */
+function addIncludeUntranslatedParam(options) {
+  options.path = addQueryArgs(options.path, {
+    include_untranslated: true
+  });
+}
 
+/**
+ * Use addIncludeUntranslatedParam if the given page is a template part page.
+ * Or if the template editing mode is enabled inside post editing.
+ *
+ * @param {Object} options The initial request.
+ * @returns {void}
+ */
+function maybeRequireIncludeUntranslatedTemplate(options) {
+  const params = new URL(document.location).searchParams;
+  const postType = params.get('postType');
+  const postId = params.get('postId');
+  const isEditingTemplate = select(MODULE_POST_EDITOR_KEY)?.isEditingTemplate();
+  if ("wp_template_part" === postType && !isNil(postId) || isEditingTemplate) {
+    addIncludeUntranslatedParam(options);
+  }
+}
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+/**
+ * Returns true if the given post is a template part, false otherwise.
+ *
+ * @param {Object} post A post object.
+ * @returns {boolean} Whether it is a template part or not.
+ */
+function isTemplatePart(post) {
+  return 'wp_template_part' === post.type;
+}
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+/**
+ * Returns the current post type considering the Site Editor or Post Editor.
+ *
+ * @returns {string} The current post type.
+ */
+function getCurrentPostType() {
+  if (isSiteBlockEditor()) {
+    return select(MODULE_SITE_EDITOR_KEY).getEditedPostType();
+  }
+  return select(MODULE_CORE_EDITOR_KEY).getCurrentPostType();
+}
 
+/**
+ * Returns a regular expression ready to use to perform search and replace.
+ *
+ * @returns {RegExp} The regular expression.
+ */
+function getLangSlugRegex() {
+  let languageCheckPattern = TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN;
+  const languages = select(MODULE_KEY).getLanguages();
+  const languageSlugs = Array.from(languages.keys());
+  if (!isEmpty(languageSlugs)) {
+    languageCheckPattern = languageSlugs.join('|');
+  }
+  return new RegExp(`${TEMPLATE_PART_SLUG_SEPARATOR}(?:${languageCheckPattern})$`);
+}
+;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/store/utils.js
 /**
  * WordPress Dependencies
  *
@@ -1471,195 +891,95 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 
 
-var actions = {
-  setLanguages: function setLanguages(languages) {
-    return {
-      type: 'SET_LANGUAGES',
-      languages: languages
-    };
-  },
-  setCurrentUser: function setCurrentUser(currentUser) {
-    var save = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-    return {
-      type: 'SET_CURRENT_USER',
-      currentUser: currentUser,
-      save: save
-    };
-  },
-  setFromPost: function setFromPost(fromPost) {
-    return {
-      type: 'SET_FROM_POST',
-      fromPost: fromPost
-    };
-  },
-  fetchFromAPI: function fetchFromAPI(options) {
-    return {
-      type: 'FETCH_FROM_API',
-      options: options
-    };
-  }
-};
-var store = (0,external_this_wp_data_.registerStore)(settings_MODULE_KEY, {
-  reducer: function reducer() {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT_STATE;
-    var action = arguments.length > 1 ? arguments[1] : undefined;
-
-    switch (action.type) {
-      case 'SET_LANGUAGES':
-        return _objectSpread(_objectSpread({}, state), {}, {
-          languages: action.languages
-        });
-
-      case 'SET_CURRENT_USER':
-        if (action.save) {
-          updateCurrentUser(action.currentUser);
-        }
-
-        return _objectSpread(_objectSpread({}, state), {}, {
-          currentUser: action.currentUser
-        });
-
-      case 'SET_FROM_POST':
-        return _objectSpread(_objectSpread({}, state), {}, {
-          fromPost: action.fromPost
-        });
-
-      default:
-        return state;
-    }
-  },
-  selectors: {
-    getLanguages: function getLanguages(state) {
-      return state.languages;
-    },
-    getCurrentUser: function getCurrentUser(state) {
-      return state.currentUser;
-    },
-    getFromPost: function getFromPost(state) {
-      return state.fromPost;
-    }
-  },
-  actions: actions,
-  controls: {
-    FETCH_FROM_API: function FETCH_FROM_API(action) {
-      return external_this_wp_apiFetch_default()(_objectSpread({}, action.options));
-    }
-  },
-  resolvers: {
-    getLanguages: /*#__PURE__*/regenerator_default().mark(function getLanguages() {
-      var path, languages;
-      return regenerator_default().wrap(function getLanguages$(_context) {
-        while (1) {
-          switch (_context.prev = _context.next) {
-            case 0:
-              path = '/pll/v1/languages';
-              _context.next = 3;
-              return actions.fetchFromAPI({
-                path: path,
-                filterLang: false
-              });
-
-            case 3:
-              languages = _context.sent;
-              return _context.abrupt("return", actions.setLanguages(convertArrayToMap(languages, 'slug')));
-
-            case 5:
-            case "end":
-              return _context.stop();
-          }
-        }
-      }, getLanguages);
-    }),
-    getCurrentUser: /*#__PURE__*/regenerator_default().mark(function getCurrentUser() {
-      var path, currentUser;
-      return regenerator_default().wrap(function getCurrentUser$(_context2) {
-        while (1) {
-          switch (_context2.prev = _context2.next) {
-            case 0:
-              path = '/wp/v2/users/me';
-              _context2.next = 3;
-              return actions.fetchFromAPI({
-                path: path,
-                filterLang: true
-              });
-
-            case 3:
-              currentUser = _context2.sent;
-              return _context2.abrupt("return", actions.setCurrentUser(currentUser));
-
-            case 5:
-            case "end":
-              return _context2.stop();
-          }
-        }
-      }, getCurrentUser);
-    })
-  }
-});
 /**
  * Wait for the whole post block editor context has been initialized: current post loaded and languages list initialized.
  */
+const isBlockPostEditorContextInitialized = () => {
+  if (isNil(select(MODULE_CORE_EDITOR_KEY))) {
+    return Promise.reject("Polylang languages panel can't be initialized because block editor isn't fully initialized.");
+  }
 
-var isBlockPostEditorContextInitialized = function isBlockPostEditorContextInitialized() {
   // save url params espacially when a new translation is creating
-  saveURLParams(); // call to getCurrentUser to force call to resolvers and initialize state
+  saveURLParams();
+  // call to getCurrentUser to force call to resolvers and initialize state
+  const currentUser = select(MODULE_KEY).getCurrentUser();
 
-  var currentUser = select(MODULE_KEY).getCurrentUser();
   /**
    * Set a promise for waiting for the current post has been fully loaded before making other processes.
    */
-
-  var isCurrentPostLoaded = new Promise(function (resolve) {
-    var unsubscribe = subscribe(function () {
-      var currentPost = select(MODULE_CORE_EDITOR_KEY).getCurrentPost();
-
+  const isCurrentPostLoaded = new Promise(function (resolve) {
+    let unsubscribe = subscribe(function () {
+      const currentPost = select(MODULE_CORE_EDITOR_KEY).getCurrentPost();
       if (!isEmpty(currentPost)) {
         unsubscribe();
         resolve();
       }
     });
-  }); // Wait for current post has been loaded and languages list initialized.
+  });
 
-  return Promise.all([isCurrentPostLoaded, isLanguagesinitialized]).then(function () {
+  // Wait for current post has been loaded and languages list initialized.
+  return Promise.all([isCurrentPostLoaded, isLanguagesinitialized()]).then(function () {
     // If we come from another post for creating a new one, we have to update translations from the original post.
-    var fromPost = select(MODULE_KEY).getFromPost();
-
+    const fromPost = select(MODULE_KEY).getFromPost();
     if (!isNil(fromPost) && !isNil(fromPost.id)) {
-      var lang = select(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('lang');
-      var translations = select(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('translations');
-      var translations_table = select(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('translations_table');
-      var translatedPosts = getTranslatedPosts(translations, translations_table, lang);
+      const lang = select(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('lang');
+      const translations = select(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('translations');
+      const translations_table = select(MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('translations_table');
+      const translatedPosts = getTranslatedPosts(translations, translations_table, lang);
       dispatch(MODULE_CORE_EDITOR_KEY).editPost({
         translations: convertMapToObject(translatedPosts)
       });
     }
   });
 };
+
 /**
- * Set a promise for waiting for the languages list is correctly initialized before making other processes.
+ * Wait for the whole site editor context to be initialized: current template loaded and languages list initialized.
  */
+const isSiteEditorContextInitialized = () => {
+  // save url params espacially when a new translation is creating
+  saveURLParams();
+  // call to getCurrentUser to force call to resolvers and initialize state
+  const currentUser = select(MODULE_KEY).getCurrentUser();
 
-var isLanguagesinitialized = new Promise(function (resolve) {
-  var unsubscribe = (0,external_this_wp_data_.subscribe)(function () {
-    var languages = (0,external_this_wp_data_.select)(settings_MODULE_KEY).getLanguages();
+  /**
+   * Set a promise to wait for the current template to be fully loaded before making other processes.
+   * It allows to see if both Site Editor and Core stores are available (@see getCurrentPostFromDataStore()).
+   */
+  const isTemplatePartLoaded = new Promise(function (resolve) {
+    let unsubscribe = subscribe(function () {
+      const store = select(MODULE_SITE_EDITOR_KEY);
+      if (store) {
+        unsubscribe();
+        resolve();
+      }
+    });
+  });
+  return Promise.all([isTemplatePartLoaded, isLanguagesinitialized()]);
+};
 
-    if (languages.size > 0) {
+/**
+ * Returns a promise fulfilled when the languages list is correctly initialized before making other processes.
+ */
+const isLanguagesinitialized = () => new Promise(function (resolve) {
+  let unsubscribe = (0,external_this_wp_data_.subscribe)(function () {
+    const languages = (0,external_this_wp_data_.select)(settings_MODULE_KEY)?.getLanguages();
+    if (languages?.size > 0) {
       unsubscribe();
       resolve();
     }
   });
 });
+
 /**
  * Save query string parameters from URL. They could be needed after
  * They could be null if they does not exist
  */
-
 function saveURLParams() {
   // Variable window.location.search isn't use directly
   // Function getSearchParams return an URLSearchParams object for manipulating each parameter
   // Each of them are sanitized below
-  var searchParams = getSearchParams(window.location.search); // phpcs:ignore WordPressVIPMinimum.JS.Window.location
-
+  const searchParams = getSearchParams();
   if (null !== searchParams) {
     dispatch(MODULE_KEY).setFromPost({
       id: wp.sanitize.stripTagsAndEncodeText(searchParams.get('from_post')),
@@ -1668,24 +988,40 @@ function saveURLParams() {
     });
   }
 }
+const getEditedPostContextWithLegacy = () => {
+  const siteEditorSelector = select(MODULE_SITE_EDITOR_KEY);
+
+  /**
+   * Return null when called from our apiFetch middleware without a properly loaded store.
+   */
+  if (!siteEditorSelector) {
+    return null;
+  }
+  const _context = {
+    postId: siteEditorSelector.getEditedPostId(),
+    postType: siteEditorSelector.getEditedPostType()
+  };
+  if (siteEditorSelector.hasOwnProperty('getEditedPostContext')) {
+    const context = siteEditorSelector.getEditedPostContext();
+    return null != context && null !== context.postType && null !== context.postId ? context : _context;
+  }
+
+  /**
+   * Backward compatibility with WordPress < 6.3 where `getEditedPostContext()` doesn't exist yet.
+   */
+  return _context;
+};
+
 /**
- * Save current user when it is wondered
+ * Gets the current post using the Site Editor store and the Core store.
  *
- * @param {object} currentUser
+ * @returns {object|null} The current post object, `null` if none found.
  */
-
-
-function updateCurrentUser(currentUser) {
-  external_this_wp_apiFetch_default()({
-    path: '/wp/v2/users/me',
-    data: currentUser,
-    method: 'POST'
-  });
-}
-
-/* harmony default export */ const sidebar_store = ((/* unused pure expression or super */ null && (store)));
+const getCurrentPostFromDataStore = () => {
+  const editedContext = getEditedPostContextWithLegacy();
+  return null === editedContext ? null : select(MODULE_CORE_KEY).getEntityRecord('postType', editedContext.postType, editedContext.postId);
+};
 ;// CONCATENATED MODULE: ./modules/block-editor/js/blocks/attributes.js
-
 
 /**
  * Add blocks attributes
@@ -1704,6 +1040,7 @@ function updateCurrentUser(currentUser) {
 
 
 
+
 /**
  * Internal dependencies
  */
@@ -1711,67 +1048,58 @@ function updateCurrentUser(currentUser) {
 
 
 
-
-var LanguageAttribute = {
-  type: 'string',
-  default: 'every'
-};
-
-var addLangChoiceAttribute = function addLangChoiceAttribute(settings, name) {
-  var unallowedBlockNames = ['core/widget-area', 'core/legacy-widget'];
-
-  if (unallowedBlockNames.find(function (element) {
-    return element === name;
-  }) || isPostTypeBlockEditor()) {
-    return settings;
-  }
-
-  settings.attributes = (0,external_lodash_.assign)(settings.attributes, {
-    pll_lang: LanguageAttribute
-  });
-  return settings;
-};
-
-(0,external_this_wp_hooks_.addFilter)('blocks.registerBlockType', 'pll/lang-choice', addLangChoiceAttribute);
-var withInspectorControls = (0,external_this_wp_compose_.createHigherOrderComponent)(function (BlockEdit) {
-  return function (props) {
-    if (isPostTypeBlockEditor()) {
-      return (0,external_this_wp_element_.createElement)(BlockEdit, props);
-    }
-
-    var languages = (0,external_this_wp_data_.select)(settings_MODULE_KEY).getLanguages();
-    var pll_lang = props.attributes.pll_lang;
-    var isLanguageFilterable = !(0,external_lodash_.isNil)(pll_lang);
-    var selectedLanguage = languages.get(pll_lang);
-    return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(BlockEdit, props), isLanguageFilterable && (0,external_this_wp_element_.createElement)(external_this_wp_blockEditor_.InspectorControls, null, (0,external_this_wp_element_.createElement)(external_this_wp_components_.PanelBody, {
-      title: (0,external_this_wp_i18n_.__)('Languages', 'polylang-pro')
-    }, (0,external_this_wp_element_.createElement)("label", null, (0,external_this_wp_i18n_.__)('The block is displayed for:', 'polylang-pro')), (0,external_this_wp_element_.createElement)(LanguageDropdown, {
-      selectedLanguage: selectedLanguage,
-      handleChange: function handleChange(langChoiceEvent) {
-        var langChoice = langChoiceEvent.currentTarget.value;
-        props.setAttributes({
-          pll_lang: langChoice
-        });
-      },
-      defaultValue: LanguageAttribute.default
-    }, (0,external_this_wp_element_.createElement)("option", {
-      value: LanguageAttribute.default
-    }, (0,external_this_wp_i18n_.__)('All languages', 'polylang-pro'), " "), (0,external_this_wp_element_.createElement)(LanguagesOptionsList, {
-      languages: languages
-    })))));
+if (isWidgetsBlockEditor() || isWidgetsCustomizerEditor()) {
+  const LanguageAttribute = {
+    type: 'string',
+    default: 'every'
   };
-}, "withInspectorControl");
-isLanguagesinitialized.then(function () {
-  (0,external_this_wp_hooks_.addFilter)('editor.BlockEdit', 'pll/lang-choice-with-inspector-controls', withInspectorControls);
-});
+  const addLangChoiceAttribute = function (settings, name) {
+    const unallowedBlockNames = ['core/widget-area', 'core/legacy-widget'];
+    if (unallowedBlockNames.find(element => element === name)) {
+      return settings;
+    }
+    settings.attributes = (0,external_lodash_.assign)(settings.attributes, {
+      pll_lang: LanguageAttribute
+    });
+    return settings;
+  };
+  (0,external_this_wp_hooks_.addFilter)('blocks.registerBlockType', 'pll/lang-choice', addLangChoiceAttribute);
+  const withInspectorControls = (0,external_this_wp_compose_.createHigherOrderComponent)(BlockEdit => {
+    return props => {
+      const languages = (0,external_this_wp_data_.select)(settings_MODULE_KEY).getLanguages();
+      const {
+        pll_lang
+      } = props.attributes;
+      const isLanguageFilterable = !(0,external_lodash_.isNil)(pll_lang);
+      const selectedLanguage = languages.get(pll_lang);
+      return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(BlockEdit, props), isLanguageFilterable && (0,external_this_wp_element_.createElement)(external_this_wp_blockEditor_.InspectorControls, null, (0,external_this_wp_element_.createElement)(external_this_wp_components_.PanelBody, {
+        title: (0,external_this_wp_i18n_.__)('Languages', 'polylang-pro')
+      }, (0,external_this_wp_element_.createElement)("label", null, (0,external_this_wp_i18n_.__)('The block is displayed for:', 'polylang-pro')), (0,external_this_wp_element_.createElement)(LanguageDropdown, {
+        selectedLanguage: selectedLanguage,
+        handleChange: langChoiceEvent => {
+          const langChoice = langChoiceEvent.currentTarget.value;
+          props.setAttributes({
+            pll_lang: langChoice
+          });
+        },
+        defaultValue: LanguageAttribute.default
+      }, (0,external_this_wp_element_.createElement)("option", {
+        value: LanguageAttribute.default
+      }, (0,external_this_wp_i18n_.__)('All languages', 'polylang-pro'), " "), (0,external_this_wp_element_.createElement)(LanguagesOptionsList, {
+        languages: languages
+      })))));
+    };
+  }, "withInspectorControl");
+  isLanguagesinitialized().then(function () {
+    (0,external_this_wp_hooks_.addFilter)('editor.BlockEdit', 'pll/lang-choice-with-inspector-controls', withInspectorControls);
+  });
+}
 // EXTERNAL MODULE: external {"this":["wp","blocks"]}
-var external_this_wp_blocks_ = __webpack_require__(677);
+var external_this_wp_blocks_ = __webpack_require__(733);
 // EXTERNAL MODULE: external {"this":["wp","serverSideRender"]}
-var external_this_wp_serverSideRender_ = __webpack_require__(173);
+var external_this_wp_serverSideRender_ = __webpack_require__(169);
 var external_this_wp_serverSideRender_default = /*#__PURE__*/__webpack_require__.n(external_this_wp_serverSideRender_);
 ;// CONCATENATED MODULE: ./modules/block-editor/js/blocks/language-switcher-edit.js
-
-
 
 /**
  * @package Polylang-Pro
@@ -1780,6 +1108,7 @@ var external_this_wp_serverSideRender_default = /*#__PURE__*/__webpack_require__
 /**
  * External dependencies
  */
+
 
 /**
  * WordPress dependencies
@@ -1790,54 +1119,55 @@ var external_this_wp_serverSideRender_default = /*#__PURE__*/__webpack_require__
  * Call initialization of pll/metabox store for getting ready some datas
  */
 
-var i18nAttributeStrings = pll_block_editor_blocks_settings;
+const i18nAttributeStrings = pll_block_editor_blocks_settings;
 function createLanguageSwitcherEdit(props) {
-  var createToggleAttribute = function createToggleAttribute(propName) {
-    return function () {
-      var value = props.attributes[propName];
-      var setAttributes = props.setAttributes;
+  const createToggleAttribute = function (propName) {
+    return () => {
+      const value = props.attributes[propName];
+      const {
+        setAttributes
+      } = props;
+      let updatedAttributes = {
+        [propName]: !value
+      };
+      let forcedAttributeName;
+      let forcedAttributeUnchecked;
 
-      var updatedAttributes = _defineProperty({}, propName, !value);
-
-      var forcedAttributeName;
-      var forcedAttributeUnchecked; // Both show_names and show_flags attributes can't be unchecked together.
-
+      // Both show_names and show_flags attributes can't be unchecked together.
       switch (propName) {
         case 'show_names':
           forcedAttributeName = 'show_flags';
           forcedAttributeUnchecked = !props.attributes[forcedAttributeName];
           break;
-
         case 'show_flags':
           forcedAttributeName = 'show_names';
           forcedAttributeUnchecked = !props.attributes[forcedAttributeName];
           break;
       }
-
       if ('show_names' === propName || 'show_flags' === propName) {
         if (value && forcedAttributeUnchecked) {
-          updatedAttributes = (0,external_lodash_.assign)(updatedAttributes, _defineProperty({}, forcedAttributeName, forcedAttributeUnchecked));
+          updatedAttributes = (0,external_lodash_.assign)(updatedAttributes, {
+            [forcedAttributeName]: forcedAttributeUnchecked
+          });
         }
       }
-
       setAttributes(updatedAttributes);
     };
   };
-
-  var toggleDropdown = createToggleAttribute('dropdown');
-  var toggleShowNames = createToggleAttribute('show_names');
-  var toggleShowFlags = createToggleAttribute('show_flags');
-  var toggleForceHome = createToggleAttribute('force_home');
-  var toggleHideCurrent = createToggleAttribute('hide_current');
-  var toggleHideIfNoTranslation = createToggleAttribute('hide_if_no_translation');
-  var _props$attributes = props.attributes,
-      dropdown = _props$attributes.dropdown,
-      show_names = _props$attributes.show_names,
-      show_flags = _props$attributes.show_flags,
-      force_home = _props$attributes.force_home,
-      hide_current = _props$attributes.hide_current,
-      hide_if_no_translation = _props$attributes.hide_if_no_translation;
-
+  const toggleDropdown = createToggleAttribute('dropdown');
+  const toggleShowNames = createToggleAttribute('show_names');
+  const toggleShowFlags = createToggleAttribute('show_flags');
+  const toggleForceHome = createToggleAttribute('force_home');
+  const toggleHideCurrent = createToggleAttribute('hide_current');
+  const toggleHideIfNoTranslation = createToggleAttribute('hide_if_no_translation');
+  const {
+    dropdown,
+    show_names,
+    show_flags,
+    force_home,
+    hide_current,
+    hide_if_no_translation
+  } = props.attributes;
   function ToggleControlDropdown() {
     return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.dropdown,
@@ -1845,7 +1175,6 @@ function createLanguageSwitcherEdit(props) {
       onChange: toggleDropdown
     });
   }
-
   function ToggleControlShowNames() {
     return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.show_names,
@@ -1853,7 +1182,6 @@ function createLanguageSwitcherEdit(props) {
       onChange: toggleShowNames
     });
   }
-
   function ToggleControlShowFlags() {
     return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.show_flags,
@@ -1861,7 +1189,6 @@ function createLanguageSwitcherEdit(props) {
       onChange: toggleShowFlags
     });
   }
-
   function ToggleControlForceHome() {
     return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.force_home,
@@ -1869,7 +1196,6 @@ function createLanguageSwitcherEdit(props) {
       onChange: toggleForceHome
     });
   }
-
   function ToggleControlHideCurrent() {
     return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.hide_current,
@@ -1877,7 +1203,6 @@ function createLanguageSwitcherEdit(props) {
       onChange: toggleHideCurrent
     });
   }
-
   function ToggleControlHideIfNoTranslations() {
     return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.hide_if_no_translation,
@@ -1885,18 +1210,16 @@ function createLanguageSwitcherEdit(props) {
       onChange: toggleHideIfNoTranslation
     });
   }
-
   return {
-    ToggleControlDropdown: ToggleControlDropdown,
-    ToggleControlShowNames: ToggleControlShowNames,
-    ToggleControlShowFlags: ToggleControlShowFlags,
-    ToggleControlForceHome: ToggleControlForceHome,
-    ToggleControlHideCurrent: ToggleControlHideCurrent,
-    ToggleControlHideIfNoTranslations: ToggleControlHideIfNoTranslations
+    ToggleControlDropdown,
+    ToggleControlShowNames,
+    ToggleControlShowFlags,
+    ToggleControlForceHome,
+    ToggleControlHideCurrent,
+    ToggleControlHideIfNoTranslations
   };
 }
 ;// CONCATENATED MODULE: ./modules/block-editor/js/blocks/block.js
-
 
 /**
  * Register language switcher block.
@@ -1913,37 +1236,41 @@ function createLanguageSwitcherEdit(props) {
 
 
 
+
+
+/**
+ * External dependencies
+ */
+
+
 /**
  * Internal dependencies
  */
 
 
+const blocktitle = (0,external_this_wp_i18n_.__)('Language switcher', 'polylang-pro');
+const descriptionTitle = (0,external_this_wp_i18n_.__)('Add a language switcher to allow your visitors to select their preferred language.', 'polylang-pro');
+const panelTitle = (0,external_this_wp_i18n_.__)('Language switcher settings', 'polylang-pro');
 
-
-var blocktitle = (0,external_this_wp_i18n_.__)('Language switcher', 'polylang-pro');
-
-var descriptionTitle = (0,external_this_wp_i18n_.__)('Add a language switcher to allow your visitors to select their preferred language.', 'polylang-pro');
-
-var panelTitle = (0,external_this_wp_i18n_.__)('Language switcher Settings', 'polylang-pro'); // Register the Language Switcher block as first level block in Block Editor.
-
-
+// Register the Language Switcher block as first level block in Block Editor.
 (0,external_this_wp_blocks_.registerBlockType)('polylang/language-switcher', {
   title: blocktitle,
   description: descriptionTitle,
   icon: library_translation,
   category: 'widgets',
   example: {},
-  edit: function edit(props) {
-    var dropdown = props.attributes.dropdown;
-
-    var _createLanguageSwitch = createLanguageSwitcherEdit(props),
-        ToggleControlDropdown = _createLanguageSwitch.ToggleControlDropdown,
-        ToggleControlShowNames = _createLanguageSwitch.ToggleControlShowNames,
-        ToggleControlShowFlags = _createLanguageSwitch.ToggleControlShowFlags,
-        ToggleControlForceHome = _createLanguageSwitch.ToggleControlForceHome,
-        ToggleControlHideCurrent = _createLanguageSwitch.ToggleControlHideCurrent,
-        ToggleControlHideIfNoTranslations = _createLanguageSwitch.ToggleControlHideIfNoTranslations;
-
+  edit: props => {
+    const {
+      dropdown
+    } = props.attributes;
+    const {
+      ToggleControlDropdown,
+      ToggleControlShowNames,
+      ToggleControlShowFlags,
+      ToggleControlForceHome,
+      ToggleControlHideCurrent,
+      ToggleControlHideIfNoTranslations
+    } = createLanguageSwitcherEdit(props);
     return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(external_this_wp_blockEditor_.InspectorControls, null, (0,external_this_wp_element_.createElement)(external_this_wp_components_.PanelBody, {
       title: panelTitle
     }, (0,external_this_wp_element_.createElement)(ToggleControlDropdown, null), !dropdown && (0,external_this_wp_element_.createElement)(ToggleControlShowNames, null), !dropdown && (0,external_this_wp_element_.createElement)(ToggleControlShowFlags, null), (0,external_this_wp_element_.createElement)(ToggleControlForceHome, null), !dropdown && (0,external_this_wp_element_.createElement)(ToggleControlHideCurrent, null), (0,external_this_wp_element_.createElement)(ToggleControlHideIfNoTranslations, null))), (0,external_this_wp_element_.createElement)(external_this_wp_components_.Disabled, null, (0,external_this_wp_element_.createElement)((external_this_wp_serverSideRender_default()), {
@@ -1951,34 +1278,158 @@ var panelTitle = (0,external_this_wp_i18n_.__)('Language switcher Settings', 'po
       attributes: props.attributes
     })));
   }
-}); // Register the Language Switcher block as child block of other blocks (see the 'parent' property).
+});
 
-(0,external_this_wp_blocks_.registerBlockType)('polylang/language-switcher-inner-block', {
+// Register the Language Switcher block as child block of core/navigation block.
+const navigationLanguageSwitcherName = 'polylang/navigation-language-switcher';
+(0,external_this_wp_blocks_.registerBlockType)(navigationLanguageSwitcherName, {
   title: blocktitle,
   description: descriptionTitle,
   icon: library_translation,
   category: 'widgets',
   parent: ['core/navigation'],
+  attributes: {
+    dropdown: {
+      type: 'boolean',
+      default: false
+    },
+    show_names: {
+      type: 'boolean',
+      default: true
+    },
+    show_flags: {
+      type: 'boolean',
+      default: false
+    },
+    force_home: {
+      type: 'boolean',
+      default: false
+    },
+    hide_current: {
+      type: 'boolean',
+      default: false
+    },
+    hide_if_no_translation: {
+      type: 'boolean',
+      default: false
+    }
+  },
+  transforms: {
+    from: [{
+      type: 'block',
+      blocks: ['core/navigation-link'],
+      transform: () => (0,external_this_wp_blocks_.createBlock)(navigationLanguageSwitcherName)
+    }]
+  },
+  usesContext: ['textColor', 'customTextColor', 'backgroundColor', 'customBackgroundColor', 'overlayTextColor', 'customOverlayTextColor', 'overlayBackgroundColor', 'customOverlayBackgroundColor', 'fontSize', 'customFontSize', 'showSubmenuIcon', 'openSubmenusOnClick', 'style'],
   example: {},
-  edit: function edit(props) {
-    var dropdown = props.attributes.dropdown;
-
-    var _createLanguageSwitch2 = createLanguageSwitcherEdit(props),
-        ToggleControlDropdown = _createLanguageSwitch2.ToggleControlDropdown,
-        ToggleControlShowNames = _createLanguageSwitch2.ToggleControlShowNames,
-        ToggleControlShowFlags = _createLanguageSwitch2.ToggleControlShowFlags,
-        ToggleControlForceHome = _createLanguageSwitch2.ToggleControlForceHome,
-        ToggleControlHideCurrent = _createLanguageSwitch2.ToggleControlHideCurrent,
-        ToggleControlHideIfNoTranslations = _createLanguageSwitch2.ToggleControlHideIfNoTranslations;
-
+  edit: props => {
+    const {
+      dropdown
+    } = props.attributes;
+    const {
+      showSubmenuIcon,
+      openSubmenusOnClick
+    } = props.context;
+    const {
+      ToggleControlDropdown,
+      ToggleControlShowNames,
+      ToggleControlShowFlags,
+      ToggleControlForceHome,
+      ToggleControlHideCurrent,
+      ToggleControlHideIfNoTranslations
+    } = createLanguageSwitcherEdit(props);
     return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(external_this_wp_blockEditor_.InspectorControls, null, (0,external_this_wp_element_.createElement)(external_this_wp_components_.PanelBody, {
       title: panelTitle
-    }, (0,external_this_wp_element_.createElement)(ToggleControlDropdown, null), (0,external_this_wp_element_.createElement)(ToggleControlShowNames, null), (0,external_this_wp_element_.createElement)(ToggleControlShowFlags, null), (0,external_this_wp_element_.createElement)(ToggleControlForceHome, null), !dropdown && (0,external_this_wp_element_.createElement)(ToggleControlHideCurrent, null), (0,external_this_wp_element_.createElement)(ToggleControlHideIfNoTranslations, null))), (0,external_this_wp_element_.createElement)(external_this_wp_components_.Disabled, null, (0,external_this_wp_element_.createElement)((external_this_wp_serverSideRender_default()), {
-      block: "polylang/language-switcher-inner-block",
+    }, (0,external_this_wp_element_.createElement)(ToggleControlDropdown, null), (0,external_this_wp_element_.createElement)(ToggleControlShowNames, null), (0,external_this_wp_element_.createElement)(ToggleControlShowFlags, null), (0,external_this_wp_element_.createElement)(ToggleControlForceHome, null), (0,external_this_wp_element_.createElement)(ToggleControlHideCurrent, null), (0,external_this_wp_element_.createElement)(ToggleControlHideIfNoTranslations, null))), (0,external_this_wp_element_.createElement)(external_this_wp_components_.Disabled, null, (0,external_this_wp_element_.createElement)("div", {
+      className: "wp-block-navigation-item"
+    }, (0,external_this_wp_element_.createElement)((external_this_wp_serverSideRender_default()), {
+      block: navigationLanguageSwitcherName,
       attributes: props.attributes
-    })));
+    }), submenuIcon(showSubmenuIcon, openSubmenusOnClick, dropdown))));
   }
 });
+
+/**
+ * Apply a callback function on each block of the blocks list.
+ *
+ * @param {Array}  blocks        The list of blocks to process.
+ * @param {Array}  menuItems     The initial menu items from where the blocks are converted to.
+ * @param {Object} blocksMapping The mapping between the menu items and their corresponding blocks.
+ * @param {mapper} mapper        A callback to change the converted block by another one if necessary
+ * @returns {Array} Array of blocks updated.
+ */
+function mapBlockTree(blocks, menuItems, blocksMapping, mapper) {
+  /**
+   * A function to apply to each block to convert it if necessary by applying the `mapper` filter.
+   *
+   * @param {Object} block The block to replace or not.
+   * @returns {Object} The new block potentially replaced by the `mapper`.
+  */
+  const convertBlock = block => ({
+    ...mapper(block, menuItems, blocksMapping),
+    innerBlocks: mapBlockTree(block.innerBlocks, menuItems, blocksMapping, mapper)
+  });
+  return blocks.map(convertBlock);
+}
+
+/**
+ * A filter to detect the `core/navigation-link` block not correctly converted from the langauge switcher menu item
+ * and convert it to its corresponding `polylang/navigation-language-switcher` block.
+ *
+ * @callback mapper
+ * @param {Object} block         The block converted from the menu item.
+ * @param {Array}  menuItems     The initial menu items from where the blocks are converted to.
+ * @param {Object} blocksMapping The mapping between the menu items and their corresponding blocks.
+ * @returns {Object} The block correctly converted.
+ */
+const blocksFilter = (block, menuItems, blocksMapping) => {
+  if (block.name === "core/navigation-link" && block.attributes?.url === "#pll_switcher") {
+    const menuItem = (0,external_lodash_.find)(menuItems, {
+      url: '#pll_switcher'
+    }); // Get the corresponding menu item.
+    const attributes = menuItem.meta._pll_menu_item; // Get its options.
+    const newBlock = (0,external_this_wp_blocks_.createBlock)(navigationLanguageSwitcherName, attributes);
+    blocksMapping[menuItem.id] = newBlock.clientId; // Update the blocks mapping.
+    return newBlock;
+  }
+  return block;
+};
+
+/**
+ * A filter callback hooked to `blocks.navigation.__unstableMenuItemsToBlocks`.
+ *
+ * @param {Array} blocks    The list of blocks to process.
+ * @param {Array} menuItems The initial menu items from where the blocks are converted to.
+ * @returns {Array} Array of blocks updated.
+ */
+const menuItemsToBlocksFilter = (blocks, menuItems) => ({
+  ...blocks,
+  innerBlocks: mapBlockTree(blocks.innerBlocks, menuItems, blocks.mapping, blocksFilter)
+});
+
+/**
+ * Returns the submenu icon if block parameters allow it.
+ *
+ * @param {bool} showSubmenuIcon     Whether to show submenu icon or not.
+ * @param {bool} openSubmenusOnClick Whether the submenu can be open on click or not.
+ * @param {bool} dropdown            Whether the language switcher is in dropdown mode or not.
+ * @returns The submenu icon or null.
+ */
+const submenuIcon = (showSubmenuIcon, openSubmenusOnClick, dropdown) => {
+  if ((showSubmenuIcon || openSubmenusOnClick) && dropdown) {
+    return (0,external_this_wp_element_.createElement)("span", {
+      className: "wp-block-navigation__submenu-icon"
+    }, (0,external_this_wp_element_.createElement)(submenu, null));
+  }
+  return null;
+};
+
+/**
+ * Hooks to the classic menu conversion to core/navigation block to be able to convert
+ * the language switcher menu item to its corresponding block.
+ */
+(0,external_this_wp_hooks_.addFilter)('blocks.navigation.__unstableMenuItemsToBlocks', 'polylang/include-language-switcher', menuItemsToBlocksFilter);
 ;// CONCATENATED MODULE: ./modules/block-editor/js/blocks/index.js
 /**
  * Handles language switcher block and attributes.

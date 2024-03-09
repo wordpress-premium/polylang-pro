@@ -18,7 +18,7 @@ class PLL_Frontend_Auto_Translate {
 	/**
 	 * Current language.
 	 *
-	 * @var PLL_Language
+	 * @var PLL_Language|null
 	 */
 	public $curlang;
 
@@ -27,35 +27,39 @@ class PLL_Frontend_Auto_Translate {
 	 *
 	 * @since 1.1
 	 *
-	 * @param object $polylang
+	 * @param object $polylang The Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		$this->model = &$polylang->model;
 		$this->curlang = &$polylang->curlang;
 
-		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) ); // after main Polylang filter
+		add_action( 'parse_query', array( $this, 'translate_included_ids_in_query' ), 100 ); // After all Polylang filters.
 		add_filter( 'get_terms_args', array( $this, 'get_terms_args' ), 20, 2 );
 	}
 
 	/**
-	 * Helper function to get the translated post in the current language
+	 * Helper function to get the translated post in the current language.
 	 *
 	 * @since 1.8
 	 *
-	 * @param int $post_id
+	 * @param int $post_id The ID of the post to translate.
 	 * @return int
+	 *
+	 * @phpstan-return int<0, max>
 	 */
 	protected function get_post( $post_id ) {
 		return $this->model->post->get( $post_id, $this->curlang );
 	}
 
 	/**
-	 * Helper function to get the translated term in the current language
+	 * Helper function to get the translated term in the current language.
 	 *
 	 * @since 1.8
 	 *
-	 * @param int $term_id
+	 * @param int $term_id The ID of the term to translate.
 	 * @return int
+	 *
+	 * @phpstan-return int<0, max>
 	 */
 	protected function get_term( $term_id ) {
 		return $this->model->term->get( $term_id, $this->curlang );
@@ -69,7 +73,7 @@ class PLL_Frontend_Auto_Translate {
 	 * @param WP_Query $query WP_Query object
 	 * @return void
 	 */
-	public function pre_get_posts( $query ) {
+	public function translate_included_ids_in_query( $query ) {
 		global $wpdb;
 		$qv = &$query->query_vars;
 
@@ -112,14 +116,8 @@ class PLL_Frontend_Auto_Translate {
 		}
 
 		// Tag
-		$arr = array();
 		if ( ! empty( $qv['tag'] ) ) {
-			$sep = strpos( $qv['tag'], ',' ) !== false ? ',' : '+'; // Two possible separators for tag slugs
-			foreach ( explode( $sep, $qv['tag'] ) as $slug ) {
-				$arr[] = $this->get_translated_term_by( 'slug', $slug, 'post_tag' );
-			}
-
-			$qv['tag'] = implode( $sep, $arr );
+			$qv['tag'] = $this->translate_terms_list( $qv['tag'], 'post_tag' );
 		}
 
 		// tag_id can only take one id
@@ -143,14 +141,8 @@ class PLL_Frontend_Auto_Translate {
 		// According to the codex, this type of query is deprecated as of WP 3.1 but it does not appear in WP 3.5 source code
 		foreach ( array_intersect( $this->model->get_translated_taxonomies(), get_taxonomies( array( '_builtin' => false ) ) ) as $taxonomy ) {
 			$tax = get_taxonomy( $taxonomy );
-			$arr = array();
 			if ( ! empty( $tax ) && ! empty( $qv[ $tax->query_var ] ) ) {
-				$sep = strpos( $qv[ $tax->query_var ], ',' ) !== false ? ',' : '+'; // Two possible separators
-				foreach ( explode( $sep, $qv[ $tax->query_var ] ) as $slug ) {
-					$arr[] = $this->get_translated_term_by( 'slug', $slug, $taxonomy );
-				}
-
-				$qv[ $tax->query_var ] = implode( $sep, $arr );
+				$qv[ $tax->query_var ] = $this->translate_terms_list( $qv[ $tax->query_var ], $taxonomy );
 			}
 		}
 
@@ -167,7 +159,7 @@ class PLL_Frontend_Auto_Translate {
 		}
 
 		// name, can only take one slug
-		if ( ! empty( $qv['name'] ) ) {
+		if ( ! empty( $qv['name'] ) && is_string( $qv['name'] ) ) {
 			if ( empty( $qv['post_type'] ) ) {
 				$post_types = array( 'post' );
 			} elseif ( 'any' === $qv['post_type'] ) {
@@ -220,13 +212,13 @@ class PLL_Frontend_Auto_Translate {
 	}
 
 	/**
-	 * Filters terms query to automatically translate included ids
+	 * Filters the terms query to automatically translate included ids.
 	 *
 	 * @since 1.1.1
 	 *
-	 * @param array $args
-	 * @param array $taxonomies
-	 * @return array modified $args
+	 * @param array $args       An array of get_terms() arguments.
+	 * @param array $taxonomies An array of taxonomy names.
+	 * @return array
 	 */
 	public function get_terms_args( $args, $taxonomies ) {
 		if ( ! isset( $args['lang'] ) && ! empty( $args['include'] ) && ( empty( $taxonomies ) || $this->model->is_translated_taxonomy( $taxonomies ) ) ) {
@@ -247,11 +239,15 @@ class PLL_Frontend_Auto_Translate {
 	 *
 	 * @since 1.7
 	 *
-	 * @param array $tax_queries
-	 * @return array translated tax queries
+	 * @param array $tax_queries An array of tax queries.
+	 * @return array Translated tax queries.
 	 */
 	protected function translate_tax_query_recursive( $tax_queries ) {
 		foreach ( $tax_queries as $key => $q ) {
+			if ( ! is_array( $q ) ) {
+				continue;
+			}
+
 			if ( isset( $q['taxonomy'], $q['terms'] ) && $this->model->is_translated_taxonomy( $q['taxonomy'] ) ) {
 				$arr = array();
 				$field = isset( $q['field'] ) && in_array( $q['field'], array( 'slug', 'name' ) ) ? $q['field'] : 'term_id';
@@ -260,10 +256,8 @@ class PLL_Frontend_Auto_Translate {
 				}
 
 				$tax_queries[ $key ]['terms'] = $arr;
-			}
-
-			// Nested queries
-			elseif ( is_array( $q ) ) {
+			} else {
+				// Nested queries.
 				$tax_queries[ $key ] = $this->translate_tax_query_recursive( $q );
 			}
 		}
@@ -287,10 +281,13 @@ class PLL_Frontend_Auto_Translate {
 				return $tr_id;
 			}
 		} else {
-			$terms = get_terms( $taxonomy, array( $field => $term, 'lang' => '' ) );
+			$terms = get_terms( array( 'taxonomy' => $taxonomy, $field => $term, 'lang' => '' ) );
 
-			if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+			if ( ! empty( $terms ) && is_array( $terms ) ) {
 				$t = reset( $terms );
+				if ( ! $t instanceof WP_Term ) {
+					return $term;
+				}
 				$tr_id = $this->get_term( $t->term_id );
 
 				if ( ! is_wp_error( $tr = get_term( $tr_id, $taxonomy ) ) ) {
@@ -299,5 +296,36 @@ class PLL_Frontend_Auto_Translate {
 			}
 		}
 		return $term;
+	}
+
+	/**
+	 * Translates a list of term slugs provided either as an array or a string
+	 * with slugs separated by a comma or a '+'.
+	 *
+	 * @since 3.2.8
+	 *
+	 * @param string|string[] $query_var The list of term slugs.
+	 * @param string          $taxonomy  The taxonomy for terms.
+	 * @return string|string[] The translated list.
+	 */
+	protected function translate_terms_list( $query_var, $taxonomy ) {
+		$slugs = array();
+
+		if ( is_array( $query_var ) ) {
+			$slugs = &$query_var;
+		} elseif ( is_string( $query_var ) ) {
+			$sep   = strpos( $query_var, ',' ) !== false ? ',' : '+'; // Two possible separators.
+			$slugs = explode( $sep, $query_var );
+		}
+
+		foreach ( $slugs as &$slug ) {
+			$slug = $this->get_translated_term_by( 'slug', $slug, $taxonomy );
+		}
+
+		if ( ! empty( $sep ) ) {
+			$query_var = implode( $sep, $slugs );
+		}
+
+		return $query_var;
 	}
 }

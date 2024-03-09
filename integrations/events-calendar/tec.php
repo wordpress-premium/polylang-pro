@@ -66,7 +66,7 @@ class PLL_TEC {
 	 * @return void
 	 */
 	public function init( $polylang ) {
-		if ( ! $polylang->model->get_languages_list() ) {
+		if ( ! $polylang->model->has_languages() ) {
 			return;
 		}
 
@@ -88,7 +88,6 @@ class PLL_TEC {
 			add_action( 'pll_language_defined', array( $this, 'fix_date_translations' ) );
 		}
 
-		// PHPCS:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		self::$metas = array_merge( $tec->metaTags, $tec->venueTags, $tec->organizerTags, array( '_VenueShowMap', '_VenueShowMapLink' ) );
 
 		if ( isset( $GLOBALS['pagenow'], $_GET['from_post'], $_GET['new_lang'] ) && 'post-new.php' === $GLOBALS['pagenow'] ) {
@@ -100,7 +99,7 @@ class PLL_TEC {
 				add_filter( 'tribe_get_meta_default_value_' . $filter, array( $this, 'copy_event_meta' ), 10, 4 ); // Since TEC 4.0.7.
 			}
 
-			add_filter( 'tribe_display_event_linked_post_dropdown_id', array( $this, 'translate_linked_post' ), 10, 2 );
+			add_filter( 'tribe_display_event_linked_post_dropdown_id', array( $this, 'translate_linked_post' ) );
 		}
 
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ), 60 ); // After `Tribe__Events__Query->pre_get_posts()`.
@@ -265,11 +264,11 @@ class PLL_TEC {
 	}
 
 	/**
-	 * Populates default values for venues and organizers for a newly created event translation
+	 * Populates default values for venues and organizers for a newly created event translation.
 	 *
 	 * @since 2.2
 	 *
-	 * @param array $posts Array of linked posts
+	 * @param array $posts Array of linked posts.
 	 * @return array
 	 */
 	public function translate_linked_post( $posts ) {
@@ -346,11 +345,11 @@ class PLL_TEC {
 	}
 
 	/**
-	 * Synchronize event metas
+	 * Synchronize event metas.
 	 *
 	 * @since 2.2
 	 *
-	 * @param array $metas Custom fields to copy or synchronize
+	 * @param array $metas Custom fields to copy or synchronize.
 	 * @return array
 	 */
 	public function copy_post_metas( $metas ) {
@@ -358,13 +357,13 @@ class PLL_TEC {
 	}
 
 	/**
-	 * Translate venues and organizers before they are copied or synchronized
+	 * Translate venues and organizers before they are copied or synchronized.
 	 *
 	 * @since 2.3
 	 *
-	 * @param mixed  $value Meta value
-	 * @param string $key   Meta key
-	 * @param string $lang  Language of target
+	 * @param mixed  $value Meta value.
+	 * @param string $key   Meta key.
+	 * @param string $lang  Language of target.
 	 * @return mixed
 	 */
 	public function translate_meta( $value, $key, $lang ) {
@@ -390,8 +389,8 @@ class PLL_TEC {
 		}
 
 		// Those are deprecated since TEC 4.0 and should not appear in the list of translatable strings anymore.
-		$tec->taxRewriteSlug = $tec->rewriteSlug . '/category'; // PHPCS:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		$tec->tagRewriteSlug = $tec->rewriteSlug . '/tag'; // PHPCS:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$tec->taxRewriteSlug = $tec->rewriteSlug . '/category';
+		$tec->tagRewriteSlug = $tec->rewriteSlug . '/tag';
 	}
 
 	/**
@@ -404,7 +403,7 @@ class PLL_TEC {
 	 * @return array
 	 */
 	public function register_taxonomy_args( $args, $taxonomy ) {
-		if ( TEC::TAXONOMY === $taxonomy ) {
+		if ( TEC::TAXONOMY === $taxonomy && is_array( $args['rewrite'] ) ) {
 			$args['rewrite']['slug'] = TEC::instance()->rewriteSlug . '/category';
 		}
 
@@ -869,13 +868,15 @@ class PLL_TEC {
 	 * @return string
 	 */
 	public function fix_language_in_canonical_url( $resolved, $url ) {
-		$languages = (array) pll_languages_list();
-		$options   = $this->polylang->options;
+		$options = $this->polylang->options;
 
-		if ( $options['hide_default'] ) {
-			// Remove the default language if it must be hidden in the URLs.
-			$languages = array_diff( $languages, array( $options['default_lang'] ) );
-		}
+		// Remove the default language if it must be hidden in the URLs.
+		$languages = $this->polylang->model->get_languages_list(
+			array(
+				'hide_default' => $options['hide_default'],
+				'fields'       => 'slug',
+			)
+		);
 
 		if ( empty( $languages ) ) {
 			return $resolved;
@@ -1063,7 +1064,7 @@ class PLL_TEC {
 			return null;
 		}
 
-		$curlang = $this->polylang->model->get_language( $this->polylang->options['default_lang'] );
+		$curlang = $this->polylang->model->get_default_language();
 
 		if ( empty( $curlang ) ) {
 			// We're screwed.
@@ -1085,16 +1086,16 @@ class PLL_TEC {
 	 */
 	protected function get_slugs_to_reset() {
 		return array(
-			'category_slug'  => 'category',
-			'tag_slug'       => 'tag',
-			'monthSlug'      => 'month',
-			'listSlug'       => 'list',
-			'upcomingSlug'   => 'upcoming',
-			'pastSlug'       => 'past',
-			'daySlug'        => 'day',
-			'todaySlug'      => 'today',
-			'featured_slug'  => 'featured',
-			'all_slug'       => 'all',
+			'category_slug' => 'category',
+			'tag_slug'      => 'tag',
+			'monthSlug'     => 'month',
+			'listSlug'      => 'list',
+			'upcomingSlug'  => 'upcoming',
+			'pastSlug'      => 'past',
+			'daySlug'       => 'day',
+			'todaySlug'     => 'today',
+			'featured_slug' => 'featured',
+			'all_slug'      => 'all',
 		);
 	}
 
@@ -1190,7 +1191,7 @@ class PLL_TEC {
 		}
 
 		// Uh?
-		$lang = $this->polylang->model->get_language( $this->polylang->options['default_lang'] );
+		$lang = $this->polylang->model->get_default_language();
 
 		if ( ! empty( $lang ) ) {
 			return $lang;

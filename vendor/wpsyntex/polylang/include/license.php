@@ -33,7 +33,7 @@ class PLL_License {
 	/**
 	 * License data, obtained from the API request.
 	 *
-	 * @var stdClass
+	 * @var stdClass|null
 	 */
 	public $license_data;
 
@@ -70,11 +70,11 @@ class PLL_License {
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $file
-	 * @param string $item_name
-	 * @param string $version
-	 * @param string $author
-	 * @param string $api_url optional
+	 * @param string $file      The plugin file.
+	 * @param string $item_name The plugin name.
+	 * @param string $version   The plugin version.
+	 * @param string $author    Author name.
+	 * @param string $api_url   Optional url of the site managing the license.
 	 */
 	public function __construct( $file, $item_name, $version, $author, $api_url = null ) {
 		$this->id      = sanitize_title( $item_name );
@@ -91,8 +91,7 @@ class PLL_License {
 		}
 
 		// Updater
-		add_action( 'admin_init', array( $this, 'auto_updater' ), 0 );
-		add_action( 'cli_init', array( $this, 'auto_updater' ), 0 ); // For WP CLI.
+		$this->auto_updater();
 
 		// Register settings
 		add_filter( 'pll_settings_licenses', array( $this, 'settings' ) );
@@ -125,12 +124,12 @@ class PLL_License {
 	}
 
 	/**
-	 * Registers the licence in the Settings
+	 * Registers the licence in the Settings.
 	 *
 	 * @since 1.9
 	 *
-	 * @param array $items
-	 * @return  array
+	 * @param PLL_License[] $items Array of objects allowing to manage a license.
+	 * @return PLL_License[]
 	 */
 	public function settings( $items ) {
 		$items[ $this->id ] = $this;
@@ -138,29 +137,29 @@ class PLL_License {
 	}
 
 	/**
-	 * Activate the license key
+	 * Activates the license key.
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $license_key activation key
-	 * @return object updated $this
+	 * @param string $license_key Activation key.
+	 * @return PLL_License Updated PLL_License object.
 	 */
 	public function activate_license( $license_key ) {
 		$this->license_key = $license_key;
 		$this->api_request( 'activate_license' );
 
-		// Tell WordPress to look for updates
-		set_site_transient( 'update_plugins', null );
+		// Tell WordPress to look for updates.
+		delete_site_transient( 'update_plugins' );
 		return $this;
 	}
 
 
 	/**
-	 * Deactivate the license key
+	 * Deactivates the license key.
 	 *
 	 * @since 1.9
 	 *
-	 * @return object updated $this
+	 * @return PLL_License Updated PLL_License object.
 	 */
 	public function deactivate_license() {
 		$this->api_request( 'deactivate_license' );
@@ -168,15 +167,14 @@ class PLL_License {
 	}
 
 	/**
-	 * Check if license key is valid
+	 * Checks if the license key is valid.
 	 *
 	 * @since 1.9
 	 *
-	 * @return object updated $this
+	 * @return void
 	 */
 	public function check_license() {
 		$this->api_request( 'check_license' );
-		return $this;
 	}
 
 	/**
@@ -331,7 +329,7 @@ class PLL_License {
 					$class = 'notice-warning notice-alt';
 					$message = sprintf(
 						/* translators: %1$s is a date, %2$s is link start tag, %3$s is link end tag. */
-						esc_html__( 'Your license key will expire soon! Precisely, it will expire on %1$s. %2$sRenew your license key today!%3$s.', 'polylang' ),
+						esc_html__( 'Your license key will expire soon! Precisely, it will expire on %1$s. %2$sRenew your license key today!%3$s', 'polylang' ),
 						esc_html( date_i18n( get_option( 'date_format' ), $expiration ) ),
 						sprintf( '<a href="%s" target="_blank">', 'https://polylang.pro/account/' ),
 						'</a>'

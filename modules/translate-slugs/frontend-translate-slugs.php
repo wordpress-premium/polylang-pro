@@ -122,7 +122,7 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 		}
 
 		elseif ( is_category() || is_tag() || is_tax() ) {
-			/** @var WP_Term */
+			/** @var WP_Term|null */
 			$obj = get_queried_object();
 
 			if ( ! empty( $obj ) ) {

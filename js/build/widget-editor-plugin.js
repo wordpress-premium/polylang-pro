@@ -1,28 +1,28 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 804:
+/***/ 991:
 /***/ ((module) => {
 
 module.exports = (function() { return this["lodash"]; }());
 
 /***/ }),
 
-/***/ 839:
+/***/ 514:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["apiFetch"]; }());
 
 /***/ }),
 
-/***/ 197:
+/***/ 15:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["data"]; }());
 
 /***/ }),
 
-/***/ 696:
+/***/ 470:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["url"]; }());
@@ -105,32 +105,38 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: external {"this":["wp","apiFetch"]}
-var external_this_wp_apiFetch_ = __webpack_require__(839);
+var external_this_wp_apiFetch_ = __webpack_require__(514);
 var external_this_wp_apiFetch_default = /*#__PURE__*/__webpack_require__.n(external_this_wp_apiFetch_);
-// EXTERNAL MODULE: external "lodash"
-var external_lodash_ = __webpack_require__(804);
 // EXTERNAL MODULE: external {"this":["wp","data"]}
-var external_this_wp_data_ = __webpack_require__(197);
+var external_this_wp_data_ = __webpack_require__(15);
+// EXTERNAL MODULE: external {"this":["wp","url"]}
+var external_this_wp_url_ = __webpack_require__(470);
+// EXTERNAL MODULE: external "lodash"
+var external_lodash_ = __webpack_require__(991);
 ;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/settings.js
 /**
  * Module Constants
  *
  * @package Polylang-Pro
  */
-
 const settings_MODULE_KEY = 'pll/metabox';
-const MODULE_CORE_EDITOR_KEY = 'core/editor';
+const settings_MODULE_CORE_EDITOR_KEY = 'core/editor';
+const settings_MODULE_SITE_EDITOR_KEY = 'core/edit-site';
+const settings_MODULE_POST_EDITOR_KEY = 'core/edit-post';
 const MODULE_CORE_KEY = 'core';
 const DEFAULT_STATE = {
 	languages: [],
 	selectedLanguage: {},
 	translatedPosts: {},
-	fromPost: null
+	fromPost: null,
+	currentTemplatePart: {}
 };
+const UNTRANSLATABLE_POST_TYPE = (/* unused pure expression or super */ null && (['wp_template', 'wp_global_styles']));
+const POST_TYPE_WITH_TRASH = (/* unused pure expression or super */ null && (['page']));
+const settings_TEMPLATE_PART_SLUG_SEPARATOR = '___'; // Its value must be synchronized with its equivalent in PHP @see PLL_FSE_Template_Slug::SEPARATOR
+const settings_TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN = '[a-z_-]+'; // Its value must be synchronized with it equivalent in PHP @see PLL_FSE_Template_Slug::SEPARATOR
 
 
-// EXTERNAL MODULE: external {"this":["wp","url"]}
-var external_this_wp_url_ = __webpack_require__(696);
 ;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/utils.js
 /**
  * WordPress Dependencies
@@ -141,13 +147,16 @@ var external_this_wp_url_ = __webpack_require__(696);
 
 
 
+/**
+ * Internal dependencies
+ */
 
 
 /**
- * Convert array of object to a map
+ * Converts array of object to a map.
  *
- * @param {type} array to convert
- * @param {type} key in the object used as key to build map
+ * @param {array} array Array to convert.
+ * @param {*}     key   The key in the object used as key to build the map.
  * @returns {Map}
  */
 function convertArrayToMap( array, key ){
@@ -163,9 +172,9 @@ function convertArrayToMap( array, key ){
 }
 
 /**
- * Convert map to an associative array
+ * Converts map to an associative array.
  *
- * @param {Map} map to convert
+ * @param {Map} map The map to convert.
  * @returns {Object}
  */
 function convertMapToObject( map ){
@@ -181,32 +190,62 @@ function convertMapToObject( map ){
 }
 
 /**
- * Return if a block-based editor is for post type.
+ * Checks whether the current screen is block-based post type editor.
  *
  * @returns {boolean} True if block editor for post type; false otherwise.
  */
 function isPostTypeBlockEditor() {
 	return !! document.getElementById( 'editor' );
 }
+
 /**
- * Return the post type URL for REST API calls
+ * Checks whether the current screen is the block-based widgets editor.
  *
- * @param {string} post type name
- * @returns {string}
+ * @returns {boolean} True if we are in the widgets block editor; false otherwise.
+ */
+function isWidgetsBlockEditor() {
+	return !! document.getElementById( 'widgets-editor' );
+}
+
+/**
+ * Checks whether the current screen is the customizer widgets editor.
+ *
+ * @returns {boolean} True if we are in the customizer widgets editor; false otherwise.
+ */
+function isWidgetsCustomizerEditor() {
+	return !! document.getElementById( 'customize-controls' );
+}
+
+
+/**
+ * Checks whether the current screen is the site editor.
+ * Takes in account if Gutenberg is activated.
+ *
+ * @returns {boolean} True if site editor screen, false otherwise.
+ */
+function isSiteBlockEditor() {
+	return !! ( document.getElementById( 'site-editor' ) || document.getElementById( 'edit-site-editor' ) );
+}
+
+/**
+ * Returns the post type URL for REST API calls or undefined if the user hasn't the rights.
+ *
+ * @param {string} name The post type name.
+ * @returns {string|undefined}
  */
 function getPostsUrl( name ) {
 	const postTypes = select( 'core' ).getEntitiesByKind( 'postType' );
 	const postType = find( postTypes, { name } );
-	return postType.baseURL;
+	return postType?.baseURL;
 }
 
 /**
- * Get all query string parameters and convert them in a URLSearchParams object
+ * Gets all query string parameters and convert them in a URLSearchParams object.
  *
- * @returns {object}
+ * @returns {Object}
  */
 function	getSearchParams() {
-	// Variable window.location.search is just read for creating and returning a URLSearchParams object to be able to manipulate it more easily
+	// Variable window.location.search is just read for creating and returning a URLSearchParams object to be able to manipulate it more easily.
 	if ( ! isEmpty( window.location.search ) ) { // phpcs:ignore WordPressVIPMinimum.JS.Window.location
 		return new URLSearchParams( window.location.search ); // phpcs:ignore WordPressVIPMinimum.JS.Window.location
 	} else {
@@ -215,10 +254,10 @@ function	getSearchParams() {
 }
 
 /**
- * Get selected language
+ * Gets selected language.
  *
- * @param string Post language code
- * @returns {Object} Selected Language
+ * @param {string} lang The post language code.
+ * @returns {Object} The selected language.
  */
 function getSelectedLanguage( lang ) {
 	const languages = select( MODULE_KEY ).getLanguages();
@@ -227,9 +266,30 @@ function getSelectedLanguage( lang ) {
 }
 
 /**
- * Get translated posts
+ * Gets the default language.
  *
- * @param array ids of translated posts
+ * @returns {Object} The default Language.
+ */
+function getDefaultLanguage() {
+	const languages = select( MODULE_KEY ).getLanguages();
+	return Array.from( languages.values() ).find( lang => lang.is_default );
+}
+
+/**
+ * Checks if the given language is the default one.
+ *
+ * @param {string} lang The language code to compare with.
+ * @returns {boolean} True if the given language is the default one.
+ */
+function isDefaultLanguage( lang ) {
+	return lang === getDefaultLanguage().slug;
+}
+
+/**
+ * Gets translated posts.
+ *
+ * @param {Object}                  translations       The translated posts object with language codes as keys and ids as values.
+ * @param {Object.<string, Object>} translations_table The translations table data with language codes as keys and data object as values.
  * @returns {Map}
  */
 function getTranslatedPosts( translations, translations_table, lang ) {
@@ -239,7 +299,6 @@ function getTranslatedPosts( translations, translations_table, lang ) {
 	if ( ! isUndefined( translations ) ) {
 		translatedPosts = new Map( Object.entries( translations ) );
 	}
-	// phpcs:disable PEAR.Functions.FunctionCallSignature.Indent
 	// If we come from another post for creating a new one, we have to update translated posts from the original post
 	// to be able to update translations attribute of the post
 	if ( ! isNil( fromPost ) && ! isNil( fromPost.id ) ) {
@@ -251,14 +310,13 @@ function getTranslatedPosts( translations, translations_table, lang ) {
 			}
 		);
 	}
-	// phpcs:enable PEAR.Functions.FunctionCallSignature.Indent
 	return translatedPosts;
 }
 
 /**
- * Get synchronized posts
+ * Gets synchronized posts.
  *
- * @param array ids of synchronized posts
+ * @param {Object.<string, boolean>} pll_sync_post The synchronized posts object with language codes as keys and boolean values to say if the post is synchronized or not.
  * @returns {Map}
  */
 function getSynchronizedPosts( pll_sync_post ){
@@ -270,13 +328,12 @@ function getSynchronizedPosts( pll_sync_post ){
 }
 
 /**
- * Get translations table
+ * Gets translations table.
  *
- * @param object translations table datas
- * @param string language code
+ * @param {Object.<string, Object>} translationsTableDatas The translations table data object with language codes as keys and data object as values.
  * @returns {Map}
  */
-function getTranslationsTable( translationsTableDatas, lang ){
+function getTranslationsTable( translationsTableDatas ){
 	let translationsTable = new Map( Object.entries( [] ) );
 	// get translations table datas from post
 	if ( ! isUndefined( translationsTableDatas ) ) {
@@ -287,17 +344,17 @@ function getTranslationsTable( translationsTableDatas, lang ){
 }
 
 /**
- * Is the request for saving ?
+ * Checks if the given request is for saving.
  *
- * @param {type} options the initial request
- * @returns {Boolean}
+ * @param {Object} options The initial request.
+ * @returns {Boolean} True if the request is for saving.
  */
 function isSaveRequest( options ){
 	// If data is defined we are in a PUT or POST request method otherwise a GET request method
 	// Test options.method property isn't efficient because most of REST request which use fetch API doesn't pass this property.
 	// So, test options.data is necessary to know if the REST request is to save datas.
 	// However test if options.data is undefined isn't sufficient because some REST request pass a null value as the ServerSideRender Gutenberg component.
-	if ( ! (0,external_lodash_.isNil)( options.data ) ) {
+	if ( ! isNil( options.data ) ) {
 		return true;
 	} else {
 		return false;
@@ -305,22 +362,7 @@ function isSaveRequest( options ){
 }
 
 /**
- * Add is_block_editor parameter to the request in a block editor context
- *
- * @param {type} options the initial request
- * @returns {undefined}
- */
-function addIsBlockEditorToRequest( options ){
-	options.path = (0,external_this_wp_url_.addQueryArgs)(
-		options.path,
-		{
-			is_block_editor: true
-		}
-	);
-}
-
-/**
- * Is the request concerned the current post type ?
+ * Checks if the given request concerns the current post type.
  *
  * Useful when saving a reusable block contained in another post type.
  * Indeed a reusable block is also a post, but its saving request doesn't concern the post currently edited.
@@ -329,13 +371,13 @@ function addIsBlockEditorToRequest( options ){
  *
  * @see https://github.com/polylang/polylang/issues/437 - Reusable block has no language when it's saved from another post type editing.
  *
- * @param {type} options the initial request
- * @returns {Boolean}
+ * @param {Object} options the initial request
+ * @returns {boolean} True if the request concerns the current post.
  */
 function isCurrentPostRequest( options ){
-	// Save translation datas is needed for all post types only
-	// it's done by verifying options.path matches with one of baseURL of all post types
-	// and compare current post id with this sent in the request
+	// Saving translation data is needed only for all post types.
+	// It's done by verifying options.path matches with one of baseURL of all post types
+	// and compare current post id with this sent in the request.
 
 	// List of post type baseURLs.
 	const postTypeURLs = map( select( 'core' ).getEntitiesByKind( 'postType' ), property( 'baseURL' ) );
@@ -344,7 +386,7 @@ function isCurrentPostRequest( options ){
 	const postId = select( 'core/editor' ).getCurrentPostId();
 
 	// Id from the REST request.
-	// options.data never isNil here because it's already verified before in isSaveRequest() function
+	// options.data never isNil here because it's already verified before in isSaveRequest() function.
 	const id = options.data.id;
 
 	// Return true
@@ -353,22 +395,48 @@ function isCurrentPostRequest( options ){
 	// Return false otherwise
 	return -1 !== postTypeURLs.findIndex(
 		function( element ) {
-			return new RegExp( `${ escapeRegExp( element ) }` ).test( options.path ); // phpcs:ignore WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore, WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter
+			return new RegExp( `${ escapeRegExp( element ) }` ).test( options.path );
 		}
 	) && postId === id;
 }
 
 /**
- * Add language to the request
+ * Checks if the given REST request is for the creation of a new template part translation.
  *
- * @param {type} options the initial request
- * @param {string} currentLanguage A language code.
- * @returns {undefined}
+ * @param {Object} options The initial request.
+ * @returns {Boolean} True if the request concerns a template part translation creation.
+ */
+function isTemplatePartTranslationCreationRequest( options ) {
+	return 'POST' === options.method
+		&&  options.path.match( /^\/wp\/v2\/template-parts(?:\/|\?|$)/ )
+		&& ! isNil( options.data.from_post )
+		&& ! isNil( options.data.lang );
+}
+
+/**
+ * Checks if the given REST request is for the creation of a new template part.
+ *
+ * @param {Object} options The initial request.
+ * @returns {Boolean} True if the request concerns a template part creation.
+ */
+function isNewTemplatePartCreationRequest( options ) {
+	return 'POST' === options.method
+		&&  options.path.match( /^\/wp\/v2\/template-parts(?:\/|\?|$)/ )
+		&& isNil( options.data.from_post )
+		&& isNil( options.data.lang );
+}
+
+/**
+ * Adds language as query string parameter to the given request.
+ *
+ * @param {Object} options         The initial request.
+ * @param {string} currentLanguage The language code to add to the request.
  */
 function addLanguageToRequest( options, currentLanguage ){
-	const filterLang = isUndefined( options.filterLang ) || options.filterLang;
-	if ( filterLang ) {
-		options.path = addQueryArgs(
+	const hasLangArg= (0,external_this_wp_url_.hasQueryArg)( options.path, 'lang' );
+	const filterLang = (0,external_lodash_.isUndefined)( options.filterLang ) || options.filterLang;
+	if ( filterLang && ! hasLangArg ) {
+		options.path = (0,external_this_wp_url_.addQueryArgs)(
 			options.path,
 			{
 				lang: currentLanguage
@@ -377,6 +445,225 @@ function addLanguageToRequest( options, currentLanguage ){
 	}
 }
 
+/**
+ * Adds `include_untranslated` parameter to the request.
+ *
+ * @param {Object} options The initial request.
+ * @returns {void}
+ */
+function addIncludeUntranslatedParam( options ) {
+	options.path = addQueryArgs(
+		options.path,
+		{
+			include_untranslated: true
+		}
+	);
+}
+
+/**
+ * Use addIncludeUntranslatedParam if the given page is a template part page.
+ * Or if the template editing mode is enabled inside post editing.
+ *
+ * @param {Object} options The initial request.
+ * @returns {void}
+ */
+function maybeRequireIncludeUntranslatedTemplate( options ) {
+	const params = ( new URL( document.location ) ).searchParams;
+	const postType = params.get( 'postType' );
+	const postId = params.get( 'postId' );
+	const isEditingTemplate = select( MODULE_POST_EDITOR_KEY )?.isEditingTemplate();
+	if ( ( "wp_template_part" === postType && ! isNil( postId ) ) || isEditingTemplate ) {
+		addIncludeUntranslatedParam( options );
+	}
+}
+
+/**
+ * Returns true if the given post is a template part, false otherwise.
+ *
+ * @param {Object} post A post object.
+ * @returns {boolean} Whether it is a template part or not.
+ */
+function isTemplatePart( post ) {
+	return 'wp_template_part' === post.type;
+}
+
+/**
+ * Returns the current post type considering the Site Editor or Post Editor.
+ *
+ * @returns {string} The current post type.
+ */
+function getCurrentPostType() {
+	if ( isSiteBlockEditor() ) {
+		return select( MODULE_SITE_EDITOR_KEY ).getEditedPostType();
+	}
+
+	return select( MODULE_CORE_EDITOR_KEY ).getCurrentPostType();
+}
+
+/**
+ * Returns a regular expression ready to use to perform search and replace.
+ *
+ * @returns {RegExp} The regular expression.
+ */
+function getLangSlugRegex() {
+	let languageCheckPattern = TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN;
+	const languages = select( MODULE_KEY ).getLanguages();
+	const languageSlugs = Array.from( languages.keys() );
+	if ( ! isEmpty( languageSlugs ) ) {
+		languageCheckPattern = languageSlugs.join( '|' );
+	}
+
+	return new RegExp( `${TEMPLATE_PART_SLUG_SEPARATOR}(?:${languageCheckPattern})$` );
+}
+
+;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/store/index.js
+/**
+ * WordPress Dependencies
+ *
+ * @package Polylang-Pro
+ */
+
+
+
+/**
+ * Internal dependencies
+ */
+
+
+
+const actions = {
+	setLanguages( languages ) {
+		return {
+			type: 'SET_LANGUAGES',
+			languages
+		};
+	},
+	setCurrentUser( currentUser, save = false ) {
+		return {
+			type: 'SET_CURRENT_USER',
+			currentUser,
+			save
+		};
+	},
+	setFromPost( fromPost ) {
+		return {
+			type: 'SET_FROM_POST',
+			fromPost,
+		};
+	},
+	fetchFromAPI( options ) {
+		return {
+			type: 'FETCH_FROM_API',
+			options,
+		};
+	}
+};
+
+const store = (0,external_this_wp_data_.createReduxStore)(
+	settings_MODULE_KEY,
+	{
+		reducer( state = DEFAULT_STATE, action ) {
+			switch ( action.type ) {
+				case 'SET_LANGUAGES':
+					return {
+						...state,
+						languages: action.languages
+					};
+				case 'SET_CURRENT_USER':
+					if ( action.save ) {
+						updateCurrentUser( action.currentUser );
+					}
+					return {
+						...state,
+						currentUser: action.currentUser
+					};
+				case 'SET_FROM_POST':
+					return {
+						...state,
+						fromPost: action.fromPost
+					};
+				case 'SET_CURRENT_TEMPLATE_PART':
+					return {
+						...state,
+						currentTemplatePart: action.currentTemplatePart
+					};
+				default:
+					return state;
+			}
+		},
+		selectors: {
+			getLanguages( state ){
+				return state.languages;
+			},
+			getCurrentUser( state ){
+				return state.currentUser;
+			},
+			getFromPost( state ){
+				return state.fromPost;
+			}
+		},
+		actions,
+		controls: {
+			FETCH_FROM_API( action ) {
+				return external_this_wp_apiFetch_default()( { ...action.options } );
+			},
+		},
+		resolvers: {
+			* getLanguages(){
+				const path = '/pll/v1/languages';
+				const languages = yield actions.fetchFromAPI( { path, filterLang: false } );
+				return actions.setLanguages( convertArrayToMap( languages, 'slug' ) );
+			},
+			* getCurrentUser() {
+				const path = '/wp/v2/users/me';
+				const currentUser = yield actions.fetchFromAPI( { path, filterLang: true } );
+				return actions.setCurrentUser( currentUser );
+			}
+		}
+	}
+);
+
+(0,external_this_wp_data_.register)( store );
+
+/**
+ * Save current user when it is wondered
+ *
+ * @param {object} currentUser
+ */
+function updateCurrentUser( currentUser ) {
+	external_this_wp_apiFetch_default()(
+		{
+			path: '/wp/v2/users/me',
+			data: currentUser,
+			method: 'POST'
+		}
+	);
+}
+
+;// CONCATENATED MODULE: ./modules/block-editor/js/middleware/filter-path-middleware.js
+/**
+ * @package Polylang Pro
+ */
+
+/**
+ * Filters requests for translatable entities.
+ * This logic is shared accross all Polylang plugins.
+ *
+ * @since 3.5
+ *
+ * @param {APIFetchOptions} options
+ * @param {Array} filteredRoutes
+ * @param {CallableFunction} filter
+ * @returns {APIFetchOptions}
+ */
+const filterPathMiddleware = ( options, filteredRoutes, filter ) => {
+	const cleanPath = options.path.split( '?' )[0].replace(/^\/+|\/+$/g, ''); // Get path without query parameters and trim '/'.
+
+	return Object.values( filteredRoutes ).find( ( path ) => cleanPath === path ) ? filter( options ) : options;
+}
+
+/* harmony default export */ const filter_path_middleware = (filterPathMiddleware);
+
 ;// CONCATENATED MODULE: ./modules/block-editor/js/widget-editor-plugin.js
 /**
  * WordPress dependencies
@@ -384,34 +671,48 @@ function addLanguageToRequest( options, currentLanguage ){
  * @package Polylang-Pro
  */
 
-
 /**
- * External dependencies
+ * WordPress dependencies.
  */
 
+
 /**
- * Internal dependencies
+ * Internal dependencies.
  */
+ // Store used for Polylang block attribute.
+
 
 
 /*
  * Specific scripts with block editor
  */
 external_this_wp_apiFetch_default().use(
-	// phpcs:disable PEAR.Functions.FunctionCallSignature.Indent
 	( options, next ) => {
-		// If options.url is defined, this is not a REST request but a direct call to post.php for legacy metaboxes.
-		if ( (0,external_lodash_.isUndefined)( options.url ) ) {
-			if ( isSaveRequest( options ) ) {
-				options.data.is_block_editor = true;
-			} else {
-				addIsBlockEditorToRequest( options )
-			}
+		/*
+		 * If options.url is defined, this is not a REST request but a direct call to post.php for legacy metaboxes.
+		 * If `filteredRoutes` is not defined, return early.
+		 */
+		if ( 'undefined' !== typeof options.url || 'undefined' === typeof pllFilteredRoutes ) {
+			return next( options );
 		}
-		return next( options );
+
+		return next( filter_path_middleware( options, pllFilteredRoutes, addParametersToRequest ) );
 	}
-	// phpcs:enable PEAR.Functions.FunctionCallSignature.Indent
 );
+
+/**
+ * Adds parameters according to the context of the request.
+ *
+ * @since 3.5
+ *
+ * @param {APIFetchOptions} options
+ * @returns {APIFetchOptions}
+ */
+const addParametersToRequest = ( options ) => {
+	addLanguageToRequest( options, pllDefaultLanguage );
+
+	return options;
+}
 
 })();
 

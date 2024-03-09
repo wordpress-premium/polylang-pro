@@ -39,17 +39,14 @@ class PLL_WPSEO {
 			}
 
 			add_filter( 'pll_home_url_white_list', array( $this, 'wpseo_home_url_white_list' ) );
-			if ( version_compare( WPSEO_VERSION, '14.0', '<' ) ) {
-				add_action( 'wpseo_opengraph', array( $this, 'wpseo_ogp' ), 2 );
-			} else {
-				add_filter( 'wpseo_frontend_presenters', array( $this, 'wpseo_frontend_presenters' ) );
-			}
+			add_filter( 'wpseo_frontend_presenters', array( $this, 'wpseo_frontend_presenters' ) );
 			add_filter( 'wpseo_canonical', array( $this, 'wpseo_canonical' ) );
 			add_filter( 'wpseo_frontend_presentation', array( $this, 'frontend_presentation' ) );
 			add_filter( 'wpseo_breadcrumb_indexables', array( $this, 'breadcrumb_indexables' ) );
 		} else {
-			add_filter( 'pll_copy_post_metas', array( $this, 'copy_post_metas' ), 10, 2 );
+			add_filter( 'pll_copy_post_metas', array( $this, 'copy_post_metas' ), 10, 4 );
 			add_filter( 'pll_translate_post_meta', array( $this, 'translate_post_meta' ), 10, 3 );
+			add_filter( 'pll_post_metas_to_export', array( $this, 'export_post_metas' ) );
 
 			// Yoast SEO adds the columns hooks only for the 'inline-save' action. We need them for 'pll_update_post_rows' too.
 			if ( wp_doing_ajax() && isset( $_POST['action'] ) && 'pll_update_post_rows' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -94,18 +91,18 @@ class PLL_WPSEO {
 	}
 
 	/**
-	 * Fixes the home url as well as the stylesheet url
-	 * Only when using multiple domains or subdomains
+	 * Fixes the home url as well as the stylesheet url,
+	 * only when using multiple domains or subdomains.
 	 *
 	 * @since 1.6.4
 	 *
-	 * @param string $url
-	 * @param string $path
+	 * @param string $url  The complete URL including scheme and path.
+	 * @param string $path Path relative to the home URL.
 	 * @return $url
 	 */
 	public function wpseo_home_url( $url, $path ) {
 		if ( empty( $path ) ) {
-			$path = ltrim( wp_parse_url( pll_get_requested_url(), PHP_URL_PATH ), '/' );
+			$path = ltrim( (string) wp_parse_url( pll_get_requested_url(), PHP_URL_PATH ), '/' );
 		}
 
 		if ( preg_match( '#sitemap(_index)?\.xml|([^\/]+?)-?sitemap([0-9]+)?\.xml|([a-z]+)?-?sitemap\.xsl#', $path ) ) {
@@ -131,40 +128,43 @@ class PLL_WPSEO {
 	}
 
 	/**
-	 * Modifies the sql request for posts sitemaps
-	 * Only when using multiple domains or subdomains or if some languages are not active
+	 * Modifies the sql request for posts sitemaps.
 	 *
 	 * @since 1.6.4
 	 *
-	 * @param string $sql       JOIN clause
-	 * @param string $post_type
+	 * @param string $sql       JOIN clause.
+	 * @param string $post_type Post type.
 	 * @return string
 	 */
 	public function wpseo_posts_join( $sql, $post_type ) {
-		return pll_is_translated_post_type( $post_type ) && ( PLL()->options['force_lang'] > 1 || $this->wpseo_get_active_languages() ) ? $sql . PLL()->model->post->join_clause() : $sql;
+		return pll_is_translated_post_type( $post_type ) ? $sql . PLL()->model->post->join_clause() : $sql;
 	}
 
 	/**
-	 * Modifies the sql request for posts sitemaps
-	 * Only when using multiple domains or subdomains or if some languages are not active
+	 * Modifies the sql request for posts sitemaps.
 	 *
 	 * @since 1.6.4
 	 *
-	 * @param string $sql       WHERE clause
-	 * @param string $post_type
+	 * @param string $sql       WHERE clause.
+	 * @param string $post_type Post type.
 	 * @return string
 	 */
 	public function wpseo_posts_where( $sql, $post_type ) {
-		if ( pll_is_translated_post_type( $post_type ) ) {
-			if ( PLL()->options['force_lang'] > 1 ) {
-				return $sql . PLL()->model->post->where_clause( PLL()->curlang );
-			}
-
-			if ( $languages = $this->wpseo_get_active_languages() ) {
-				return $sql . PLL()->model->post->where_clause( $languages );
-			}
+		if ( ! pll_is_translated_post_type( $post_type ) ) {
+			return $sql;
 		}
-		return $sql;
+
+		if ( PLL()->options['force_lang'] > 1 && PLL()->curlang instanceof PLL_Language ) {
+			return $sql . PLL()->model->post->where_clause( PLL()->curlang );
+		}
+
+		$languages = $this->wpseo_get_active_languages();
+
+		if ( empty( $languages ) ) { // Empty when all languages are active.
+			$languages = pll_languages_list();
+		}
+
+		return $sql . PLL()->model->post->where_clause( $languages );
 	}
 
 	/**
@@ -280,11 +280,11 @@ class PLL_WPSEO {
 	}
 
 	/**
-	 * Filters home url
+	 * Filters the home url.
 	 *
 	 * @since 1.1.2
 	 *
-	 * @param array $arr
+	 * @param array $arr The list of files or functions for which `home_url()` must be filtered.
 	 * @return array
 	 */
 	public function wpseo_home_url_white_list( $arr ) {
@@ -292,39 +292,23 @@ class PLL_WPSEO {
 	}
 
 	/**
-	 * Get alternate language codes for Opengraph
+	 * Get alternate language codes for Opengraph.
 	 *
 	 * @since 2.7.3
 	 *
-	 * @return array
+	 * @return string[]
 	 */
 	protected function get_ogp_alternate_languages() {
 		$alternates = array();
 
 		foreach ( PLL()->model->get_languages_list() as $language ) {
-			if ( PLL()->curlang->slug !== $language->slug && PLL()->links->get_translation_url( $language ) && isset( $language->facebook ) ) {
+			if ( isset( PLL()->curlang ) && PLL()->curlang->slug !== $language->slug && PLL()->links->get_translation_url( $language ) && isset( $language->facebook ) ) {
 				$alternates[] = $language->facebook;
 			}
 		}
 
 		// There is a risk that 2 languages have the same Facebook locale. So let's make sure to output each locale only once.
 		return array_unique( $alternates );
-	}
-
-	/**
-	 * Adds opengraph support for translations
-	 *
-	 * @since 1.6
-	 */
-	public function wpseo_ogp() {
-		global $wpseo_og;
-
-		// WPSEO already deals with the locale
-		if ( did_action( 'pll_init' ) && method_exists( $wpseo_og, 'og_tag' ) ) {
-			foreach ( $this->get_ogp_alternate_languages() as $lang ) {
-				$wpseo_og->og_tag( 'og:locale:alternate', $lang );
-			}
-		}
 	}
 
 	/**
@@ -350,11 +334,11 @@ class PLL_WPSEO {
 	}
 
 	/**
-	 * Fixes the canonical front page url as unlike WP, WPSEO does not add a trailing slash to the canonical front page url
+	 * Fixes the canonical front page url as unlike WP, WPSEO does not add a trailing slash to the canonical front page url.
 	 *
 	 * @since 1.7.10
 	 *
-	 * @param string $url
+	 * @param string $url The canonical URL evaluated by Yoast SEO.
 	 * @return $url
 	 */
 	public function wpseo_canonical( $url ) {
@@ -438,28 +422,23 @@ class PLL_WPSEO {
 	 *
 	 * @param string[] $keys List of custom fields names.
 	 * @param bool     $sync True if it is synchronization, false if it is a copy.
+	 * @param int      $from Id of the post from which we copy informations.
+	 * @param int      $to   Id of the post to which we paste informations.
 	 * @return array
 	 */
-	public function copy_post_metas( $keys, $sync ) {
+	public function copy_post_metas( $keys, $sync, $from, $to ) {
 		if ( ! $sync ) {
 			// Text requiring translation.
-			$keys[] = '_yoast_wpseo_title';
-			$keys[] = '_yoast_wpseo_metadesc';
-			$keys[] = '_yoast_wpseo_bctitle';
-			$keys[] = '_yoast_wpseo_focuskw';
-			$keys[] = '_yoast_wpseo_opengraph-title';
-			$keys[] = '_yoast_wpseo_opengraph-description';
-			$keys[] = '_yoast_wpseo_twitter-title';
-			$keys[] = '_yoast_wpseo_twitter-description';
+			$keys = array_merge( $keys, $this->get_translatable_meta_keys() );
 
 			// Copy the image urls.
 			$keys[] = '_yoast_wpseo_opengraph-image';
 			$keys[] = '_yoast_wpseo_twitter-image';
-		}
 
-		$keys[] = '_yoast_wpseo_meta-robots-noindex';
-		$keys[] = '_yoast_wpseo_meta-robots-nofollow';
-		$keys[] = '_yoast_wpseo_meta-robots-adv';
+			$keys[] = '_yoast_wpseo_meta-robots-noindex';
+			$keys[] = '_yoast_wpseo_meta-robots-nofollow';
+			$keys[] = '_yoast_wpseo_meta-robots-adv';
+		}
 
 		$taxonomies = get_taxonomies(
 			array(
@@ -467,6 +446,10 @@ class PLL_WPSEO {
 				'public'       => true,
 			)
 		);
+
+		$sync_taxonomies = PLL()->sync->taxonomies->get_taxonomies_to_copy( $sync, $from, $to );
+
+		$taxonomies = array_intersect( $taxonomies, $sync_taxonomies );
 
 		foreach ( $taxonomies as $taxonomy ) {
 			$keys[] = '_yoast_wpseo_primary_' . $taxonomy;
@@ -486,9 +469,47 @@ class PLL_WPSEO {
 	 * @return int
 	 */
 	public function translate_post_meta( $value, $key, $lang ) {
-		if ( false !== strpos( $key, '_yoast_wpseo_primary_' ) ) {
-			$value = pll_get_term( $value, $lang );
+		if ( 0 !== strpos( $key, '_yoast_wpseo_primary_' ) ) {
+			return $value;
 		}
-		return $value;
+
+		$taxonomy = str_replace( '_yoast_wpseo_primary_', '', $key );
+		if ( ! PLL()->model->is_translated_taxonomy( $taxonomy ) ) {
+			return $value;
+		}
+
+		return pll_get_term( $value, $lang );
+	}
+
+	/**
+	 * Adds the yoast translatable metas to export.
+	 *
+	 * @param  array $metas An array of post metas (keyed with meta keys) to export.
+	 * @return array The modified array of post metas to export.
+	 */
+	public function export_post_metas( $metas ) {
+		$metas_to_export = array_fill_keys( $this->get_translatable_meta_keys(), 1 );
+
+		return array_merge( $metas, $metas_to_export );
+	}
+
+	/**
+	 * Returns the meta keys with translatable text.
+	 *
+	 * @since 3.3
+	 *
+	 * @return string[]
+	 */
+	protected function get_translatable_meta_keys() {
+		return array(
+			'_yoast_wpseo_title',
+			'_yoast_wpseo_metadesc',
+			'_yoast_wpseo_bctitle',
+			'_yoast_wpseo_focuskw',
+			'_yoast_wpseo_opengraph-title',
+			'_yoast_wpseo_opengraph-description',
+			'_yoast_wpseo_twitter-title',
+			'_yoast_wpseo_twitter-description',
+		);
 	}
 }

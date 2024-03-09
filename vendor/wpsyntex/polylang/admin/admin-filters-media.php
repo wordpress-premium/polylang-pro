@@ -11,7 +11,7 @@
  */
 class PLL_Admin_Filters_Media extends PLL_Admin_Filters_Post_Base {
 	/**
-	 * @var PLL_CRUD_Posts
+	 * @var PLL_CRUD_Posts|null
 	 */
 	public $posts;
 
@@ -20,7 +20,7 @@ class PLL_Admin_Filters_Media extends PLL_Admin_Filters_Post_Base {
 	 *
 	 * @since 1.2
 	 *
-	 * @param object $polylang
+	 * @param object $polylang The Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		parent::__construct( $polylang );
@@ -108,16 +108,24 @@ class PLL_Admin_Filters_Media extends PLL_Admin_Filters_Post_Base {
 	 *
 	 * @since 0.9
 	 *
-	 * @param array $post
-	 * @param array $attachment
-	 * @return array unmodified $post
+	 * @param array $post       An array of post data.
+	 * @param array $attachment An array of attachment metadata.
+	 * @return array Unmodified $post
 	 */
 	public function save_media( $post, $attachment ) {
 		// Language is filled in attachment by the function applying the filter 'attachment_fields_to_save'
 		// All security checks have been done by functions applying this filter
-		if ( ! empty( $attachment['language'] ) && current_user_can( 'edit_post', $post['ID'] ) ) {
-			$this->model->post->update_language( $post['ID'], $this->model->get_language( $attachment['language'] ) );
+		if ( empty( $attachment['language'] ) || ! current_user_can( 'edit_post', $post['ID'] ) ) {
+			return $post;
 		}
+
+		$language = $this->model->get_language( $attachment['language'] );
+
+		if ( empty( $language ) ) {
+			return $post;
+		}
+
+		$this->model->post->set_language( $post['ID'], $language );
 
 		return $post;
 	}

@@ -45,11 +45,11 @@ class PLL_Settings_CPT extends PLL_Settings_Module {
 	private $disabled_taxonomies;
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
 	 * @since 1.8
 	 *
-	 * @param object $polylang polylang object
+	 * @param object $polylang The Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		parent::__construct(
@@ -107,9 +107,16 @@ class PLL_Settings_CPT extends PLL_Settings_Module {
 						printf(
 							'<li><label><input name="post_types[%s]" type="checkbox" value="1" %s %s/> %s</label></li>',
 							esc_attr( $post_type ),
-							checked( in_array( $post_type, $this->options['post_types'] ) || $disabled, true, false ),
+							checked( $disabled || in_array( $post_type, $this->options['post_types'], true ), true, false ),
 							disabled( $disabled, true, false ),
-							esc_html( $pt->labels->name )
+							esc_html(
+								sprintf(
+									/* translators: 1 is a post type or taxonomy label, 2 is a post type or taxonomy key. */
+									_x( '%1$s (%2$s)', 'content type setting choice', 'polylang' ),
+									$pt->labels->name,
+									$pt->name
+								)
+							)
 						);
 					}
 				}
@@ -131,9 +138,16 @@ class PLL_Settings_CPT extends PLL_Settings_Module {
 						printf(
 							'<li><label><input name="taxonomies[%s]" type="checkbox" value="1" %s %s/> %s</label></li>',
 							esc_attr( $taxonomy ),
-							checked( in_array( $taxonomy, $this->options['taxonomies'] ) || $disabled, true, false ),
+							checked( $disabled || in_array( $taxonomy, $this->options['taxonomies'], true ), true, false ),
 							disabled( $disabled, true, false ),
-							esc_html( $tax->labels->name )
+							esc_html(
+								sprintf(
+									/* translators: 1 is a post type or taxonomy label, 2 is a post type or taxonomy key. */
+									_x( '%1$s (%2$s)', 'content type setting choice', 'polylang' ),
+									$tax->labels->name,
+									$tax->name
+								)
+							)
 						);
 					}
 				}
@@ -145,11 +159,12 @@ class PLL_Settings_CPT extends PLL_Settings_Module {
 	}
 
 	/**
-	 * Sanitizes the settings before saving
+	 * Sanitizes the settings before saving.
 	 *
 	 * @since 1.8
 	 *
-	 * @param array $options
+	 * @param array $options Unsanitized options to save.
+	 * @return array
 	 */
 	protected function update( $options ) {
 		$newoptions = array();
@@ -157,6 +172,6 @@ class PLL_Settings_CPT extends PLL_Settings_Module {
 		foreach ( array( 'post_types', 'taxonomies' ) as $key ) {
 			$newoptions[ $key ] = empty( $options[ $key ] ) ? array() : array_keys( $options[ $key ], 1 );
 		}
-		return $newoptions; // Take care to return only validated options
+		return $newoptions; // Take care to return only validated options.
 	}
 }

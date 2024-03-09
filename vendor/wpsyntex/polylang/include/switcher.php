@@ -27,7 +27,7 @@ class PLL_Switcher {
 	);
 
 	/**
-	 * @var PLL_Links
+	 * @var PLL_Links|null
 	 */
 	protected $links;
 
@@ -169,7 +169,14 @@ class PLL_Switcher {
 			$url = empty( $url ) || $args['force_home'] ? $this->links->get_home_url( $language ) : $url; // If the page is not translated, link to the home page
 
 			$name = $args['show_names'] || ! $args['show_flags'] || $args['raw'] ? ( 'slug' == $args['display_names_as'] ? $slug : $language->name ) : '';
-			$flag = $args['raw'] && ! $args['show_flags'] ? $language->get_display_flag_url() : ( $args['show_flags'] ? $language->get_display_flag() : '' );
+
+			if ( $args['raw'] && ! $args['show_flags'] ) {
+				$flag = $language->get_display_flag_url();
+			} elseif ( $args['show_flags'] ) {
+				$flag = $language->get_display_flag( empty( $args['show_names'] ) ? 'alt' : 'no-alt' );
+			} else {
+				$flag = '';
+			}
 
 			if ( $first ) {
 				$classes[] = 'lang-item-first';
@@ -212,6 +219,7 @@ class PLL_Switcher {
 	 * @return string|array either the html markup of the switcher or the raw elements to build a custom language switcher
 	 */
 	public function the_languages( $links, $args = array() ) {
+
 		$this->links = $links;
 		$args = wp_parse_args( $args, self::DEFAULTS );
 
@@ -229,8 +237,8 @@ class PLL_Switcher {
 			$args['hide_if_no_translation'] = 0;
 		}
 
-		// Prevents showing empty options in dropdown
-		if ( $args['dropdown'] ) {
+		// Prevents showing empty options in `<select>`.
+		if ( $args['dropdown'] && ! $args['raw'] ) {
 			$args['show_names'] = 1;
 		}
 
@@ -242,10 +250,17 @@ class PLL_Switcher {
 
 		if ( $args['dropdown'] ) {
 			$args['name'] = 'lang_choice_' . $args['dropdown'];
+			$args['class'] = 'pll-switcher-select';
+			$args['value'] = 'url';
+			$args['selected'] = $this->get_link( $this->links->model->get_language( $this->get_current_language( $args ) ), $args );
 			$walker = new PLL_Walker_Dropdown();
-			$args['selected'] = $this->get_current_language( $args );
 		} else {
 			$walker = new PLL_Walker_List();
+		}
+
+		// Cast each element to stdClass because $walker::walk() expects an array of objects.
+		foreach ( $elements as $i => $element ) {
+			$elements[ $i ] = (object) $element;
 		}
 
 		/**
@@ -258,20 +273,14 @@ class PLL_Switcher {
 		 */
 		$out = apply_filters( 'pll_the_languages', $walker->walk( $elements, -1, $args ), $args );
 
-		// Javascript to switch the language when using a dropdown list
+		// Javascript to switch the language when using a dropdown list.
 		if ( $args['dropdown'] && 0 === $args['admin_render'] ) {
-			// Accept only few valid characters for the urls_x variable name ( as the widget id includes '-' which is invalid )
+			// Accept only few valid characters for the urls_x variable name (as the widget id includes '-' which is invalid).
 			$out .= sprintf(
-				'<script type="text/javascript">
-					//<![CDATA[
-					var %1$s = %2$s;
-					document.getElementById( "%3$s" ).onchange = function() {
-						location.href = %1$s[this.value];
-					}
-					//]]>
+				'<script%1$s>
+					document.getElementById( "%2$s" ).addEventListener( "change", function ( event ) { location.href = event.currentTarget.value; } )
 				</script>',
-				'urls_' . preg_replace( '#[^a-zA-Z0-9]#', '', $args['dropdown'] ),
-				wp_json_encode( wp_list_pluck( $elements, 'url' ) ),
+				current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"',
 				esc_js( $args['name'] )
 			);
 		}

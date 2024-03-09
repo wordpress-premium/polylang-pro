@@ -23,11 +23,11 @@ class PLL_Sync_Tax {
 	protected $model;
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
 	 * @since 2.3
 	 *
-	 * @param object $polylang
+	 * @param object $polylang The Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		$this->model   = &$polylang->model;
@@ -44,6 +44,7 @@ class PLL_Sync_Tax {
 	 *
 	 * @since 1.7
 	 * @since 2.1 The `$from`, `$to`, `$lang` parameters were added.
+	 * @since 3.2 Changed visibility from protected to public.
 	 *
 	 * @param bool   $sync True if it is synchronization, false if it is a copy.
 	 * @param int    $from Id of the post from which we copy informations, optional, defaults to null.
@@ -51,7 +52,7 @@ class PLL_Sync_Tax {
 	 * @param string $lang Language slug, optional, defaults to null.
 	 * @return string[] List of taxonomy names.
 	 */
-	protected function get_taxonomies_to_copy( $sync, $from = null, $to = null, $lang = null ) {
+	public function get_taxonomies_to_copy( $sync, $from = null, $to = null, $lang = null ) {
 		$taxonomies = ! $sync || in_array( 'taxonomies', $this->options['sync'] ) ? $this->model->get_translated_taxonomies() : array();
 		if ( ! $sync || in_array( 'post_format', $this->options['sync'] ) ) {
 			$taxonomies[] = 'post_format';
@@ -104,7 +105,7 @@ class PLL_Sync_Tax {
 				 * @param int    $term    Source term id
 				 * @param string $lang    Language slug
 				 */
-				if ( $term_id = apply_filters( 'pll_maybe_translate_term', $this->model->term->get_translation( $term, $lang ), $term, $lang ) ) {
+				if ( $term_id = apply_filters( 'pll_maybe_translate_term', (int) $this->model->term->get_translation( $term, $lang ), $term, $lang ) ) {
 					$newterms[] = (int) $term_id; // Cast is important otherwise we get 'numeric' tags
 				}
 			}
@@ -186,7 +187,7 @@ class PLL_Sync_Tax {
 							$tr_terms = array();
 						}
 
-						if ( is_array( $tr_terms ) ) {
+						if ( is_string( $orig_lang ) && is_array( $tr_terms ) ) {
 							$tr_terms = wp_list_pluck( $tr_terms, 'term_id' );
 							$this->copy_object_terms( $tr_id, $object_id, $orig_lang, $tr_terms, $taxonomy, $append );
 						}
@@ -210,7 +211,7 @@ class PLL_Sync_Tax {
 	 * @return void
 	 */
 	public function copy( $from, $to, $lang ) {
-		remove_action( 'set_object_terms', array( $this, 'set_object_terms' ), 10, 6 );
+		remove_action( 'set_object_terms', array( $this, 'set_object_terms' ) );
 
 		// Get taxonomies to sync for this post type
 		$taxonomies = array_intersect( get_post_taxonomies( $from ), $this->get_taxonomies_to_copy( false, $from, $to, $lang ) );
@@ -230,7 +231,7 @@ class PLL_Sync_Tax {
 			}
 		}
 
-		add_action( 'set_object_terms', array( $this, 'set_object_terms' ), 10, 6 );
+		add_action( 'set_object_terms', array( $this, 'set_object_terms' ), 10, 5 );
 	}
 
 	/**
@@ -294,7 +295,7 @@ class PLL_Sync_Tax {
 	 * @return void
 	 */
 	public function pre_delete_term() {
-		remove_action( 'set_object_terms', array( $this, 'set_object_terms' ), 10, 5 );
+		remove_action( 'set_object_terms', array( $this, 'set_object_terms' ) );
 	}
 
 	/**

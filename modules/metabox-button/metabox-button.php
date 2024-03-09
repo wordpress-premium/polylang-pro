@@ -4,7 +4,7 @@
  */
 
 /**
- * Abstract class for features needing a button in the language metabox
+ * Abstract class for features needing a button in the language metabox.
  *
  * @since 2.1
  */
@@ -17,7 +17,7 @@ abstract class PLL_Metabox_Button {
 	public $id;
 
 	/**
-	 * Parameters passed to the constructor.
+	 * Arguments used to create the button.
 	 *
 	 * @var array
 	 */
@@ -31,10 +31,17 @@ abstract class PLL_Metabox_Button {
 	 * Parameters must be provided by the child class.
 	 *
 	 * @param string $id   Id used for the css class.
-	 * @param array  $args List of accepted parameters:
-	 *                     activate   => string displayed to activate the button
-	 *                     deactivate => string displayed to deactivate the button
-	 *                     class      => classes to display the icon
+	 * @param array  $args {
+	 *  Arguments used to create the button.
+	 *
+	 *  @type string $position   Defines the position of the button. Accepted values are
+	 *                           'before_post_translations' and 'before_post_translation_{$language_code}'.
+	 *  @type string $activate   Text displayed to activate the button.
+	 *  @type string $deactivate Text displayed to deactivate the button.
+	 *  @type string $class      Classes defining the icon to display.
+	 *  @type string $before     Optional html markup placed before the button.
+	 *  @type string $after      Optional html markup placed after the button.
+	 * }
 	 */
 	public function __construct( $id, $args ) {
 		$this->id   = $id;
@@ -46,7 +53,7 @@ abstract class PLL_Metabox_Button {
 	}
 
 	/**
-	 * Tells whether the button is active or not
+	 * Tells whether the button is active or not.
 	 *
 	 * @since 2.1
 	 *
@@ -55,7 +62,7 @@ abstract class PLL_Metabox_Button {
 	abstract public function is_active();
 
 	/**
-	 * Saves the button state
+	 * Saves the button state.
 	 *
 	 * @since 2.1
 	 *
@@ -68,7 +75,7 @@ abstract class PLL_Metabox_Button {
 	}
 
 	/**
-	 * Displays the button
+	 * Displays the button.
 	 *
 	 * @since 2.1
 	 *
@@ -82,7 +89,7 @@ abstract class PLL_Metabox_Button {
 	}
 
 	/**
-	 * Ajax response to a clic on the button
+	 * Ajax response to a clic on the button.
 	 *
 	 * @since 2.1
 	 *
@@ -105,7 +112,7 @@ abstract class PLL_Metabox_Button {
 	}
 
 	/**
-	 * Get the text for the button title depending on its state
+	 * Get the text for the button title depending on its state.
 	 *
 	 * @since 2.1
 	 *
@@ -117,7 +124,7 @@ abstract class PLL_Metabox_Button {
 	}
 
 	/**
-	 * Returns the html to display the button
+	 * Returns the html to display the button.
 	 *
 	 * @since 2.1
 	 *

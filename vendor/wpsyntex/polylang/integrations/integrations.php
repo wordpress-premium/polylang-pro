@@ -10,11 +10,12 @@
  * @since 1.0
  * @since 2.8 Renamed from PLL_Plugins_Compat to PLL_Integrations.
  */
+#[AllowDynamicProperties]
 class PLL_Integrations {
 	/**
 	 * Singleton instance.
 	 *
-	 * @var PLL_Integrations
+	 * @var PLL_Integrations|null
 	 */
 	protected static $instance;
 
@@ -35,7 +36,7 @@ class PLL_Integrations {
 	 *
 	 * @since 1.7
 	 *
-	 * @return object
+	 * @return PLL_Integrations
 	 */
 	public static function instance() {
 		if ( empty( self::$instance ) ) {

@@ -79,9 +79,15 @@ class PLL_Xdata_Subdomain extends PLL_Xdata_Base {
 	 * @return void
 	 */
 	public function maybe_language_switched() {
-		if ( $js = $this->maybe_get_xdomain_js( pll_get_requested_url(), $this->curlang ) ) {
-			echo '<script async type="text/javascript">' . $js . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		$js = $this->maybe_get_xdomain_js( pll_get_requested_url(), $this->curlang );
+
+		if ( empty( $js ) ) {
+			return;
 		}
+
+		$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
+
+		echo "<script{$type_attr} async>\n{$js}\n</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 
 	/**

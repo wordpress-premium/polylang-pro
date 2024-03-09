@@ -150,7 +150,7 @@ class PLL_ACF_Auto_Translate {
 	 *
 	 * @param string     $key     The field name or key.
 	 * @param string|int $post_id The post_id of which the value is saved against.
-	 * @return array|bool
+	 * @return array|false
 	 */
 	protected function get_field_object( $key, $post_id ) {
 		$field = get_field_object( $key, $post_id );
@@ -161,19 +161,26 @@ class PLL_ACF_Auto_Translate {
 
 		$post_id   = acf_get_valid_post_id( $post_id );
 		$field_key = acf_get_reference( $key, $post_id ); // Since ACF 5.6.5.
-		$field_key = substr( $field_key, -19 ); // Keep the last key in field_xxx_field_yyy for clone fields.
 
-		if ( acf_is_field_key( $field_key ) ) {
-			$field = acf_get_field( $field_key );
-
-			if ( $field ) {
-				$field['value'] = acf_get_value( $post_id, $field );
-				$field['value'] = acf_format_value( $field['value'], $post_id, $field );
-				return $field;
-			}
+		if ( ! is_string( $field_key ) ) {
+			return false;
 		}
 
-		return false;
+		$field_key = substr( $field_key, -19 ); // Keep the last key in field_xxx_field_yyy for clone fields.
+
+		if ( ! acf_is_field_key( $field_key ) ) {
+			return false;
+		}
+
+		$field = acf_get_field( $field_key );
+
+		if ( empty( $field ) ) {
+			return false;
+		}
+
+		$field['value'] = acf_get_value( $post_id, $field );
+		$field['value'] = acf_format_value( $field['value'], $post_id, $field );
+		return $field;
 	}
 
 	/**

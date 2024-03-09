@@ -58,7 +58,7 @@ class PLL_Uninstall {
 			register_taxonomy( $taxonomy, null, array( 'label' => false, 'public' => false, 'query_var' => false, 'rewrite' => false ) );
 		}
 
-		$languages = get_terms( 'language', array( 'hide_empty' => false ) );
+		$languages = get_terms( array( 'taxonomy' => 'language', 'hide_empty' => false ) );
 
 		// Delete users options
 		foreach ( get_users( array( 'fields' => 'ID' ) ) as $user_id ) {
@@ -84,7 +84,10 @@ class PLL_Uninstall {
 			wp_delete_post( $id, true );
 		}
 
-		// Delete the strings translations.
+		/*
+		 * Backward compatibility with Polylang < 3.4.
+		 * Delete the legacy strings translations.
+		 */
 		register_post_type( 'polylang_mo', array( 'rewrite' => false, 'query_var' => false ) );
 		$ids = get_posts(
 			array(
@@ -103,7 +106,7 @@ class PLL_Uninstall {
 		$term_ids = array();
 		$tt_ids   = array();
 
-		foreach ( get_terms( $pll_taxonomies, array( 'hide_empty' => false ) ) as $term ) {
+		foreach ( get_terms( array( 'taxonomy' => $pll_taxonomies, 'hide_empty' => false ) ) as $term ) {
 			$term_ids[] = (int) $term->term_id;
 			$tt_ids[] = (int) $term->term_taxonomy_id;
 		}
@@ -112,6 +115,7 @@ class PLL_Uninstall {
 			$term_ids = array_unique( $term_ids );
 			$wpdb->query( "DELETE FROM {$wpdb->terms} WHERE term_id IN ( " . implode( ',', $term_ids ) . ' )' ); // PHPCS:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$wpdb->query( "DELETE FROM {$wpdb->term_taxonomy} WHERE term_id IN ( " . implode( ',', $term_ids ) . ' )' ); // PHPCS:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "DELETE FROM {$wpdb->termmeta} WHERE term_id IN ( " . implode( ',', $term_ids ) . " ) AND meta_key='_pll_strings_translations'" ); // PHPCS:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 
 		if ( ! empty( $tt_ids ) ) {

@@ -18,47 +18,64 @@ class PLL_CRUD_Terms {
 	/**
 	 * Current language (used to filter the content).
 	 *
-	 * @var PLL_Language
+	 * @var PLL_Language|null
 	 */
 	public $curlang;
 
 	/**
 	 * Language selected in the admin language filter.
 	 *
-	 * @var PLL_Language
+	 * @var PLL_Language|null
 	 */
 	public $filter_lang;
 
 	/**
 	 * Preferred language to assign to new contents.
 	 *
-	 * @var PLL_Language
+	 * @var PLL_Language|null
 	 */
 	public $pref_lang;
 
 	/**
 	 * Stores the 'lang' query var from WP_Query.
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	private $tax_query_lang;
+
+	/**
+	 * Stores the term name before creating a slug if needed.
+	 *
+	 * @var string
+	 */
+	private $pre_term_name = '';
+
+	/**
+	 * Reference to the Polylang options array.
+	 *
+	 * @var array
+	 */
+	protected $options;
 
 	/**
 	 * Constructor
 	 *
 	 * @since 2.4
 	 *
-	 * @param object $polylang
+	 * @param object $polylang The Polylang object.
 	 */
 	public function __construct( &$polylang ) {
-		$this->model = &$polylang->model;
-		$this->curlang = &$polylang->curlang;
+		$this->options     = &$polylang->options;
+		$this->model       = &$polylang->model;
+		$this->curlang     = &$polylang->curlang;
 		$this->filter_lang = &$polylang->filter_lang;
-		$this->pref_lang = &$polylang->pref_lang;
+		$this->pref_lang   = &$polylang->pref_lang;
 
 		// Saving terms
 		add_action( 'create_term', array( $this, 'save_term' ), 999, 3 );
 		add_action( 'edit_term', array( $this, 'save_term' ), 999, 3 ); // After PLL_Admin_Filters_Term
+		add_filter( 'pre_term_name', array( $this, 'set_pre_term_name' ) );
+		add_filter( 'pre_term_slug', array( $this, 'set_pre_term_slug' ), 10, 2 );
 
 		// Adds cache domain when querying terms
 		add_filter( 'get_terms_args', array( $this, 'get_terms_args' ), 10, 2 );
@@ -69,16 +86,16 @@ class PLL_CRUD_Terms {
 		add_action( 'posts_selection', array( $this, 'unset_tax_query_lang' ), 0 );
 
 		// Deleting terms
-		add_action( 'pre_delete_term', array( $this, 'delete_term' ) );
+		add_action( 'pre_delete_term', array( $this, 'delete_term' ), 10, 2 );
 	}
 
 	/**
-	 * Allows to set a language by default for terms if it has no language yet
+	 * Allows to set a language by default for terms if it has no language yet.
 	 *
 	 * @since 1.5.4
 	 *
-	 * @param int    $term_id
-	 * @param string $taxonomy
+	 * @param int    $term_id  Term ID.
+	 * @param string $taxonomy Taxonomy name.
 	 * @return void
 	 */
 	protected function set_default_language( $term_id, $taxonomy ) {
@@ -92,9 +109,12 @@ class PLL_CRUD_Terms {
 			} elseif ( isset( $this->pref_lang ) ) {
 				// Always defined on admin, never defined on frontend
 				$this->model->term->set_language( $term_id, $this->pref_lang );
-			} else {
+			} elseif ( ! empty( $this->curlang ) ) {
 				// Only on frontend due to the previous test always true on admin
 				$this->model->term->set_language( $term_id, $this->curlang );
+			} else {
+				// In all other cases set to default language.
+				$this->model->term->set_language( $term_id, $this->options['default_lang'] );
 			}
 		}
 	}
@@ -237,11 +257,90 @@ class PLL_CRUD_Terms {
 	 *
 	 * @since 0.1
 	 *
-	 * @param int $term_id
+	 * @param int    $term_id  Id of the term to delete.
+	 * @param string $taxonomy Name of the taxonomy.
 	 * @return void
 	 */
-	public function delete_term( $term_id ) {
+	public function delete_term( $term_id, $taxonomy ) {
+		if ( ! $this->model->is_translated_taxonomy( $taxonomy ) ) {
+			return;
+		}
+
+		// Delete translation and relationships only if the term is translatable.
 		$this->model->term->delete_translation( $term_id );
 		$this->model->term->delete_language( $term_id );
+	}
+
+	/**
+	 * Stores the term name for use in pre_term_slug
+	 *
+	 * @since 0.9.5
+	 *
+	 * @param string $name term name
+	 * @return string unmodified term name
+	 */
+	public function set_pre_term_name( $name ) {
+		return $this->pre_term_name = $name;
+	}
+
+	/**
+	 * Appends language slug to the term slug if needed.
+	 *
+	 * @since 3.3
+	 *
+	 * @param string $slug     Term slug.
+	 * @param string $taxonomy Term taxonomy.
+	 * @return string Slug with a language suffix if found.
+	 */
+	public function set_pre_term_slug( $slug, $taxonomy ) {
+		if ( ! $this->model->is_translated_taxonomy( $taxonomy ) ) {
+			return $slug;
+		}
+
+		if ( ! $slug ) {
+			$slug = sanitize_title( $this->pre_term_name );
+		}
+
+		if ( ! term_exists( $slug, $taxonomy ) ) {
+			return $slug;
+		}
+
+		/**
+		 * Filters the subsequently inserted term language.
+		 *
+		 * @since 3.3
+		 *
+		 * @param PLL_Language|null $lang     Found language object, null otherwise.
+		 * @param string            $taxonomy Term taonomy.
+		 * @param string            $slug     Term slug
+		 */
+		$lang = apply_filters( 'pll_inserted_term_language', null, $taxonomy, $slug );
+
+		if ( ! $lang instanceof PLL_Language ) {
+			return $slug;
+		}
+
+		$parent = 0;
+		if ( is_taxonomy_hierarchical( $taxonomy ) ) {
+			/**
+			 * Filters the subsequently inserted term parent.
+			 *
+			 * @since 3.3
+			 *
+			 * @param int          $parent   Parent term ID, 0 if none.
+			 * @param string       $taxonomy Term taxonomy.
+			 * @param string       $slug     Term slug
+			 */
+			$parent = apply_filters( 'pll_inserted_term_parent', 0, $taxonomy, $slug );
+		}
+
+		$term_id = (int) $this->model->term_exists_by_slug( $slug, $lang, $taxonomy, $parent );
+
+		// If no term exist in the given language with that slug, it can be created.
+		if ( ! $term_id ) {
+			$slug .= '-' . $lang->slug;
+		}
+
+		return $slug;
 	}
 }

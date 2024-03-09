@@ -31,7 +31,7 @@ class PLL_Filters {
 	/**
 	 * Current language.
 	 *
-	 * @var PLL_Language
+	 * @var PLL_Language|null
 	 */
 	public $curlang;
 
@@ -40,9 +40,11 @@ class PLL_Filters {
 	 *
 	 * @since 1.4
 	 *
-	 * @param object $polylang
+	 * @param object $polylang The Polylang object.
 	 */
 	public function __construct( &$polylang ) {
+		global $wp_version;
+
 		$this->links_model = &$polylang->links_model;
 		$this->model = &$polylang->model;
 		$this->options = &$polylang->options;
@@ -58,7 +60,11 @@ class PLL_Filters {
 		add_filter( 'comments_clauses', array( $this, 'comments_clauses' ), 10, 2 );
 
 		// Filters the get_pages function according to the current language
-		add_filter( 'get_pages', array( $this, 'get_pages' ), 10, 2 );
+		if ( version_compare( $wp_version, '6.3-alpha', '<' ) ) {
+			// Backward compatibility with WP < 6.3.
+			add_filter( 'get_pages', array( $this, 'get_pages' ), 10, 2 );
+		}
+		add_filter( 'get_pages_query_args', array( $this, 'get_pages_query_args' ), 10, 2 );
 
 		// Rewrites next and previous post links to filter them by language
 		add_filter( 'get_previous_post_join', array( $this, 'posts_join' ), 10, 5 );
@@ -79,6 +85,9 @@ class PLL_Filters {
 
 		// Personal data exporter
 		add_filter( 'wp_privacy_personal_data_exporters', array( $this, 'register_personal_data_exporter' ), 0 ); // Since WP 4.9.6
+
+		// Fix for `term_exists()`.
+		add_filter( 'term_exists_default_query_args', array( $this, 'term_exists_default_query_args' ), 0, 3 ); // Since WP 6.0.0.
 	}
 
 	/**
@@ -200,36 +209,21 @@ class PLL_Filters {
 
 		static $once = false;
 
-		// Obliged to redo the get_pages query if we want to get the right number
 		if ( ! empty( $args['number'] ) && ! $once ) {
-			$once = true; // avoid infinite loop
-
-			$r = array(
-				'lang'        => 0, // So this query is not filtered
-				'numberposts' => -1,
-				'nopaging'    => true,
-				'post_type'   => $args['post_type'],
-				'fields'      => 'ids',
-				'tax_query'   => array(
-					array(
-						'taxonomy' => 'language',
-						'field'    => 'term_taxonomy_id', // Since WP 3.5
-						'terms'    => $language->term_taxonomy_id,
-						'operator' => 'NOT IN',
-					),
-				),
-			);
+			// We are obliged to redo the get_pages() query if we want to get the right number.
+			$once = true; // Avoid infinite loop.
 
 			// Take care that 'exclude' argument accepts integer or strings too.
-			$args['exclude'] = array_merge( wp_parse_id_list( $args['exclude'] ), get_posts( $r ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
-			$pages = get_pages( $args );
+			$args['exclude'] = array_merge( wp_parse_id_list( $args['exclude'] ), $this->get_related_page_ids( $language, 'NOT IN', $args ) ); // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude
+			$numbered_pages  = get_pages( $args );
+			$pages           = ! $numbered_pages ? $pages : $numbered_pages;
 		}
 
 		$ids = wp_list_pluck( $pages, 'ID' );
 
-		// Filters the queried list of pages by language
 		if ( ! $once ) {
-			$ids = array_intersect( $ids, $this->model->post->get_objects_in_language( $language ) );
+			// Filters the queried list of pages by language.
+			$ids = array_intersect( $ids, $this->get_related_page_ids( $language, 'IN', $args ) );
 
 			foreach ( $pages as $key => $page ) {
 				if ( ! in_array( $page->ID, $ids ) ) {
@@ -237,14 +231,62 @@ class PLL_Filters {
 				}
 			}
 
-			$pages = array_values( $pages ); // In case 3rd parties suppose the existence of $pages[0]
+			$pages = array_values( $pages ); // In case 3rd parties suppose the existence of $pages[0].
 		}
 
-		// Not done by WP but extremely useful for performance when manipulating taxonomies
+		// Not done by WP but extremely useful for performance when manipulating taxonomies.
 		update_object_term_cache( $ids, $args['post_type'] );
 
-		$once = false; // In case get_pages is called another time
+		$once = false; // In case get_pages() is called another time.
 		return $pages;
+	}
+
+	/**
+	 * Filters the WP_Query in get_pages() per language.
+	 *
+	 * @since 3.4.3
+	 *
+	 * @param array $query_args  Array of arguments passed to WP_Query.
+	 * @param array $parsed_args Array of get_pages() arguments.
+	 * @return array Array of arguments passed to WP_Query with the language.
+	 */
+	public function get_pages_query_args( $query_args, $parsed_args ) {
+		if ( isset( $parsed_args['lang'] ) ) {
+			$query_args['lang'] = $parsed_args['lang'];
+		}
+
+		return $query_args;
+	}
+
+	/**
+	 * Get page ids related to a get_pages() in or not in a given language.
+	 *
+	 * @since 3.2
+	 *
+	 * @param PLL_Language $language The language to use in the relationship
+	 * @param string       $relation 'IN' or 'NOT IN'.
+	 * @param array        $args     Array of get_pages() arguments.
+	 * @return int[]
+	 */
+	protected function get_related_page_ids( $language, $relation, $args ) {
+		$r = array(
+			'lang'        => '', // Ensure this query is not filtered.
+			'numberposts' => -1,
+			'nopaging'    => true,
+			'post_type'   => $args['post_type'],
+			'post_status' => $args['post_status'],
+			'fields'      => 'ids',
+			'tax_query'   => array(
+				array(
+					'taxonomy' => 'language',
+					'field'    => 'term_taxonomy_id', // Since WP 3.5.
+					'terms'    => $language->get_tax_prop( 'language', 'term_taxonomy_id' ),
+					'operator' => $relation,
+				),
+			),
+		);
+
+		return get_posts( $r );
 	}
 
 	/**
@@ -375,7 +417,7 @@ class PLL_Filters {
 
 		if ( $user = get_user_by( 'email', $email_address ) ) {
 			foreach ( $this->model->get_languages_list() as $lang ) {
-				if ( $lang->slug !== $this->options['default_lang'] && $value = get_user_meta( $user->ID, 'description_' . $lang->slug, true ) ) {
+				if ( ! $lang->is_default && $value = get_user_meta( $user->ID, 'description_' . $lang->slug, true ) ) {
 					$user_data_to_export[] = array(
 						/* translators: %s is a language native name */
 						'name'  => sprintf( __( 'User description - %s', 'polylang' ), $lang->name ),
@@ -398,5 +440,33 @@ class PLL_Filters {
 			'data' => $data_to_export,
 			'done' => true,
 		);
+	}
+
+	/**
+	 * Filters default query arguments for checking if a term exists.
+	 * In `term_exists()`, WP 6.0 uses `get_terms()`, which is filtered by language by Polylang.
+	 * This filter prevents `term_exists()` to be filtered by language.
+	 *
+	 * @since 3.2
+	 *
+	 * @param  array      $defaults An array of arguments passed to get_terms().
+	 * @param  int|string $term     The term to check. Accepts term ID, slug, or name.
+	 * @param  string     $taxonomy The taxonomy name to use. An empty string indicates the search is against all taxonomies.
+	 * @return array
+	 */
+	public function term_exists_default_query_args( $defaults, $term, $taxonomy ) {
+		if ( ! empty( $taxonomy ) && ! $this->model->is_translated_taxonomy( $taxonomy ) ) {
+			return $defaults;
+		}
+
+		if ( ! is_array( $defaults ) ) {
+			$defaults = array();
+		}
+
+		if ( ! isset( $defaults['lang'] ) ) {
+			$defaults['lang'] = '';
+		}
+
+		return $defaults;
 	}
 }

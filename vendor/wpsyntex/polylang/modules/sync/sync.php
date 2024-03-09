@@ -41,7 +41,7 @@ class PLL_Sync {
 	 *
 	 * @since 1.2
 	 *
-	 * @param object $polylang
+	 * @param object $polylang The Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		$this->model   = &$polylang->model;
@@ -208,11 +208,11 @@ class PLL_Sync {
 				$translations = $this->model->term->get_translations( $term_id );
 
 				foreach ( $translations as $lang => $tr_id ) {
-					if ( ! empty( $tr_id ) && $tr_id !== $term_id ) {
+					if ( $tr_id !== $term_id ) {
 						$tr_parent = $this->model->term->get_translation( $term->parent, $lang );
 						$tr_term   = get_term( (int) $tr_id, $taxonomy );
 
-						if ( $tr_term instanceof WP_Term ) {
+						if ( $tr_term instanceof WP_Term && ! ( $term->parent && empty( $tr_parent ) ) ) {
 							$wpdb->update(
 								$wpdb->term_taxonomy,
 								array( 'parent' => $tr_parent ? $tr_parent : 0 ),

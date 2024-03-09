@@ -17,7 +17,7 @@ class PLL_Translate_Slugs {
 	/**
 	 * Current language.
 	 *
-	 * @var PLL_Language
+	 * @var PLL_Language|null
 	 */
 	public $curlang;
 

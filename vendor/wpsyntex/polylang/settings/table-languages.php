@@ -68,8 +68,10 @@ class PLL_Table_Languages extends WP_List_Table {
 				return esc_html( $item->$column_name );
 
 			case 'term_group':
-			case 'count':
 				return (int) $item->$column_name;
+
+			case 'count':
+				return $item->get_tax_prop( 'language', $column_name );
 
 			default:
 				return $item->$column_name; // Flag.
@@ -104,9 +106,7 @@ class PLL_Table_Languages extends WP_List_Table {
 	 * @return string
 	 */
 	public function column_default_lang( $item ) {
-		$options = get_option( 'polylang' );
-
-		if ( $options['default_lang'] != $item->slug ) {
+		if ( ! $item->is_default ) {
 			$s = sprintf(
 				'<div class="row-actions"><span class="default-lang">
 				<a class="icon-default-lang" title="%1$s" href="%2$s"><span class="screen-reader-text">%3$s</span></a>
@@ -229,12 +229,12 @@ class PLL_Table_Languages extends WP_List_Table {
 	}
 
 	/**
-	 * Sort items
+	 * Sorts language items.
 	 *
 	 * @since 0.1
 	 *
-	 * @param object $a The first object to compare
-	 * @param object $b The second object to compare
+	 * @param PLL_Language $a The first language to compare.
+	 * @param PLL_Language $b The second language to compare.
 	 * @return int -1 or 1 if $a is considered to be respectively less than or greater than $b.
 	 */
 	protected function usort_reorder( $a, $b ) {
@@ -245,16 +245,16 @@ class PLL_Table_Languages extends WP_List_Table {
 		} else {
 			$result = strcmp( $a->$orderby, $b->$orderby );
 		}
-		// Send final sort direction to usort
+		// Send final sort direction to usort.
 		return ( empty( $_GET['order'] ) || 'asc' === $_GET['order'] ) ? $result : -$result; // phpcs:ignore WordPress.Security.NonceVerification
 	}
 
 	/**
-	 * Prepares the list of items for displaying
+	 * Prepares the list of languages for display.
 	 *
 	 * @since 0.1
 	 *
-	 * @param array $data
+	 * @param PLL_Language[] $data The list of languages.
 	 * @return void
 	 */
 	public function prepare_items( $data = array() ) {
@@ -270,7 +270,7 @@ class PLL_Table_Languages extends WP_List_Table {
 			array(
 				'total_items' => $total_items,
 				'per_page'    => $per_page,
-				'total_pages' => ceil( $total_items / $per_page ),
+				'total_pages' => (int) ceil( $total_items / $per_page ),
 			)
 		);
 	}

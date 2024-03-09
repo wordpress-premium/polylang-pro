@@ -4,13 +4,13 @@
  */
 
 /**
- * Manages compatibility with the Divi Builder
+ * Manages compatibility with the Divi Builder.
  *
  * @since 2.3
  */
 class PLL_Divi_Builder {
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
 	 * @since 2.3
 	 */
@@ -19,12 +19,12 @@ class PLL_Divi_Builder {
 	}
 
 	/**
-	 * Allow to copy Divi Builder data when creating a translation
+	 * Allow to copy Divi Builder data when creating a translation.
 	 *
 	 * @since 2.1
 	 *
-	 * @param array $metas List of custom fields names
-	 * @param bool  $sync  True if it is synchronization, false if it is a copy
+	 * @param array $metas List of custom fields names.
+	 * @param bool  $sync  True if it is synchronization, false if it is a copy.
 	 * @return array
 	 */
 	public function divi_builder_copy_post_metas( $metas, $sync ) {

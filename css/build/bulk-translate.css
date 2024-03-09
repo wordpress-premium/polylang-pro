@@ -2,14 +2,17 @@
 	margin-right: 20px;
 }
 
+#wpbody-content #pll-translate .pll-bulk-translate-fields-wrapper {
+	display: flex;
+}
+
 #wpbody-content #pll-translate fieldset {
-	display: inline-block;
-	width: 300px;
+	flex-basis: fit-content;
+	margin-right: 10%;
 }
 
 #pll-translate .pll-translation-flag {
 	margin: auto 10px auto 7px;
-	vertical-align: middle;
 }
 
 .rtl #pll-translate .pll-translation-flag {
@@ -18,6 +21,20 @@
 
 #pll-translate .title {
 	display: block;
-	margin: 0.2em 0;
 	line-height: 2.5;
+}
+
+#pll-translate label {
+	display: flex;
+	align-items: center;
+}
+
+#pll-translate label span.description{
+	line-height: normal;
+}
+
+@media screen and ( max-width: 782px ) {
+	#wpbody-content #pll-translate .pll-bulk-translate-fields-wrapper {
+		flex-direction: column;
+	}
 }

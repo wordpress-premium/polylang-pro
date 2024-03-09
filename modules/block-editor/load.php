@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action(
 	'pll_init',
 	function( $polylang ) {
-		if ( $polylang->model->get_languages_list() && pll_use_block_editor_plugin() ) {
+		if ( $polylang->model->has_languages() && pll_use_block_editor_plugin() ) {
 			if ( $polylang instanceof PLL_Admin ) {
 				$polylang->block_editor_plugin = new PLL_Block_Editor_Plugin( $polylang );
 			}
@@ -20,7 +20,8 @@ add_action(
 			}
 
 			$polylang->widget_editor = new PLL_Widget_Editor_Language_Attribute();
-			$polylang->switcher_block = new PLL_Block_Editor_Switcher_Block( $polylang );
+			$polylang->switcher_block = ( new PLL_Language_Switcher_Block( $polylang ) )->init();
+			$polylang->navigation_block = ( new PLL_Navigation_Language_Switcher_Block( $polylang ) )->init();
 		}
 	}
 );

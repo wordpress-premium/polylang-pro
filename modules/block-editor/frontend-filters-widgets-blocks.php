@@ -4,7 +4,7 @@
  */
 
 /**
- * Filters widgets blocks by language on frontend
+ * Filters widgets blocks by language on frontend.
  *
  * @since 3.1
  */
@@ -14,11 +14,11 @@ class PLL_Frontend_Filters_Widgets_Blocks extends PLL_Frontend_Filters_Widgets {
 	 *
 	 * @since 3.1
 	 *
-	 * @param array  $widget_data      An array containing the widget data
-	 * @param array  $sidebars_widgets An associative array of sidebars and their widgets
-	 * @param string $sidebar          Sidebar name
-	 * @param int    $key              Widget number
-	 * @return array                   An associative array of sidebars and their widgets
+	 * @param array  $widget_data      An array containing the widget data.
+	 * @param array  $sidebars_widgets An associative array of sidebars and their widgets.
+	 * @param string $sidebar          Sidebar name.
+	 * @param int    $key              Widget number.
+	 * @return array                   An associative array of sidebars and their widgets.
 	 */
 	public function handle_widget_in_sidebar_callback( $widget_data, $sidebars_widgets, $sidebar, $key ) {
 		// Remove the widget if not visible in the current language (blocks in legacy widget).

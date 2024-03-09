@@ -96,8 +96,11 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 			'nologin'  => is_user_logged_in(),
 		);
 
-		$url = $this->ajax_url( $this->options['default_lang'], $args );
-		printf( '<script async type="text/javascript" src="%s"></script>', esc_url( $url ) );
+		printf(
+			'<script%1$s src="%2$s" async></script>',
+			current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"',
+			esc_url( $this->ajax_url( $this->options['default_lang'], $args ) )
+		);
 	}
 
 	/**
@@ -115,12 +118,12 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 			wp_die();
 		}
 
-		$redirect = esc_url_raw( wp_unslash( $_GET['redirect'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
-
-		$lang = $this->links_model->get_language_from_url( $redirect );
+		$redirect    = esc_url_raw( wp_unslash( $_GET['redirect'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
+		$lang        = $this->links_model->get_language_from_url( $redirect );
+		$lang_object = $this->model->get_language( $lang );
 
 		// Redirects to the preferred language home page at first visit.
-		if ( ! empty( $this->options['browser'] ) && ! isset( $_COOKIE[ PLL_COOKIE ] ) && trailingslashit( $redirect ) === $this->model->get_language( $lang )->home_url ) {
+		if ( ! empty( $this->options['browser'] ) && ! isset( $_COOKIE[ PLL_COOKIE ] ) && ! empty( $lang_object ) && trailingslashit( $redirect ) === $lang_object->get_home_url() ) {
 			/** This filter is documented in /polylang/frontend/choose-lang.php */
 			$preflang = apply_filters( 'pll_preferred_language', $this->choose_lang->get_preferred_browser_language() );
 
@@ -129,8 +132,11 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 			}
 
 			if ( $preflang !== $lang ) {
+				$preflang_object = $this->model->get_language( $preflang );
+				$home_page_url   = ! empty( $preflang_object ) ? $preflang_object->get_home_url() : '';
 				/** This filter is documented in /polylang/frontend/choose-lang.php */
-				if ( $home_page_url = apply_filters( 'pll_redirect_home', $this->model->get_language( $preflang )->home_url ) ) {
+				$home_page_url = apply_filters( 'pll_redirect_home', $home_page_url );
+				if ( $home_page_url ) {
 					header( 'Content-Type: application/javascript' );
 					printf( 'window.location.replace("%s");', esc_url_raw( $home_page_url ) );
 					wp_die();

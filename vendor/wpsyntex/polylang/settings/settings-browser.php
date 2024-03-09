@@ -24,7 +24,9 @@ class PLL_Settings_Browser extends PLL_Settings_Module {
 	 * @param object $polylang polylang object
 	 */
 	public function __construct( &$polylang ) {
+		// Needed for `$this->is_available()`, which is used before calling the parent's constructor.
 		$this->options = &$polylang->options;
+
 		parent::__construct(
 			$polylang,
 			array(
@@ -85,8 +87,7 @@ class PLL_Settings_Browser extends PLL_Settings_Module {
 		$deactivated = sprintf( '<span class="deactivated">%s</span>', $this->action_links['deactivated'] );
 
 		?>
-		<script type='text/javascript'>
-			//<![CDATA[
+		<script>
 			jQuery(
 				function( $ ){
 					$( "input[name='force_lang']" ).on( 'change', function() {
@@ -100,7 +101,6 @@ class PLL_Settings_Browser extends PLL_Settings_Module {
 					} );
 				}
 			);
-			// ]]>
 		</script>
 		<?php
 	}

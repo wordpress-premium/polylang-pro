@@ -4,13 +4,13 @@
  */
 
 /**
- * Manages compatibility with Beaver Builder
+ * Manages compatibility with Beaver Builder.
  *
  * @since 2.3
  */
 class PLL_FLBuilder {
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
 	 * @since 2.3
 	 */
@@ -19,12 +19,12 @@ class PLL_FLBuilder {
 	}
 
 	/**
-	 * Allow to copy Beaver Builder data when creating a translation
+	 * Allow to copy Beaver Builder data when creating a translation.
 	 *
 	 * @since 1.9.1
 	 *
-	 * @param array $metas List of custom fields names
-	 * @param bool  $sync  True if it is synchronization, false if it is a copy
+	 * @param array $metas List of custom fields names.
+	 * @param bool  $sync  True if it is synchronization, false if it is a copy.
 	 * @return array
 	 */
 	public function fl_builder_copy_post_metas( $metas, $sync ) {

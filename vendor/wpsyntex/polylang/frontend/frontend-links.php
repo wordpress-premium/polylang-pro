@@ -9,12 +9,6 @@
  * @since 1.2
  */
 class PLL_Frontend_Links extends PLL_Links {
-	/**
-	 * Current language.
-	 *
-	 * @var PLL_Language
-	 */
-	public $curlang;
 
 	/**
 	 * Internal non persistent cache object.
@@ -28,7 +22,7 @@ class PLL_Frontend_Links extends PLL_Links {
 	 *
 	 * @since 1.2
 	 *
-	 * @param object $polylang
+	 * @param object $polylang The Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		parent::__construct( $polylang );
@@ -63,9 +57,9 @@ class PLL_Frontend_Links extends PLL_Links {
 		 *
 		 * @since 1.8
 		 *
-		 * @param string       $url               Empty or the url of the translation of teh current page.
+		 * @param string       $url               Empty string or the url of the translation of the current page.
 		 * @param PLL_Language $language          Language of the translation.
-		 * @param int          $queried_object_id Queried object id.
+		 * @param int          $queried_object_id Queried object ID.
 		 */
 		if ( ! $url = apply_filters( 'pll_pre_translation_url', '', $language, $queried_object_id ) ) {
 			$qv = $wp_query->query_vars;
@@ -89,7 +83,7 @@ class PLL_Frontend_Links extends PLL_Links {
 						if ( ! empty( $tax_query['taxonomy'] ) && $this->model->is_translated_taxonomy( $tax_query['taxonomy'] ) ) {
 
 							$tax = get_taxonomy( $tax_query['taxonomy'] );
-							$terms = get_terms( $tax->name, array( 'fields' => 'id=>slug' ) ); // Filtered by current language
+							$terms = get_terms( array( 'taxonomy' => $tax->name, 'fields' => 'id=>slug' ) ); // Filtered by current language
 
 							foreach ( $tax_query['terms'] as $slug ) {
 								$term_id = array_search( $slug, $terms ); // What is the term_id corresponding to taxonomy term?
@@ -115,7 +109,7 @@ class PLL_Frontend_Links extends PLL_Links {
 				elseif ( $tr_id = $this->model->term->get_translation( $term->term_id, $language ) ) {
 					if ( $tr_term = get_term( $tr_id, $term->taxonomy ) ) {
 						// Check if translated term ( or children ) have posts
-						$count = $tr_term->count || ( is_taxonomy_hierarchical( $term->taxonomy ) && array_sum( wp_list_pluck( get_terms( $term->taxonomy, array( 'child_of' => $tr_term->term_id, 'lang' => $language->slug ) ), 'count' ) ) );
+						$count = $tr_term->count || ( is_taxonomy_hierarchical( $term->taxonomy ) && array_sum( wp_list_pluck( get_terms( array( 'taxonomy' => $term->taxonomy, 'child_of' => $tr_term->term_id, 'lang' => $language->slug ) ), 'count' ) ) );
 
 						/**
 						 * Filter whether to hide an archive translation url
@@ -166,6 +160,8 @@ class PLL_Frontend_Links extends PLL_Links {
 			}
 		}
 
+		$url = ! empty( $url ) && ! is_wp_error( $url ) ? $url : null;
+
 		/**
 		 * Filter the translation url of the current page before Polylang caches it
 		 *
@@ -174,7 +170,7 @@ class PLL_Frontend_Links extends PLL_Links {
 		 * @param null|string $url      The translation url, null if none was found
 		 * @param string      $language The language code of the translation
 		 */
-		$translation_url = apply_filters( 'pll_translation_url', ( isset( $url ) && ! is_wp_error( $url ) ? $url : null ), $language->slug );
+		$translation_url = apply_filters( 'pll_translation_url', $url, $language->slug );
 
 		// Don't cache before template_redirect to avoid a conflict with Barrel + WP Bakery Page Builder
 		if ( did_action( 'template_redirect' ) ) {
@@ -190,7 +186,7 @@ class PLL_Frontend_Links extends PLL_Links {
 	 *
 	 * @since 1.2
 	 *
-	 * @param object $language
+	 * @param PLL_Language $language An object representing a language.
 	 * @return string
 	 */
 	public function get_archive_url( $language ) {

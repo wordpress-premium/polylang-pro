@@ -18,14 +18,14 @@ class PLL_Settings extends PLL_Admin_Base {
 	/**
 	 * Name of the active module.
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	protected $active_tab;
 
 	/**
 	 * Array of modules classes.
 	 *
-	 * @var PLL_Settings_Module[]
+	 * @var PLL_Settings_Module[]|null
 	 */
 	protected $modules;
 
@@ -65,7 +65,7 @@ class PLL_Settings extends PLL_Admin_Base {
 	public function register_settings_modules() {
 		$modules = array();
 
-		if ( $this->model->get_languages_list() ) {
+		if ( $this->model->has_languages() ) {
 			$modules = array(
 				'PLL_Settings_Url',
 				'PLL_Settings_Browser',
@@ -166,11 +166,11 @@ class PLL_Settings extends PLL_Admin_Base {
 	}
 
 	/**
-	 * Manages the user input for the languages pages
+	 * Manages the user input for the languages pages.
 	 *
 	 * @since 1.9
 	 *
-	 * @param string $action
+	 * @param string $action The action name.
 	 * @return void
 	 */
 	public function handle_actions( $action ) {
@@ -185,7 +185,7 @@ class PLL_Settings extends PLL_Admin_Base {
 					}
 				} else {
 					add_settings_error( 'general', 'pll_languages_created', __( 'Language added.', 'polylang' ), 'updated' );
-					$locale = sanitize_text_field( wp_unslash( $_POST['locale'] ) ); // phpcs:ignore WordPress.Security
+					$locale = sanitize_locale_name( $_POST['locale'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 
 					if ( 'en_US' !== $locale && current_user_can( 'install_languages' ) ) {
 						// Attempts to install the language pack
@@ -240,14 +240,7 @@ class PLL_Settings extends PLL_Admin_Base {
 			case 'content-default-lang':
 				check_admin_referer( 'content-default-lang' );
 
-				if ( $nolang = $this->model->get_objects_with_no_lang() ) {
-					if ( ! empty( $nolang['posts'] ) ) {
-						$this->model->set_language_in_mass( 'post', $nolang['posts'], $this->options['default_lang'] );
-					}
-					if ( ! empty( $nolang['terms'] ) ) {
-						$this->model->set_language_in_mass( 'term', $nolang['terms'], $this->options['default_lang'] );
-					}
-				}
+				$this->model->set_language_in_mass();
 
 				self::redirect(); // To refresh the page ( possible thanks to the $_GET['noheader']=true )
 				break;
@@ -364,7 +357,8 @@ class PLL_Settings extends PLL_Admin_Base {
 	 * @return void
 	 */
 	public static function redirect( $args = array() ) {
-		if ( $errors = get_settings_errors() ) {
+		$errors = get_settings_errors();
+		if ( ! empty( $errors ) ) {
 			set_transient( 'settings_errors', $errors, 30 );
 			$args['settings-updated'] = 1;
 		}

@@ -72,8 +72,7 @@ class PLL_Settings_Share_Slug extends PLL_Settings_Preview_Share_Slug {
 		$deactivated = sprintf( '<span class="deactivated">%s</span>', $this->action_links['deactivated'] );
 
 		?>
-		<script type='text/javascript'>
-			//<![CDATA[
+		<script>
 			jQuery(
 				function( $ ){
 					$( "input[name='force_lang']" ).on( 'change', function() {
@@ -87,7 +86,6 @@ class PLL_Settings_Share_Slug extends PLL_Settings_Preview_Share_Slug {
 					} );
 				}
 			);
-			// ]]>
 		</script>
 		<?php
 	}

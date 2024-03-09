@@ -94,7 +94,7 @@ class PLL_Sync_Post_Button extends PLL_Metabox_Button {
 		if ( ! empty( $term ) ) {
 			$language = $this->model->post->get_language( $post->ID ); // FIXME is it already evaluated?
 			$d        = maybe_unserialize( $term->description );
-			return $language && isset( $d['sync'][ $this->language->slug ], $d['sync'][ $language->slug ] ) && $d['sync'][ $this->language->slug ] === $d['sync'][ $language->slug ];
+			return $language && is_array( $d ) && isset( $d['sync'][ $this->language->slug ], $d['sync'][ $language->slug ] ) && $d['sync'][ $this->language->slug ] === $d['sync'][ $language->slug ];
 		}
 
 		return false;

@@ -34,8 +34,8 @@ class PLL_REST_Comment extends PLL_REST_Filtered_Object {
 	 * @return void
 	 */
 	public function parse_comment_query( $query ) {
-		if ( isset( $this->params['lang'] ) && in_array( $this->params['lang'], $this->model->get_languages_list( array( 'fields' => 'slug' ) ) ) ) {
-			$query->query_vars['lang'] = $this->params['lang'];
+		if ( isset( $this->request['lang'] ) && in_array( $this->request['lang'], $this->model->get_languages_list( array( 'fields' => 'slug' ) ) ) ) {
+			$query->query_vars['lang'] = $this->request['lang'];
 		}
 	}
 }

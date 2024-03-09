@@ -29,11 +29,26 @@ class PLL_Share_Term_Slug {
 	public $links_model;
 
 	/**
+	 * Stores the term name before creating a slug if needed.
+	 *
+	 * @var string
+	 */
+	private $pre_term_name = '';
+
+	/**
+	 * Used to trick WordPress by setting
+	 * a transitory unique term slug.
+	 *
+	 * @var string
+	 */
+	const TERM_SLUG_SEPARATOR = '___';
+
+	/**
 	 * Constructor
 	 *
 	 * @since 1.9
 	 *
-	 * @param object $polylang Polylang object.
+	 * @param PLL_Base $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		$this->options     = &$polylang->options;
@@ -42,6 +57,12 @@ class PLL_Share_Term_Slug {
 
 		add_action( 'created_term', array( $this, 'save_term' ), 1, 3 );
 		add_action( 'edited_term', array( $this, 'save_term' ), 1, 3 );
+		add_filter( 'pre_term_name', array( $this, 'set_pre_term_name' ) );
+		add_filter( 'pre_term_slug', array( $this, 'set_pre_term_slug' ), 10, 2 );
+
+		// Remove Polylang filter to avoid conflicts when filtering slugs.
+		remove_filter( 'pre_term_name', array( $polylang->terms, 'set_pre_term_name' ), 10 );
+		remove_filter( 'pre_term_slug', array( $polylang->terms, 'set_pre_term_slug' ), 10 );
 	}
 
 	/**
@@ -73,7 +94,7 @@ class PLL_Share_Term_Slug {
 		 */
 		if ( is_taxonomy_hierarchical( $term->taxonomy ) && ! empty( $term->parent ) ) {
 			$the_parent = $term->parent;
-			while ( ! empty( $the_parent ) ) {
+			while ( $the_parent > 0 ) {
 				$parent_term = get_term( $the_parent, $term->taxonomy );
 				if ( ! $parent_term instanceof WP_Term ) {
 					break;
@@ -84,9 +105,6 @@ class PLL_Share_Term_Slug {
 					return apply_filters( 'wp_unique_term_slug', $slug, $term, $original_slug );
 				}
 
-				if ( empty( $parent_term->parent ) ) {
-					break;
-				}
 				$the_parent = $parent_term->parent;
 			}
 		}
@@ -134,7 +152,7 @@ class PLL_Share_Term_Slug {
 
 		$term = get_term( $term_id, $taxonomy );
 
-		if ( ! ( $term instanceof WP_Term ) || false === ( $pos = strpos( $term->slug, '___' ) ) ) {
+		if ( ! ( $term instanceof WP_Term ) || false === ( $pos = strpos( $term->slug, self::TERM_SLUG_SEPARATOR ) ) ) {
 			return;
 		}
 
@@ -145,5 +163,105 @@ class PLL_Share_Term_Slug {
 		$slug = $this->unique_term_slug( $slug, $lang, (object) $term );
 		$wpdb->update( $wpdb->terms, compact( 'slug' ), compact( 'term_id' ) );
 		clean_term_cache( $term_id, $taxonomy );
+	}
+
+	/**
+	 * Stores the term name to use in 'pre_term_slug'.
+	 *
+	 * @since 3.3
+	 *
+	 * @param string $name Term name.
+	 * @return string      Unmodified term name.
+	 */
+	public function set_pre_term_name( $name ) {
+		return $this->pre_term_name = $name;
+	}
+
+	/**
+	 * Appends language slug to the term slug if needed.
+	 *
+	 * @since 3.3
+	 *
+	 * @param string $slug     Term slug.
+	 * @param string $taxonomy Term taxonomy.
+	 * @return string Slug with a language suffix if found.
+	 */
+	public function set_pre_term_slug( $slug, $taxonomy ) {
+		if ( ! $this->model->is_translated_taxonomy( $taxonomy ) ) {
+			return $slug;
+		}
+
+		if ( ! $slug ) {
+			$slug = sanitize_title( $this->pre_term_name );
+		}
+
+		if ( ! term_exists( $slug, $taxonomy ) ) {
+			return $slug;
+		}
+
+		/** This filter is documented in polylang/include/crud-terms.php */
+		$lang = apply_filters( 'pll_inserted_term_language', null, $taxonomy, $slug );
+
+		if ( ! $lang instanceof PLL_Language ) {
+			return $slug;
+		}
+
+		$parent = 0;
+
+		if ( is_taxonomy_hierarchical( $taxonomy ) ) {
+			/** This filter is documented in polylang/include/crud-terms.php */
+			$parent = apply_filters( 'pll_inserted_term_parent', 0, $taxonomy, $slug );
+
+			$slug .= $this->maybe_get_parent_suffix( $parent, $taxonomy, $slug );
+		}
+
+		$term_id = (int) $this->model->term_exists_by_slug( $slug, $lang, $taxonomy, $parent );
+
+		/**
+		 * If no term exists in the given language with that slug, it can be created.
+		 * Or if we are editing the existing term, trick WordPress to allow shared slugs.
+		 */
+		if ( ! $term_id || ( ! empty( $_POST['tag_ID'] ) && (int) $_POST['tag_ID'] === $term_id ) || ( ! empty( $_POST['tax_ID'] ) && (int) $_POST['tax_ID'] === $term_id ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			$slug .= self::TERM_SLUG_SEPARATOR . $lang->slug;
+		}
+
+		return $slug;
+	}
+
+	/**
+	 * Returns the parent suffix for the slug only if parent slug is the same as the given one.
+	 * Recursively appends the parents slugs like WordPress does.
+	 *
+	 * @since 3.3
+	 *
+	 * @param int    $parent   Parent term ID.
+	 * @param string $taxonomy Parent taxonomy.
+	 * @param string $slug     Child term slug.
+	 * @return string Parents slugs if they are the same as the child slug, empty string otherwise.
+	 */
+	private function maybe_get_parent_suffix( $parent, $taxonomy, $slug ) {
+		$parent_suffix = '';
+		$the_parent    = get_term( $parent, $taxonomy );
+
+		if ( ! $the_parent instanceof WP_Term || $the_parent->slug !== $slug ) {
+			return $parent_suffix;
+		}
+
+		/**
+		 * Mostly copied from {@see wp_unique_term_slug()}.
+		 */
+		while ( ! empty( $the_parent ) ) {
+			$parent_term = get_term( $the_parent, $taxonomy );
+			if ( ! $parent_term instanceof WP_Term ) {
+				break;
+			}
+			$parent_suffix .= '-' . $parent_term->slug;
+			if ( ! term_exists( $slug . $parent_suffix ) ) {
+				break;
+			}
+			$the_parent = $parent_term->parent;
+		}
+
+		return $parent_suffix;
 	}
 }

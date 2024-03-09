@@ -19,16 +19,16 @@ class PLL_Frontend_Filters_Search {
 	/**
 	 * Current language.
 	 *
-	 * @var PLL_Language
+	 * @var PLL_Language|null
 	 */
 	public $curlang;
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
 	 * @since 1.2
 	 *
-	 * @param object $polylang
+	 * @param object $polylang The Polylang object.
 	 */
 	public function __construct( &$polylang ) {
 		$this->links_model = &$polylang->links_model;
@@ -38,8 +38,12 @@ class PLL_Frontend_Filters_Search {
 		// Low priority in case the search form is created using the same filter as described in http://codex.wordpress.org/Function_Reference/get_search_form
 		add_filter( 'get_search_form', array( $this, 'get_search_form' ), 99 );
 
+		// Adds the language information in the search block.
+		add_filter( 'render_block_core/search', array( $this, 'get_search_form' ) );
+
 		// Adds the language information in admin bar search form
 		add_action( 'add_admin_bar_menus', array( $this, 'add_admin_bar_menus' ) );
+
 
 		// Adds javascript at the end of the document
 		// Was used for WP < 3.6. kept just in case
@@ -59,17 +63,25 @@ class PLL_Frontend_Filters_Search {
 	 * @return string Modified search form.
 	 */
 	public function get_search_form( $form ) {
-		if ( $form ) {
-			if ( $this->links_model->using_permalinks ) {
-				// Take care to modify only the url in the <form> tag.
-				preg_match( '#<form.+?>#', $form, $matches );
-				$old = reset( $matches );
-				// Replace action attribute (a text with no space and no closing tag within double quotes or simple quotes or without quotes).
-				$new = preg_replace( '#\saction=("[^"\r\n]+"|\'[^\'\r\n]+\'|[^\'"][^>\s]+)#', ' action="' . esc_url( $this->curlang->search_url ) . '"', $old );
-				$form = str_replace( $old, $new, $form );
-			} else {
-				$form = str_replace( '</form>', '<input type="hidden" name="lang" value="' . esc_attr( $this->curlang->slug ) . '" /></form>', $form );
+		if ( empty( $form ) || empty( $this->curlang ) ) {
+			return $form;
+		}
+
+		if ( $this->links_model->using_permalinks ) {
+			// Take care to modify only the url in the <form> tag.
+			preg_match( '#<form.+?>#', $form, $matches );
+			$old = reset( $matches );
+			if ( empty( $old ) ) {
+				return $form;
 			}
+			// Replace action attribute (a text with no space and no closing tag within double quotes or simple quotes or without quotes).
+			$new = preg_replace( '#\saction=("[^"\r\n]+"|\'[^\'\r\n]+\'|[^\'"][^>\s]+)#', ' action="' . esc_url( $this->curlang->get_search_url() ) . '"', $old );
+			if ( empty( $new ) ) {
+				return $form;
+			}
+			$form = str_replace( $old, $new, $form );
+		} else {
+			$form = str_replace( '</form>', '<input type="hidden" name="lang" value="' . esc_attr( $this->curlang->slug ) . '" /></form>', $form );
 		}
 
 		return $form;
@@ -93,13 +105,16 @@ class PLL_Frontend_Filters_Search {
 	 *
 	 * @since 0.9
 	 *
-	 * @param WP_Admin_Bar $wp_admin_bar
+	 * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance, passed by reference.
 	 * @return void
 	 */
 	public function admin_bar_search_menu( $wp_admin_bar ) {
 		$form  = '<form action="' . esc_url( home_url( '/' ) ) . '" method="get" id="adminbarsearch">';
 		$form .= '<input class="adminbar-input" name="s" id="adminbar-search" type="text" value="" maxlength="150" />';
-		$form .= '<label for="adminbar-search" class="screen-reader-text">' . esc_html__( 'Search', 'polylang' ) . '</label>';
+		$form .= '<label for="adminbar-search" class="screen-reader-text">' .
+					/* translators: Hidden accessibility text. */
+					esc_html__( 'Search', 'polylang' ) .
+				'</label>';
 		$form .= '<input type="submit" class="adminbar-button" value="' . esc_attr__( 'Search', 'polylang' ) . '" />';
 		$form .= '</form>';
 
@@ -117,20 +132,21 @@ class PLL_Frontend_Filters_Search {
 	}
 
 	/**
-	 * Allows modifying the search form if it does not pass get_search_form
+	 * Allows modifying the search form if it does not pass get_search_form.
 	 *
 	 * @since 0.1
 	 *
 	 * @return void
 	 */
 	public function wp_print_footer_scripts() {
-		// Don't use directly e[0] just in case there is somewhere else an element named 's'
-		// Check before if the hidden input has not already been introduced by get_search_form ( FIXME: is there a way to improve this ) ?
-		// Thanks to AndyDeGroo for improving the code for compatibility with old browsers
-		// http://wordpress.org/support/topic/development-of-polylang-version-08?replies=6#post-2645559
+		/*
+		 * Don't use directly e[0] just in case there is somewhere else an element named 's'
+		 * Check before if the hidden input has not already been introduced by get_search_form ( FIXME: is there a way to improve this ) ?
+		 * Thanks to AndyDeGroo for improving the code for compatibility with old browsers
+		 * http://wordpress.org/support/topic/development-of-polylang-version-08?replies=6#post-2645559
+		 */
 		$lang = esc_js( $this->curlang->slug );
-		$js = "//<![CDATA[
-		e = document.getElementsByName( 's' );
+		$js = "e = document.getElementsByName( 's' );
 		for ( i = 0; i < e.length; i++ ) {
 			if ( e[i].tagName.toUpperCase() == 'INPUT' ) {
 				s = e[i].parentNode.parentNode.children;
@@ -144,12 +160,18 @@ class PLL_Frontend_Filters_Search {
 					var ih = document.createElement( 'input' );
 					ih.type = 'hidden';
 					ih.name = 'lang';
-					ih.value = '$lang';
+					ih.value = '{$lang}';
 					e[i].parentNode.appendChild( ih );
 				}
 			}
+		}";
+
+		$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
+
+		if ( $type_attr ) {
+			$js = "/* <![CDATA[ */\n{$js}\n/* ]]> */";
 		}
-		//]]>";
-		echo '<script type="text/javascript">' . $js . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput
+
+		echo "<script{$type_attr}>\n{$js}\n</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 }

@@ -49,7 +49,7 @@ class PLL_Widget_Calendar extends WP_Widget_Calendar {
 		echo '</div>';
 		echo $args['after_widget'];
 
-		self::$pll_instance++; #modified#
+		++self::$pll_instance; #modified#
 	}
 
 	/**
@@ -58,10 +58,10 @@ class PLL_Widget_Calendar extends WP_Widget_Calendar {
 	 * @since 0.5
 	 *
 	 * @param bool $initial Optional, default is true. Use initial calendar names.
-	 * @param bool $echo    Optional, default is true. Set to false for return.
-	 * @return void|string Void if `$echo` argument is true, calendar HTML if `$echo` is false.
+	 * @param bool $display Optional, default is true. Set to false for return.
+	 * @return void|string Void if `$display` argument is true, calendar HTML if `$display` is false.
  	 */
-	static public function get_calendar( $initial = true, $echo = true ) {
+	static public function get_calendar( $initial = true, $display = true ) {
 		global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
 
 		$join_clause  = PLL()->model->post->join_clause(); #added#
@@ -74,7 +74,7 @@ class PLL_Widget_Calendar extends WP_Widget_Calendar {
 			/** This filter is documented in wp-includes/general-template.php */
 			$output = apply_filters( 'get_calendar', $cache[ $key ] );
 
-			if ( $echo ) {
+			if ( $display ) {
 				echo $output;
 				return;
 			}
@@ -133,16 +133,16 @@ class PLL_Widget_Calendar extends WP_Widget_Calendar {
 			FROM $wpdb->posts $join_clause
 			WHERE post_date < '$thisyear-$thismonth-01'
 			AND post_type = 'post' AND post_status = 'publish' $where_clause
-				ORDER BY post_date DESC
-				LIMIT 1"
+			ORDER BY post_date DESC
+			LIMIT 1"
 		);  #modified#
 		$next     = $wpdb->get_row(
 			"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
 			FROM $wpdb->posts $join_clause
 			WHERE post_date > '$thisyear-$thismonth-{$last_day} 23:59:59'
 			AND post_type = 'post' AND post_status = 'publish' $where_clause
-				ORDER BY post_date ASC
-				LIMIT 1"
+			ORDER BY post_date ASC
+			LIMIT 1"
 		);  #modified#
 
 		/* translators: Calendar caption: 1: Month name, 2: 4-digit year. */
@@ -271,7 +271,7 @@ class PLL_Widget_Calendar extends WP_Widget_Calendar {
 		$cache[ $key ] = $calendar_output;
 		wp_cache_set( 'get_calendar', $cache, 'calendar' );
 
-		if ( $echo ) {
+		if ( $display ) {
 			/** This filter is documented in wp-includes/general-template.php */
 			echo apply_filters( 'get_calendar', $calendar_output );
 			return;

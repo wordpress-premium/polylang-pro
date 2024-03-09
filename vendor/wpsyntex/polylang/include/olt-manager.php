@@ -16,14 +16,14 @@ class PLL_OLT_Manager {
 	/**
 	 * Singleton instance
 	 *
-	 * @var PLL_OLT_Manager
+	 * @var PLL_OLT_Manager|null
 	 */
 	protected static $instance;
 
 	/**
 	 * Stores the default site locale before it is modified.
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	protected $default_locale;
 
@@ -74,7 +74,7 @@ class PLL_OLT_Manager {
 	 *
 	 * @since 1.7
 	 *
-	 * @return object
+	 * @return PLL_OLT_Manager
 	 */
 	public static function instance() {
 		if ( empty( self::$instance ) ) {
@@ -93,23 +93,14 @@ class PLL_OLT_Manager {
 	 */
 	public function load_textdomains() {
 		// Our load_textdomain_mofile filter has done its job. let's remove it before calling load_textdomain
-		remove_filter( 'load_textdomain_mofile', array( $this, 'load_textdomain_mofile' ), 10, 2 );
-		remove_filter( 'gettext', array( $this, 'gettext' ), 10, 3 );
-		remove_filter( 'gettext_with_context', array( $this, 'gettext_with_context' ), 10, 4 );
+		remove_filter( 'load_textdomain_mofile', array( $this, 'load_textdomain_mofile' ) );
+		remove_filter( 'gettext', array( $this, 'gettext' ) );
+		remove_filter( 'gettext_with_context', array( $this, 'gettext_with_context' ) );
 		$new_locale = get_locale();
 
 		// Don't try to save time for en_US as some users have theme written in another language
 		// Now we can load all overridden text domains with the right language
 		if ( ! empty( $this->list_textdomains ) ) {
-			/*
-			 * FIXME: Backward compatibility with WP < 5.6
-			 * From WP 4.7 to 5.5, we need to reset the internal cache of _get_path_to_translation when switching from any locale to en_US.
-			 * See WP_Locale_Switcher::change_locale()
-			 */
-			if ( ! class_exists( 'WP_Textdomain_Registry' ) && function_exists( '_get_path_to_translation' ) ) {
-				_get_path_to_translation( '', true );
-			}
-
 			foreach ( $this->list_textdomains as $textdomain ) {
 				// Since WP 4.6, plugins translations are first loaded from wp-content/languages
 				if ( ! load_textdomain( $textdomain['domain'], str_replace( "{$this->default_locale}.mo", "$new_locale.mo", $textdomain['mo'] ) ) ) {
@@ -158,8 +149,10 @@ class PLL_OLT_Manager {
 		 */
 		do_action_ref_array( 'pll_translate_labels', array( &$this->labels ) );
 
-		// Free memory
-		unset( $this->default_locale, $this->list_textdomains, $this->labels );
+		// Free memory.
+		$this->default_locale   = null;
+		$this->list_textdomains = array();
+		$this->labels           = array();
 	}
 
 	/**
