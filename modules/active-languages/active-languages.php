@@ -41,7 +41,7 @@ class PLL_Active_Languages {
 		$this->curlang = &$polylang->curlang;
 
 		// Admin.
-		if ( $polylang instanceof PLL_Settings && ( empty( $_GET['page'] ) || 'mlang' == $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( $polylang instanceof PLL_Settings && ( empty( $_GET['page'] ) || 'mlang' === $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			add_filter( 'pll_languages_row_classes', array( $this, 'row_classes' ), 10, 2 );
 			add_filter( 'pll_default_lang_row_action', array( $this, 'remove_default_lang_action' ), 10, 2 );
 			add_filter( 'pll_languages_row_actions', array( $this, 'row_actions' ), 10, 2 );
@@ -135,6 +135,11 @@ class PLL_Active_Languages {
 	public function _enable( $lang_id, $enable ) {
 		$lang_id     = (int) $lang_id;
 		$language    = get_term( $lang_id, 'language' );
+
+		if ( ! $language instanceof WP_Term ) {
+			return;
+		}
+
 		$description = maybe_unserialize( $language->description );
 
 		$description['active'] = $enable;

@@ -65,7 +65,7 @@ class PLL_Sync_Post_REST {
 	 *
 	 * @since 2.4
 	 *
-	 * @param array $object Arry of post properties.
+	 * @param array $object Array of post properties.
 	 * @return array
 	 */
 	public function get_synchronizations( $object ) {

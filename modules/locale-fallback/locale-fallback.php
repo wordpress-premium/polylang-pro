@@ -123,6 +123,10 @@ class PLL_Locale_Fallback {
 			return $file;
 		}
 
+		if ( 'mo' === $parts['extension'] && is_readable( substr_replace( $file, '.l10n.php', - strlen( ".{$parts['extension']}" ) ) ) ) {
+			return $file;
+		}
+
 		$locale = preg_quote( $locale, '@' );
 
 		foreach ( $language->fallbacks as $fallback ) {
@@ -157,7 +161,6 @@ class PLL_Locale_Fallback {
 	 * @return void
 	 */
 	public function edit_language_form_fields( $edit_lang ) {
-		// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		$fallbacks_list = empty( $edit_lang->fallbacks ) ? '' : implode( ',', $edit_lang->fallbacks );
 		include __DIR__ . '/view-locale-fallback.php';
 	}
@@ -170,7 +173,6 @@ class PLL_Locale_Fallback {
 	 * @return void
 	 */
 	public function add_language_form_fields() {
-		// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		$fallbacks_list = '';
 		include __DIR__ . '/view-locale-fallback.php';
 	}
@@ -192,4 +194,3 @@ class PLL_Locale_Fallback {
 		return array_unique( $locales );
 	}
 }
-

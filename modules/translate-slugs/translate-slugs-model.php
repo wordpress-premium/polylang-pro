@@ -58,7 +58,7 @@ class PLL_Translate_Slugs_Model {
 		add_action( 'pll_update_language', array( $this, 'clean_cache' ) );
 
 		// Make sure we have all (possibly new) translatable slugs in the strings list table.
-		if ( $polylang instanceof PLL_Settings && isset( $_GET['page'] ) && 'mlang_strings' == $_GET['page'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( $polylang instanceof PLL_Settings && isset( $_GET['page'] ) && 'mlang_strings' === $_GET['page'] ) { // phpcs:ignore WordPress.Security.NonceVerification
 			delete_transient( 'pll_translated_slugs' );
 		}
 	}
@@ -98,7 +98,7 @@ class PLL_Translate_Slugs_Model {
 
 		// Keep only the slugs which are translated to avoid unnecessary rewrite rules.
 		foreach ( $this->translated_slugs as $key => $value ) {
-			if ( 1 == count( array_unique( $value['translations'] ) ) && reset( $value['translations'] ) == $value['slug'] ) {
+			if ( 1 === count( array_unique( $value['translations'] ) ) && reset( $value['translations'] ) === $value['slug'] ) {
 				unset( $this->translated_slugs[ $key ] );
 			}
 		}
@@ -196,7 +196,7 @@ class PLL_Translate_Slugs_Model {
 
 				// Taxonomies.
 				foreach ( get_taxonomies( array(), 'objects' ) as $tax ) {
-					if ( ! empty( $tax->rewrite['slug'] ) && ( $this->model->is_translated_taxonomy( $tax->name ) || 'post_format' == $tax->name ) ) {
+					if ( ! empty( $tax->rewrite['slug'] ) && ( $this->model->is_translated_taxonomy( $tax->name ) || 'post_format' === $tax->name ) ) {
 						$slug = trim( $tax->rewrite['slug'], '/' ); // It seems that some plugins add / (ex: WooCommerce for product attributes).
 						$slugs[ $tax->name ]['slug'] = $slug;
 						$tr_slug = $mo->translate( $slug );
@@ -207,7 +207,8 @@ class PLL_Translate_Slugs_Model {
 				// Post formats.
 				// get_theme_support sends an array of arrays.
 				$formats = get_theme_support( 'post-formats' );
-				if ( isset( $formats[0] ) && is_array( $formats[0] ) ) {
+
+				if ( is_array( $formats ) && isset( $formats[0] ) && is_array( $formats[0] ) ) {
 					foreach ( $formats[0] as $format ) {
 						$slugs[ 'post-format-' . $format ]['slug'] = $format;
 						$tr_format = $mo->translate( $format );
@@ -265,7 +266,7 @@ class PLL_Translate_Slugs_Model {
 	 * @return void
 	 */
 	public function prepare_rewrite_rules() {
-		if ( ! $this->model->has_languages() || ! did_action( 'wp_loaded' ) || has_filter( 'rewrite_rules_array', array( $this, 'rewrite_translated_slug' ) ) ) {
+		if ( ! $this->model->has_languages() || has_filter( 'rewrite_rules_array', array( $this, 'rewrite_translated_slug' ) ) ) {
 			return;
 		}
 
@@ -383,17 +384,23 @@ class PLL_Translate_Slugs_Model {
 	 * @return string[] Modified rewrite rules.
 	 */
 	protected function translate_post_format_rule( $rules ) {
-		$newrules = array();
-		$formats  = get_theme_support( 'post-formats' );
+		$formats = get_theme_support( 'post-formats' );
 
-		if ( isset( $formats[0] ) && is_array( $formats[0] ) ) {
-			foreach ( $formats[0] as $format ) {
-				if ( isset( $this->translated_slugs[ 'post-format-' . $format ] ) ) {
-					$new_slug = '/' . $this->get_translated_slugs_pattern( 'post-format-' . $format, true );
-					foreach ( $rules as $key => $rule ) {
-						$newrules[ str_replace( '/([^/]+)/', $new_slug, $key ) ] = str_replace( '$matches[1]', $format, $rule );
-					}
-				}
+		if ( ! is_array( $formats ) || ! isset( $formats[0] ) || ! is_array( $formats[0] ) ) {
+			return $rules;
+		}
+
+		$newrules = array();
+
+		foreach ( $formats[0] as $format ) {
+			if ( ! isset( $this->translated_slugs[ 'post-format-' . $format ] ) ) {
+				continue;
+			}
+
+			$new_slug = '/' . $this->get_translated_slugs_pattern( 'post-format-' . $format, true );
+
+			foreach ( $rules as $key => $rule ) {
+				$newrules[ str_replace( '/([^/]+)/', $new_slug, $key ) ] = str_replace( '$matches[1]', $format, $rule );
 			}
 		}
 

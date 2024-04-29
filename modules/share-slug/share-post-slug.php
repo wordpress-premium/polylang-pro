@@ -114,6 +114,7 @@ class PLL_Share_Post_Slug {
 	 * @return WP_Post|mixed[]|null WP_Post on success or null on failure.
 	 *
 	 * @phpstan-param non-empty-string $lang
+	 * @phpstan-param 'ARRAY_A'|'ARRAY_N'|'OBJECT' $output
 	 * @phpstan-return array<int|string, mixed>|WP_Post|null
 	 */
 	protected function get_page_by_path( $page_path, $lang, $output = OBJECT, $post_type = 'page' ) {
@@ -148,21 +149,21 @@ class PLL_Share_Post_Slug {
 
 		$foundid = 0;
 		foreach ( (array) $pages as $page ) {
-			if ( $page->post_name == $revparts[0] ) {
+			if ( $page->post_name === $revparts[0] ) {
 				$count = 0;
 				$p = $page;
-				while ( 0 != $p->post_parent && isset( $pages[ $p->post_parent ] ) ) {
-					$count++;
+				while ( 0 !== (int) $p->post_parent && isset( $pages[ $p->post_parent ] ) ) {
+					++$count;
 					$parent = $pages[ $p->post_parent ];
-					if ( ! isset( $revparts[ $count ] ) || $parent->post_name != $revparts[ $count ] ) {
+					if ( ! isset( $revparts[ $count ] ) || $parent->post_name !== $revparts[ $count ] ) {
 						break;
 					}
 					$p = $parent;
 				}
 
-				if ( 0 == $p->post_parent && count( $revparts ) == $count + 1 && $p->post_name == $revparts[ $count ] ) {
+				if ( 0 === (int) $p->post_parent && count( $revparts ) === $count + 1 && $p->post_name === $revparts[ $count ] ) {
 					$foundid = $page->ID;
-					if ( $page->post_type == $post_type ) {
+					if ( $page->post_type === $post_type ) {
 						break;
 					}
 				}
@@ -302,7 +303,7 @@ class PLL_Share_Post_Slug {
 			return $slug;
 		}
 
-		if ( 'attachment' == $post_type ) {
+		if ( 'attachment' === $post_type ) {
 			// Attachment slugs must be unique across all types.
 			$sql  = "SELECT post_name FROM {$wpdb->posts}";
 			$sql .= $this->model->post->join_clause();

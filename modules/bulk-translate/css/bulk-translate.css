@@ -33,6 +33,23 @@
 	line-height: normal;
 }
 
+#pll-translate label[for="pll-select-format"] {
+	padding-left: 18px;
+}
+
+#pll-translate #pll-select-format {
+	margin-left: 0.5rem;
+}
+
+@supports(selector(:has(*))) {
+	#pll-translate label[for="pll-select-format"] {
+		display: none;
+	}
+	#pll-translate label:has([name="translate"][value="pll_export_post"]:checked) ~ [for="pll-select-format"] {
+		display: flex;
+	}
+}
+
 @media screen and ( max-width: 782px ) {
 	#wpbody-content #pll-translate .pll-bulk-translate-fields-wrapper {
 		flex-direction: column;

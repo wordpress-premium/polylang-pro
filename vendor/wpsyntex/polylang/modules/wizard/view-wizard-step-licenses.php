@@ -9,7 +9,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly.
-};
+}
 
 $licenses = apply_filters( 'pll_settings_licenses', array() );
 $is_error = isset( $_GET['activate_error'] ) && 'i18n_license_key_error' === sanitize_key( $_GET['activate_error'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -25,7 +25,7 @@ $is_error = isset( $_GET['activate_error'] ) && 'i18n_license_key_error' === san
 	<?php endif; ?>
 </div>
 <div class="form-field">
-	<table id="pll-licenses-table" class="form-table">
+	<table id="pll-licenses-table" class="form-table pll-table-top">
 		<tbody>
 		<?php
 		foreach ( $licenses as $license ) {

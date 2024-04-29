@@ -42,9 +42,12 @@ abstract class PLL_File_Format {
 	/**
 	 * Returns the associated export class.
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 *
-	 * @return PLL_Export_File_Interface
+	 * @param string $version Optional file format version.
+	 * @return string
+	 *
+	 * @phpstan-return class-string<PLL_Export_Data>
 	 */
-	abstract public function get_export();
+	abstract public function get_export_class( $version = '' ): string;
 }

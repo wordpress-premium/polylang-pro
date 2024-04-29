@@ -8,22 +8,21 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly.
-};
+}
 
-$url = admin_url( 'admin.php?page=mlang_strings&translate=export' );
+$url = admin_url( 'admin.php?page=mlang_strings&translate=export&noheader=true' );
 $languages = $this->model->get_languages_list();
 $default_language = $this->model->get_default_language();
 $strings = PLL_Admin_Strings::get_strings();
 $groups = array_unique( wp_list_pluck( $strings, 'context' ) );
-$file_format_factory = new PLL_File_Format_Factory();
-$supported_extensions = wp_list_pluck( $file_format_factory->get_supported_formats(), 'extension' );
+$supported_formats = ( new PLL_File_Format_Factory() )->get_supported_formats( 'strings' ); // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 ?>
 <div class="form-wrap">
 	<form id="export-string-translation" method="post" action="<?php echo esc_url( $url ); ?>">
 		<div class="form-field">
 			<fieldset>
-				<?php wp_nonce_field( PLL_Export_Strings_Translations::ACTION_NAME, PLL_Export_Strings_Translations::NONCE_NAME ); ?>
-				<input type="hidden" name="export" value="string-translation" />
+				<?php wp_nonce_field( PLL_Export_Strings_Action::ACTION_NAME, PLL_Export_Strings_Action::NONCE_NAME ); ?>
+				<input type="hidden" name="pll_action" value="export-translations" />
 				<legend class="pll-legend"><?php esc_html_e( 'Target languages', 'polylang-pro' ); ?></legend>
 				<?php
 				foreach ( $languages as $language ) {
@@ -57,15 +56,10 @@ $supported_extensions = wp_list_pluck( $file_format_factory->get_supported_forma
 			</select>
 		</div>
 		<div class="form-field">
-			<fieldset>
-				<legend class="pll-legend"><?php esc_html_e( 'Export file format', 'polylang-pro' ); ?></legend>
-				<?php foreach ( $supported_extensions as $index => $extension ) : ?>
-					<label>
-						<input name="filetype" type="radio" value="<?php echo esc_attr( $extension ); ?>" <?php checked( $index, 0 ); ?>/>
-						<?php echo esc_attr( strtoupper( $extension ) ); ?>
-					</label>
-				<?php endforeach; ?>
-			</fieldset>
+			<?php
+			// Uses $supported_formats variable.
+			include __DIR__ . '/view-export-file-format.php'; // phpcs:ignore PEAR.Files.IncludingFile.UseRequire
+			?>
 		</div>
 		<p class="submit">
 			<button type="submit" name="action" class="button button-primary" value="download"><?php echo esc_html__( 'Download', 'polylang-pro' ); ?></button>

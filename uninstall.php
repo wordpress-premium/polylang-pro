@@ -9,7 +9,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) { // If uninstall is not called from W
 
 add_action(
 	'pll_uninstall',
-	function() {
+	function () {
 		// Executes each module's uninstall script, if it exists.
 		foreach ( glob( __DIR__ . '/modules/*/uninstall.php', GLOB_NOSORT ) as $uninstall_script ) {
 			require $uninstall_script; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable

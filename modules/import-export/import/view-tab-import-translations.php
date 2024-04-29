@@ -8,7 +8,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly.
-};
+}
 
 $url = admin_url( 'admin.php?page=mlang_strings&noheader=true' );
 ?>

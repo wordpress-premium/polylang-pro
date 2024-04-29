@@ -46,12 +46,12 @@ class PLL_PO_Import implements PLL_Import_File_Interface {
 	 * @since 2.7
 	 *
 	 * @param string $filepath The path on the filesystem where the import file is located.
-	 * @return WP_Error|true
+	 * @return true|WP_Error True on success, a `WP_Error` object if a problem occurs during file import.
 	 */
-	public function import_from_file( $filepath ) {
+	public function import_from_file( string $filepath ) {
 		// PO::import_from_file returns false in case it does not succeed to parse the file.
 		if ( ! $this->po->import_from_file( $filepath ) ) {
-			return new WP_Error( 'pll_import_error', esc_html__( 'Error: Invalid file.', 'polylang-pro' ) );
+			return new WP_Error( 'pll_import_invalid_file', __( 'Error: Invalid file.', 'polylang-pro' ) );
 		}
 		return true;
 	}
@@ -104,7 +104,7 @@ class PLL_PO_Import implements PLL_Import_File_Interface {
 	 *
 	 * @return string The application name. An empty string if it couldn't be found.
 	 */
-	public function get_generator_name() {
+	public function get_generator_name(): string {
 		return $this->get_generator()['name'];
 	}
 
@@ -116,7 +116,7 @@ class PLL_PO_Import implements PLL_Import_File_Interface {
 	 * @return string The application version. An empty string if it couldn't be found or the name of the application.
 	 *                couldn't be found.
 	 */
-	public function get_generator_version() {
+	public function get_generator_version(): string {
 		return $this->get_generator()['version'];
 	}
 
@@ -127,7 +127,7 @@ class PLL_PO_Import implements PLL_Import_File_Interface {
 	 *
 	 * @return array
 	 */
-	public function get_next_entry() {
+	public function get_next_entry(): array {
 		if ( $this->once ) {
 			return array();
 		}
@@ -172,5 +172,4 @@ class PLL_PO_Import implements PLL_Import_File_Interface {
 			'version' => $product_version,
 		);
 	}
-
 }

@@ -5,12 +5,12 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly.
-};
+}
 
 if ( $polylang->model->has_languages() ) {
 	add_filter(
 		'pll_settings_modules',
-		function( $modules ) {
+		function ( $modules ) {
 			$k = array_search( 'PLL_Settings_Media', $modules );
 			if ( $k ) {
 				$modules[ $k ] = 'PLL_Settings_Advanced_Media';
@@ -22,7 +22,7 @@ if ( $polylang->model->has_languages() ) {
 
 	add_action(
 		'pll_init',
-		function( $polylang ) {
+		function ( $polylang ) {
 			if ( $polylang->options['media_support'] ) {
 				if ( $polylang instanceof PLL_Admin ) {
 					require_once POLYLANG_PRO_DIR . '/modules/bulk-translate/load.php';

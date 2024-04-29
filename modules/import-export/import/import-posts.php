@@ -76,9 +76,9 @@ class PLL_Import_Posts implements PLL_Import_Object_Interface {
 		}
 		$entry['fields']['post_status'] = $this->post_status;
 
-		$is_success = $this->translation_post_model->translate_post( $entry, $target_language );
+		$is_success = $this->translation_post_model->translate( $entry, $target_language );
 		if ( $is_success ) {
-			$this->success++;
+			++$this->success;
 
 			// Store the post ids during the import process.
 			$this->post_ids[] = $entry['id'];
@@ -96,9 +96,9 @@ class PLL_Import_Posts implements PLL_Import_Object_Interface {
 	 * @return void
 	 */
 	public function process_translated_post( $target_language, $post_ids ) {
-		$post_ids = array_filter( $post_ids, 'is_int' );
-		if ( ! empty( $post_ids ) ) {
-			$this->translation_post_model->translate_parent_for_posts( $post_ids, $target_language );
+		$post_ids = array_filter( array_map( 'absint', (array) $post_ids ) );
+		if ( ! empty( $post_ids ) && $target_language instanceof PLL_Language ) {
+			$this->translation_post_model->translate_parents( $post_ids, $target_language );
 		}
 	}
 
@@ -130,14 +130,13 @@ class PLL_Import_Posts implements PLL_Import_Object_Interface {
 		}
 
 		return new WP_Error(
-			'pll_import_updated',
-			esc_html(
-				sprintf(
-					/* translators: %d is a number of posts translations */
-					_n( '%d post translation updated.', '%d posts translations updated.', $this->success, 'polylang-pro' ),
-					$this->success
-				)
-			)
+			'pll_import_posts_success',
+			sprintf(
+				/* translators: %d is a number of posts translations */
+				_n( '%d post translation updated.', '%d posts translations updated.', $this->success, 'polylang-pro' ),
+				$this->success
+			),
+			'success'
 		);
 	}
 
@@ -154,19 +153,18 @@ class PLL_Import_Posts implements PLL_Import_Object_Interface {
 		}
 
 		return new WP_Error(
-			'pll_import_warning',
-			esc_html(
-				sprintf(
-					/* translators: %s is the post IDs */
-					_n(
-						'Warning: a matching source wasn\'t found for post ID: %s',
-						'Warning: matching sources weren\'t found for post IDs: %s',
-						count( $this->non_existing_post_ids ),
-						'polylang-pro'
-					),
-					wp_sprintf_l( '%l', $this->non_existing_post_ids )
-				)
-			)
+			'pll_import_posts_warning',
+			sprintf(
+				/* translators: %s is the post IDs */
+				_n(
+					'Warning: a matching source wasn\'t found for post ID: %s',
+					'Warning: matching sources weren\'t found for post IDs: %s',
+					count( $this->non_existing_post_ids ),
+					'polylang-pro'
+				),
+				wp_sprintf_l( '%l', $this->non_existing_post_ids )
+			),
+			'warning'
 		);
 	}
 

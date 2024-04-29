@@ -79,7 +79,7 @@ class PLL_Table_String extends WP_List_Table {
 	 * @since 0.6
 	 *
 	 * @param array  $item        Data related to the current string.
-	 * @param string $column_name The curent column name.
+	 * @param string $column_name The current column name.
 	 * @return string
 	 */
 	public function column_default( $item, $column_name ) {
@@ -371,7 +371,7 @@ class PLL_Table_String extends WP_List_Table {
 
 	/**
 	 * Saves the strings translations in DB
-	 * Optionaly clean the DB
+	 * Optionally clean the DB
 	 *
 	 * @since 1.9
 	 *
@@ -419,7 +419,7 @@ class PLL_Table_String extends WP_List_Table {
 				isset( $new_mo ) ? $new_mo->export_to_db( $language ) : $mo->export_to_db( $language );
 			}
 
-			add_settings_error( 'general', 'pll_strings_translations_updated', __( 'Translations updated.', 'polylang' ), 'updated' );
+			pll_add_notice( new WP_Error( 'pll_strings_translations_updated', __( 'Translations updated.', 'polylang' ), 'success' ) );
 
 			/**
 			 * Fires after the strings translations are saved in DB

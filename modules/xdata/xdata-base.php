@@ -208,7 +208,7 @@ abstract class PLL_Xdata_Base {
 				'xhr = new XMLHttpRequest();
 				xhr.open( "GET", "%1$s", true );
 				xhr.withCredentials = true;
-				xhr.onreadystatechange = function() {
+				xhr.onreadystatechange = function () {
 					if ( 4 == this.readyState && 200 == this.status && this.responseText && -1 != this.responseText ) {
 						window.location.replace( "%2$s" + "&key=" + this.responseText );
 					}
@@ -296,6 +296,8 @@ abstract class PLL_Xdata_Base {
 	 * @param int    $user_id     User ID.
 	 * @param string $scheme      Authentication scheme. Values include 'auth', 'secure_auth', or 'logged_in'.
 	 * @return void
+	 *
+	 * @phpstan-param 'auth'|'logged_in'|'secure_auth' $scheme
 	 */
 	public function set_auth_cookie( $auth_cookie, $expire, $expiration, $user_id, $scheme ) {
 		$cookie      = wp_parse_auth_cookie( $auth_cookie, $scheme );

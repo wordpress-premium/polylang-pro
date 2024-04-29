@@ -8,7 +8,7 @@
  *
  * @since 3.1
  *
- * Manage support for the xliff file format
+ * Manages support of XLIFF file format 2.1
  */
 class PLL_Xliff_Format extends PLL_File_Format {
 	/**
@@ -42,7 +42,7 @@ class PLL_Xliff_Format extends PLL_File_Format {
 	 */
 	public function is_supported() {
 		if ( ! extension_loaded( 'libxml' ) ) {
-			return new WP_Error( 'libxml_missing', 'Your PHP installation appears to be missing the libxml extension which is required by the importer.' );
+			return new WP_Error( 'pll_libxml_missing', __( 'Your PHP installation appears to be missing the libxml extension which is required by the importer.', 'polylang-pro' ) );
 		}
 
 		return true;
@@ -62,12 +62,25 @@ class PLL_Xliff_Format extends PLL_File_Format {
 	/**
 	 * Returns the associated export class.
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 *
-	 * @return PLL_Xliff_Export
+	 * @param string $version Optional file format version.
+	 * @return string
+	 *
+	 * @phpstan-return class-string<PLL_Xliff_Export_12>|class-string<PLL_Xliff_Export_20>|class-string<PLL_Xliff_Export_21>
 	 */
-	public function get_export() {
-		return new PLL_Xliff_Export();
+	public function get_export_class( $version = '' ): string {
+		switch ( $version ) {
+			case '20':
+				$class_name = PLL_Xliff_Export_20::class;
+				break;
+			case '21':
+				$class_name = PLL_Xliff_Export_21::class;
+				break;
+			default: // 1.2
+				$class_name = PLL_Xliff_Export_12::class;
+				break;
+		}
+		return $class_name;
 	}
-
 }

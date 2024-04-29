@@ -52,9 +52,9 @@ class PLL_Import_Terms implements PLL_Import_Object_Interface {
 	 * @param PLL_Language $target_language The targeted language for import.
 	 */
 	public function translate( $entry, $target_language ) {
-		$is_success = $this->translation_term_model->translate_term( $entry, $target_language );
+		$is_success = $this->translation_term_model->translate( $entry, $target_language );
 		if ( $is_success ) {
-			$this->success++;
+			++$this->success;
 
 			// Store the term ids during the import process.
 			$this->term_ids[] = $entry['id'];
@@ -72,8 +72,9 @@ class PLL_Import_Terms implements PLL_Import_Object_Interface {
 	 * @return void
 	 */
 	public function process_translated_terms( $target_language, $term_ids ) {
-		if ( ! empty( $term_ids ) ) {
-			$this->translation_term_model->translate_parent_for_terms( $term_ids, $target_language );
+		$term_ids = array_filter( array_map( 'absint', (array) $term_ids ) );
+		if ( ! empty( $term_ids ) && $target_language instanceof PLL_Language ) {
+			$this->translation_term_model->translate_parents( $term_ids, $target_language );
 		}
 	}
 
@@ -90,14 +91,13 @@ class PLL_Import_Terms implements PLL_Import_Object_Interface {
 		}
 
 		return new WP_Error(
-			'pll_import_updated',
-			esc_html(
-				sprintf(
-					/* translators: %d is a number of terms translations */
-					_n( '%d term translation updated.', '%d terms translations updated.', $this->success, 'polylang-pro' ),
-					$this->success
-				)
-			)
+			'pll_import_terms_success',
+			sprintf(
+				/* translators: %d is a number of terms translations */
+				_n( '%d term translation updated.', '%d terms translations updated.', $this->success, 'polylang-pro' ),
+				$this->success
+			),
+			'success'
 		);
 	}
 

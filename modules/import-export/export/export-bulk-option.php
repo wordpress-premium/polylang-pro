@@ -15,47 +15,52 @@
 class PLL_Export_Bulk_Option extends PLL_Bulk_Translate_Option {
 
 	/**
-	 * Represents the current file or multiple files to export.
-	 *
-	 * @var PLL_Export_Multi_Files
+	 * @var PLL_Export_Download
 	 */
-	protected $export;
-
-	/**
-	 * Allows to add post data to exported file.
-	 *
-	 * @var PLL_Export_Post
-	 */
-	protected $post;
-
-	/**
-	 * Allows to add term data to exported file.
-	 *
-	 * @var PLL_Export_Terms
-	 */
-	protected $term;
+	private $downloader;
 
 	/**
 	 * PLL_Export_Bulk_Option constructor.
 	 *
 	 * @since 3.3
+	 * @since 3.6 Added parameter `$downloader`.
 	 *
-	 * @param PLL_Model $model Used to query languages and post translations.
+	 * @param PLL_Model           $model      Used to query languages and post translations.
+	 * @param PLL_Export_Download $downloader Instance of the downloader.
 	 */
-	public function __construct( $model ) {
+	public function __construct( PLL_Model $model, PLL_Export_Download $downloader ) {
 		parent::__construct(
 			array(
-				'name'        => 'export',
+				'name'        => 'pll_export_post',
 				'description' => __( 'Export selected content into a file', 'polylang-pro' ),
 				'priority'    => 15,
 			),
 			$model
 		);
+
+		$this->downloader = $downloader;
+	}
+
+	/**
+	 * Displays the input bulk option in the bulk translate form.
+	 *
+	 * @since 3.6
+	 *
+	 * @param string $selected The selected option name.
+	 * @return void
+	 */
+	public function display( string $selected ) {
+		parent::display( $selected );
+		$supported_formats = ( new PLL_File_Format_Factory() )->get_supported_formats( 'posts' );
+		if ( empty( $supported_formats ) ) {
+			return;
+		}
+		include __DIR__ . '/view-export-file-format.php';
 	}
 
 	/**
 	 * Defines wether the export Bulk Translate option is available given the admin panel and user logged.
-	 * Do not add the 'export' bulk translate option if LIBXML extension is not loaded, no matter the screen.
+	 * Do not add the 'pll_export_post' bulk translate option if LIBXML extension is not loaded, no matter the screen.
 	 *
 	 * @since 3.3
 	 *
@@ -96,23 +101,27 @@ class PLL_Export_Bulk_Option extends PLL_Bulk_Translate_Option {
 	 * Export post content for converter.
 	 *
 	 * @since 3.3
+	 * @since 3.6 Returns a WP_Error instead of an array.
 	 *
 	 * @param int[]    $post_ids         The ids of the posts selected for export.
 	 * @param string[] $target_languages The target languages.
-	 *
-	 * @throws Exception Exception.
-	 *
-	 * @return void|array {
-	 *     array PLL_Bulk_Translate::ERROR Error notices to be displayed to the user when something wrong occurs when exporting.
-	 * }
+	 * @return WP_Error Notices to be displayed to the user when something wrong occurs when exporting.
 	 *
 	 * @phpstan-param non-empty-array<int<1,max>> $post_ids
 	 * @phpstan-param non-empty-array<string> $target_languages
-	 * @phpstan-return void|array{
-	 *     error: non-empty-array<0,string>
-	 * }
 	 */
-	public function do_bulk_action( $post_ids, $target_languages ) {
+	public function do_bulk_action( $post_ids, $target_languages ): WP_Error {
+		check_admin_referer( 'pll_translate', '_pll_translate_nonce' );
+
+		$file_format_factory = new PLL_File_Format_Factory();
+		$filetype            = ! empty( $_GET['filetype'] ) ? sanitize_key( $_GET['filetype'] ) : '';
+		$filetype            = $file_format_factory->split_filetype( $filetype );
+		$file_format         = $file_format_factory->from_extension( $filetype['extension'] );
+
+		if ( is_wp_error( $file_format ) ) {
+			return $file_format;
+		}
+
 		/** @var array<PLL_Language|false> */
 		$target_languages = array_combine(
 			$target_languages,
@@ -121,9 +130,7 @@ class PLL_Export_Bulk_Option extends PLL_Bulk_Translate_Option {
 		$target_languages = array_filter( $target_languages );
 
 		if ( empty( $target_languages ) ) {
-			return array(
-				PLL_Bulk_Translate::ERROR => array( esc_html__( 'Invalid target languages.', 'polylang-pro' ) ),
-			);
+			return new WP_Error( 'invalid-target-languages', __( 'Error: invalid target languages.', 'polylang-pro' ) );
 		}
 
 		$posts = get_posts(
@@ -140,125 +147,36 @@ class PLL_Export_Bulk_Option extends PLL_Bulk_Translate_Option {
 		);
 
 		if ( empty( $posts ) ) {
-			return array(
-				PLL_Bulk_Translate::ERROR => array( esc_html__( 'The posts selected for translation could not be found.', 'polylang-pro' ) ),
-			);
+			return new WP_Error( 'pll_no_posts_selected', __( 'The posts selected for translation could not be found.', 'polylang-pro' ) );
 		}
 
 		$is_ambiguous = $this->is_ambiguous( $posts );
 
 		if ( is_wp_error( $is_ambiguous ) ) {
-			return array(
-				PLL_Bulk_Translate::ERROR => array( $is_ambiguous->get_error_message() ),
-			);
+			return $is_ambiguous;
 		}
 
 		$posts_keyed_with_source_lang = $this->get_posts_by_language( $posts );
 		if ( empty( $posts_keyed_with_source_lang ) ) {
-			return array(
-				PLL_Bulk_Translate::ERROR => array( esc_html__( 'The posts selected for translation have no language.', 'polylang-pro' ) ),
-			);
+			return new WP_Error( 'pll_posts_with_no_language', __( 'The posts selected for translation have no language.', 'polylang-pro' ) );
 		}
 
-		$posts_by_lang = $this->get_posts_by_target_language( $posts_keyed_with_source_lang, array_keys( $target_languages ) );
-		if ( empty( $posts_by_lang ) ) {
-			return array(
-				PLL_Bulk_Translate::ERROR => array( esc_html__( 'The posts are already in the target language. Please select a different language for the translation.', 'polylang-pro' ) ),
-			);
+		$posts_by_target_lang = $this->get_posts_by_target_language( $posts_keyed_with_source_lang, array_keys( $target_languages ) );
+		if ( empty( $posts_by_target_lang ) ) {
+			return new WP_Error( 'pll_same_target_language', __( 'The posts are already in the target language. Please select a different language for the translation.', 'polylang-pro' ) );
 		}
 
-		// Instantiates the required properties for the later posts export.
-		$this->export = new PLL_Export_Multi_Files( new PLL_Xliff_Export() );
-		$this->post   = new PLL_Export_Post( $this->model );
-		$this->term   = new PLL_Export_Terms( $this->model );
+		$export_container = new PLL_Export_Container( $file_format->get_export_class( $filetype['version'] ) );
+		$export_objects   = new PLL_Export_Data_From_Posts( $this->model );
 
-		$this->export( new PLL_Export_Download_Zip(), $posts_by_lang );
-	}
+		foreach ( $posts_by_target_lang as $target_language_slug => $posts ) {
+			/** @var PLL_Language $target_language This cannot be false. */
+			$target_language = $this->model->get_language( $target_language_slug );
 
-	/**
-	 * Exports the posts with their related items and creates the files before redirecting.
-	 *
-	 * @since 3.3
-	 *
-	 * @param PLL_Export_Download_Zip $downloader       Handles the creation of a zip file containing the export.
-	 * @param WP_Post[][]             $posts_by_lang    An array, keyed with lang slugs, and containing arrays of `WP_Post` objects.
-	 * @param array                   $args             {
-	 *     Optional. A list of optional arguments.
-	 *
-	 *     @type bool $include_translated_items Tells if items that are already translated in the target languages must
-	 *                                          also be exported. This applies only to linked items (like assigned
-	 *                                          terms, items from reusable blocks, etc). Default is false.
-	 * }
-	 * @return void
-	 *
-	 * @phpstan-param array{include_translated_items?:bool} $args
-	 */
-	protected function export( PLL_Export_Download_Zip $downloader, array $posts_by_lang, array $args = array() ) {
-		$include_translated_items = ! empty( $args['include_translated_items'] );
-		$taxonomies               = $this->model->get_translated_taxonomies();
-		$post_types               = $this->model->get_translated_post_types();
-		$collect_posts            = new PLL_Collect_Linked_Posts( $this->model->options );
-		$collect_terms            = new PLL_Collect_Linked_Terms();
-
-		foreach ( $posts_by_lang as $lang_slug => $posts ) {
-			$lang = $this->model->get_language( $lang_slug );
-
-			if ( empty( $lang ) ) {
-				continue;
-			}
-
-			$linked_posts = $collect_posts->get_linked_posts( $posts, $post_types );
-
-			if ( ! $include_translated_items ) {
-				// Remove items that are already translated in this language.
-				foreach ( $linked_posts as $i => $linked_post ) {
-					if ( $this->model->post->get_translation( $linked_post->ID, $lang_slug ) ) {
-						// A translation already exists.
-						unset( $linked_posts[ $i ] );
-					}
-				}
-			}
-
-			$posts_to_export = array_merge( $posts, $linked_posts );
-
-			// Export posts, and posts collected in them.
-			foreach ( $posts_to_export as $post ) {
-				$this->translate( $post->ID, $lang_slug );
-			}
-
-			// Get terms assigned to linked posts.
-			$post_ids   = wp_list_pluck( $posts, 'ID' );
-			$post_terms = wp_get_object_terms( $post_ids, $taxonomies );
-			$post_terms = is_array( $post_terms ) ? $post_terms : array();
-
-			// Collect terms in posts.
-			$collected_terms = $collect_terms->get_linked_terms( $posts, $taxonomies );
-
-			if ( ! $include_translated_items ) {
-				// Remove items that are already translated in this language.
-				foreach ( $collected_terms as $i => $term ) {
-					if ( $this->model->term->get_translation( $term->term_id, $lang_slug ) ) {
-						// A translation already exists.
-						unset( $collected_terms[ $i ] );
-					}
-				}
-			}
-
-			// Merge terms and remove duplicates.
-			$all_terms = array();
-
-			foreach ( array_merge( $post_terms, $collected_terms ) as $term ) {
-				if ( ! isset( $all_terms[ $term->term_id ] ) ) {
-					$all_terms[ $term->term_id ] = $term;
-				}
-			}
-
-			// Export all terms.
-			$this->export = $this->term->export( $this->export, $all_terms, $lang );
+			$export_objects->send_to_export( $export_container, $posts, $target_language, array( 'include_translated_items' => true ) );
 		}
 
-		$downloader->create( $this->export );
-		add_action( 'wp_redirect', array( $downloader, 'send_response' ) );
+		return $this->downloader->create( $export_container );
 	}
 
 	/**
@@ -268,11 +186,8 @@ class PLL_Export_Bulk_Option extends PLL_Bulk_Translate_Option {
 	 *
 	 * @param int    $post_id         The ID of the post to export.
 	 * @param string $target_language Targeted languages.
-	 *
-	 * @throws Exception Exception.
 	 */
-	public function translate( $post_id, $target_language ) {
-		$this->export = $this->post->export( $this->export, $post_id, $target_language );
+	public function translate( $post_id, $target_language ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 	}
 
 	/**
@@ -324,7 +239,7 @@ class PLL_Export_Bulk_Option extends PLL_Bulk_Translate_Option {
 			$_posts = array_values( array_diff_key( $posts, array( $target_language => 1 ) ) );
 			if ( ! empty( $_posts ) ) {
 				/** @phpstan-var array<non-empty-string, non-empty-list<WP_Post>> $translation_matrix */
-				$translation_matrix[ $target_language ] = array_merge( ... $_posts );
+				$translation_matrix[ $target_language ] = array_merge( ...$_posts );
 			}
 		}
 

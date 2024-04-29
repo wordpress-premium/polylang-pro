@@ -13,7 +13,6 @@ defined( 'ABSPATH' ) || exit;
  * @phpstan-import-type DBInfoWithType from PLL_Translatable_Object_With_Types_Interface
  */
 class PLL_Translated_Term extends PLL_Translated_Object implements PLL_Translatable_Object_With_Types_Interface {
-
 	use PLL_Translatable_Object_With_Types_Trait;
 
 	/**
@@ -213,9 +212,9 @@ class PLL_Translated_Term extends PLL_Translated_Object implements PLL_Translata
 			 * @param string[] $taxonomies  List of taxonomy names (as array keys and values).
 			 * @param bool     $is_settings True when displaying the list of custom taxonomies in Polylang settings.
 			 */
-			$taxonomies = apply_filters( 'pll_get_taxonomies', $taxonomies, false );
+			$taxonomies = (array) apply_filters( 'pll_get_taxonomies', $taxonomies, false );
 
-			if ( did_action( 'after_setup_theme' ) ) {
+			if ( did_action( 'after_setup_theme' ) && ! doing_action( 'switch_blog' ) ) {
 				$this->model->cache->set( 'taxonomies', $taxonomies );
 			}
 		}
@@ -315,7 +314,7 @@ class PLL_Translated_Term extends PLL_Translated_Object implements PLL_Translata
 	}
 
 	/**
-	 * Returns database-related informations that can be used in some of this class methods.
+	 * Returns database-related information that can be used in some of this class methods.
 	 * These are specific to the table containing the objects.
 	 *
 	 * @see PLL_Translatable_Object::join_clause()

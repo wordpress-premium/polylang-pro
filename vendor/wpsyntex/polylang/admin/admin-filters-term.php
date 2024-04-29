@@ -302,22 +302,25 @@ class PLL_Admin_Filters_Term {
 				}
 
 				$this->model->term->set_language( $term_id, $language );
-				$term = get_term( $term_id, $taxonomy );
+				$term  = get_term( $term_id, $taxonomy );
+				$terms = array();
 
 				// Get all terms with the same name
 				// FIXME backward compatibility WP < 4.2
 				// No WP function to get all terms with the exact same name so let's use a custom query
 				// $terms = get_terms( $taxonomy, array( 'name' => $term->name, 'hide_empty' => false, 'fields' => 'ids' ) ); should be OK in 4.2
 				// I may need to rework the loop below
-				$terms = $wpdb->get_results(
-					$wpdb->prepare(
-						"SELECT t.term_id FROM $wpdb->terms AS t
-						INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id
-						WHERE tt.taxonomy = %s AND t.name = %s",
-						$taxonomy,
-						$term->name
-					)
-				);
+				if ( $term instanceof WP_Term ) {
+					$terms = $wpdb->get_results(
+						$wpdb->prepare(
+							"SELECT t.term_id FROM $wpdb->terms AS t
+							INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id
+							WHERE tt.taxonomy = %s AND t.name = %s",
+							$taxonomy,
+							$term->name
+						)
+					);
+				}
 
 				// If we have several terms with the same name, they are translations of each other
 				if ( count( $terms ) > 1 ) {
@@ -331,10 +334,8 @@ class PLL_Admin_Filters_Term {
 				}
 			}
 
-			else {
-				if ( current_user_can( 'edit_term', $term_id ) ) {
-					$this->model->term->set_language( $term_id, $this->model->get_language( sanitize_key( $_GET['inline_lang_choice'] ) ) );
-				}
+			elseif ( current_user_can( 'edit_term', $term_id ) ) {
+				$this->model->term->set_language( $term_id, $this->model->get_language( sanitize_key( $_GET['inline_lang_choice'] ) ) );
 			}
 		}
 
@@ -477,7 +478,10 @@ class PLL_Admin_Filters_Term {
 					$args = array_merge( $args, array( 'link' => 'edit' ) );
 				}
 
-				if ( $tag_cloud = wp_tag_cloud( $args ) ) {
+				$tag_cloud = wp_tag_cloud( $args );
+
+				if ( ! empty( $tag_cloud ) ) {
+					/** @phpstan-var non-falsy-string $tag_cloud */
 					$html = sprintf( '<div class="tagcloud"><h2>%1$s</h2>%2$s</div>', esc_html( $tax->labels->popular_items ), $tag_cloud );
 					$x->Add( array( 'what' => 'tag_cloud', 'data' => $html ) );
 				}
@@ -558,7 +562,7 @@ class PLL_Admin_Filters_Term {
 
 			$return[] = array(
 				'id'    => $term->term_id,
-				'value' => rtrim( $parents_list, ' >' ), // Trim the seperator added at the end by WP.
+				'value' => rtrim( $parents_list, ' >' ), // Trim the separator added at the end by WP.
 				'link'  => $this->links->edit_term_translation_link( $term->term_id, $term->taxonomy, $post_type ),
 			);
 		}
@@ -602,7 +606,12 @@ class PLL_Admin_Filters_Term {
 				$translations[ $key ] = $new_term_id;
 			}
 			else {
-				$tr_term       = get_term( $tr_id, $taxonomy );
+				$tr_term = get_term( $tr_id, $taxonomy );
+
+				if ( ! $tr_term instanceof WP_Term ) {
+					continue;
+				}
+
 				$split_term_id = _split_shared_term( $tr_id, $tr_term->term_taxonomy_id );
 
 				if ( is_int( $split_term_id ) ) {

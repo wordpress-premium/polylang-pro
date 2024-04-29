@@ -9,7 +9,7 @@ var __webpack_exports__ = {};
 const languagesList = jQuery( '.post_lang_choice' );
 
 // Dialog box for alerting the user about a risky changing.
-const initializeConfimationModal = () => {
+const initializeConfirmationModal = () => {
 	// We can't use underscore or lodash in this common code because it depends of the context classic or block editor.
 	// Classic editor underscore is loaded, Block editor lodash is loaded.
 	const { __ } = wp.i18n;
@@ -54,7 +54,7 @@ const initializeConfimationModal = () => {
 				title: __( 'Change language', 'polylang' ),
 				minWidth: 600,
 				maxWidth: '100%',
-				open: function( event, ui ) {
+				open: function ( event, ui ) {
 					// Change dialog box position for rtl language
 					if ( jQuery( 'body' ).hasClass( 'rtl' ) ) {
 						jQuery( this ).parent().css(
@@ -65,20 +65,20 @@ const initializeConfimationModal = () => {
 						);
 					}
 				},
-				close: function( event, ui ) {
+				close: function ( event, ui ) {
 					// When we're closing the dialog box we need to cancel the language change as we click on Cancel button.
 					confirmDialog( 'no' );
 				},
 				buttons: [
 					{
 						text: __( 'OK', 'polylang' ),
-						click: function( event ) {
+						click: function ( event ) {
 							confirmDialog( 'yes' );
 						}
 					},
 					{
 						text: __( 'Cancel', 'polylang' ),
-						click: function( event ) {
+						click: function ( event ) {
 							confirmDialog( 'no' );
 						}
 					}
@@ -152,7 +152,7 @@ function initMetaboxAutoComplete() {
 
 /**
  * Filters requests for translatable entities.
- * This logic is shared accross all Polylang plugins.
+ * This logic is shared across all Polylang plugins.
  *
  * @since 3.5
  *
@@ -186,7 +186,7 @@ const filterPathMiddleware = ( options, filteredRoutes, filter ) => {
  * @since 2.5
  */
 wp.apiFetch.use(
-	function( options, next ) {
+	function ( options, next ) {
 		/*
 		 * If options.url is defined, this is not a REST request but a direct call to post.php for legacy metaboxes.
 		 * If `filteredRoutes` is not defined, return early.
@@ -224,7 +224,7 @@ function getCurrentLanguage() {
  * @param {APIFetchOptions} options
  * @returns {APIFetchOptions}
  */
-function addLanguageParameter ( options ) {
+function addLanguageParameter( options ) {
 	if ( 'undefined' === typeof options.data || null === options.data ) {
 		// GET
 		options.path += ( ( options.path.indexOf( '?' ) >= 0 ) ? '&lang=' : '?lang=' ) + getCurrentLanguage();
@@ -251,7 +251,7 @@ function addLanguageParameter ( options ) {
  * @since 3.0
  */
 jQuery(
-	function( $ ) {
+	function ( $ ) {
 		// Initialize current language to be able to compare if it changes.
 		initializeLanguageOldValue();
 
@@ -259,13 +259,13 @@ jQuery(
 		// Ajax for changing the post's language in the languages metabox
 		$( '.post_lang_choice' ).on(
 			'change',
-			function( event ) {
+			function ( event ) {
 				const { select, dispatch, subscribe } = wp.data;
 				const emptyPost                       = isEmptyPost();
 				const { addQueryArgs }                = wp.url;
 
 				// Initialize the confirmation dialog box.
-				const confirmationModal            = initializeConfimationModal();
+				const confirmationModal            = initializeConfirmationModal();
 				const { dialogContainer : dialog } = confirmationModal;
 				let { dialogResult }               = confirmationModal;
 				const selectedOption               = event.target; // The selected option in the dropdown list.
@@ -303,7 +303,7 @@ jQuery(
 						$.post(
 							ajaxurl,
 							data,
-							function() {
+							function () {
 								blockEditorSavePostAndReloadPage();
 							}
 						);
@@ -345,9 +345,9 @@ jQuery(
 
 					// Listen if the savePost is completely done by subscribing to its events.
 					const savePostIsDone = new Promise(
-						function( resolve, reject ) {
+						function ( resolve, reject ) {
 							unsubscribe = subscribe(
-								function() {
+								function () {
 									const post                 = select( 'core/editor').getCurrentPost();
 									const { id, status, type } = post;
 									const error                = select( 'core' )
@@ -382,16 +382,16 @@ jQuery(
 
 					// Process
 					savePostIsDone.then(
-						function() {
+						function () {
 							// If the post is well saved, we can reload the page
 							window.location.reload();
 						},
-						function() {
+						function () {
 							// If the post save failed
 							unsubscribe();
 						}
 					).catch(
-						function() {
+						function () {
 							// If an exception is thrown
 							unsubscribe();
 						}

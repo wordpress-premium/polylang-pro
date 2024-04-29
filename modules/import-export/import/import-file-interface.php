@@ -17,9 +17,9 @@ interface PLL_Import_File_Interface {
 	 * @since 2.7
 	 *
 	 * @param string $filepath The path on the filesystem where the import file is located.
-	 * @return WP_Error|true
+	 * @return true|WP_Error True on success, a `WP_Error` object if a problem occurs during file import.
 	 */
-	public function import_from_file( $filepath );
+	public function import_from_file( string $filepath );
 
 	/**
 	 * Get the target language
@@ -37,7 +37,7 @@ interface PLL_Import_File_Interface {
 	 *
 	 * @return array
 	 */
-	public function get_next_entry();
+	public function get_next_entry(): array;
 
 	/**
 	 * Get the site reference
@@ -55,7 +55,7 @@ interface PLL_Import_File_Interface {
 	 *
 	 * @return string The application name. An empty string if it couldn't be found.
 	 */
-	public function get_generator_name();
+	public function get_generator_name(): string;
 
 	/**
 	 * Returns the version of the application that generated the file.
@@ -65,5 +65,5 @@ interface PLL_Import_File_Interface {
 	 * @return string The application version. An empty string if it couldn't be found or the name of the application.
 	 *                couldn't be found.
 	 */
-	public function get_generator_version();
+	public function get_generator_version(): string;
 }

@@ -501,6 +501,7 @@ function LanguagesOptionsList(_ref2) {
  *
  * @package Polylang-Pro
  */
+
 const settings_MODULE_KEY = 'pll/metabox';
 const settings_MODULE_CORE_EDITOR_KEY = 'core/editor';
 const settings_MODULE_SITE_EDITOR_KEY = 'core/edit-site';
@@ -526,6 +527,7 @@ var external_this_wp_url_ = __webpack_require__(470);
  *
  * @package Polylang-Pro
  */
+
 
 
 
@@ -885,6 +887,7 @@ function getLangSlugRegex() {
 
 
 
+
 /**
  * Internal dependencies
  */
@@ -1003,7 +1006,7 @@ const getEditedPostContextWithLegacy = () => {
   };
   if (siteEditorSelector.hasOwnProperty('getEditedPostContext')) {
     const context = siteEditorSelector.getEditedPostContext();
-    return null != context && null !== context.postType && null !== context.postId ? context : _context;
+    return context?.postType && context?.postId ? context : _context;
   }
 
   /**
@@ -1345,7 +1348,8 @@ const navigationLanguageSwitcherName = 'polylang/navigation-language-switcher';
       className: "wp-block-navigation-item"
     }, (0,external_this_wp_element_.createElement)((external_this_wp_serverSideRender_default()), {
       block: navigationLanguageSwitcherName,
-      attributes: props.attributes
+      attributes: props.attributes,
+      className: 'wp-block-navigation__container block-editor-block-list__layout'
     }), submenuIcon(showSubmenuIcon, openSubmenusOnClick, dropdown))));
   }
 });

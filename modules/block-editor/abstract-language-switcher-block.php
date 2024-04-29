@@ -135,7 +135,8 @@ abstract class PLL_Abstract_Language_Switcher_Block {
 
 		$attributes = array(
 			'className' => array(
-				'type' => 'string',
+				'type'    => 'string',
+				'default' => '',
 			),
 		);
 		foreach ( PLL_Switcher::get_switcher_options( 'block', 'default' ) as $option => $default ) {
@@ -143,7 +144,7 @@ abstract class PLL_Abstract_Language_Switcher_Block {
 				'type'    => 'boolean',
 				'default' => $default,
 			);
-		};
+		}
 
 		register_block_type(
 			$this->get_block_name(),

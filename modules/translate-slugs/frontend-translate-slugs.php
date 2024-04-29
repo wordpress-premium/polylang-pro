@@ -128,7 +128,7 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 			if ( ! empty( $obj ) ) {
 				if ( $this->model->is_translated_taxonomy( $obj->taxonomy ) ) {
 					$slugs[] = $obj->taxonomy;
-				} elseif ( 'post_format' == $obj->taxonomy ) {
+				} elseif ( 'post_format' === $obj->taxonomy ) {
 					$slugs[] = 'post_format';
 					$slugs[] = $obj->slug;
 				}

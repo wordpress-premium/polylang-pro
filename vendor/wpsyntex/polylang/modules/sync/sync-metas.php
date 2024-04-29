@@ -72,7 +72,7 @@ abstract class PLL_Sync_Metas {
 	 *
 	 * @return void
 	 */
-	protected function remove_all_meta_actions() {
+	public function remove_all_meta_actions() {
 		$this->remove_add_meta_action();
 
 		remove_filter( "update_{$this->meta_type}_metadata", array( $this, 'update_metadata' ), 999 );
@@ -100,7 +100,7 @@ abstract class PLL_Sync_Metas {
 	 *
 	 * @return void
 	 */
-	protected function add_all_meta_actions() {
+	public function add_all_meta_actions() {
 		$this->restore_add_meta_action();
 
 		add_filter( "update_{$this->meta_type}_metadata", array( $this, 'update_metadata' ), 999, 5 ); // Very late in case a filter prevents the meta to be updated
@@ -142,8 +142,8 @@ abstract class PLL_Sync_Metas {
 	 *
 	 * @since 2.3
 	 *
-	 * @param int    $from Id of the post from which we copy informations.
-	 * @param int    $to   Id of the post to which we paste informations.
+	 * @param int    $from Id of the post from which we copy information.
+	 * @param int    $to   Id of the post to which we paste information.
 	 * @param string $lang Language slug.
 	 * @param bool   $sync True if it is synchronization, false if it is a copy.
 	 * @return string[] List of meta keys.
@@ -157,8 +157,8 @@ abstract class PLL_Sync_Metas {
 		 *
 		 * @param string[] $keys List of custom fields names.
 		 * @param bool     $sync True if it is synchronization, false if it is a copy.
-		 * @param int      $from Id of the post from which we copy informations.
-		 * @param int      $to   Id of the post to which we paste informations.
+		 * @param int      $from Id of the post from which we copy information.
+		 * @param int      $to   Id of the post to which we paste information.
 		 * @param string   $lang Language slug.
 		 */
 		return array_unique( apply_filters( "pll_copy_{$this->meta_type}_metas", array(), $sync, $from, $to, $lang ) );
@@ -349,9 +349,11 @@ abstract class PLL_Sync_Metas {
 	public function copy( $from, $to, $lang, $sync = false ) {
 		$this->remove_all_meta_actions();
 
-		$to_copy = $this->get_metas_to_copy( $from, $to, $lang, $sync );
-		$metas = get_metadata( $this->meta_type, $from );
+		$to_copy  = $this->get_metas_to_copy( $from, $to, $lang, $sync );
+		$metas    = get_metadata( $this->meta_type, $from );
+		$metas    = is_array( $metas ) ? $metas : array();
 		$tr_metas = get_metadata( $this->meta_type, $to );
+		$tr_metas = is_array( $tr_metas ) ? $tr_metas : array();
 
 		foreach ( $to_copy as $key ) {
 			if ( empty( $metas[ $key ] ) ) {
@@ -359,25 +361,23 @@ abstract class PLL_Sync_Metas {
 					// If the meta key is not present in the source object, delete all values
 					delete_metadata( $this->meta_type, $to, wp_slash( $key ) );
 				}
+			} elseif ( ! empty( $tr_metas[ $key ] ) && 1 === count( $metas[ $key ] ) && 1 === count( $tr_metas[ $key ] ) ) {
+				// One custom field to update
+				$value = reset( $metas[ $key ] );
+				$value = maybe_unserialize( $value );
+				$to_value = $this->maybe_translate_value( $value, $key, $from, $to, $lang );
+				update_metadata( $this->meta_type, $to, wp_slash( $key ), is_object( $to_value ) ? $to_value : wp_slash( $to_value ) );
 			} else {
-				if ( ! empty( $tr_metas[ $key ] ) && 1 === count( $metas[ $key ] ) && 1 === count( $tr_metas[ $key ] ) ) {
-					// One custom field to update
-					$value = reset( $metas[ $key ] );
+				// Multiple custom fields, either in the source or the target
+				if ( ! empty( $tr_metas[ $key ] ) ) {
+					// The synchronization of multiple values custom fields is easier if we delete all metas first
+					delete_metadata( $this->meta_type, $to, wp_slash( $key ) );
+				}
+
+				foreach ( $metas[ $key ] as $value ) {
 					$value = maybe_unserialize( $value );
 					$to_value = $this->maybe_translate_value( $value, $key, $from, $to, $lang );
-					update_metadata( $this->meta_type, $to, wp_slash( $key ), is_object( $to_value ) ? $to_value : wp_slash( $to_value ) );
-				} else {
-					// Multiple custom fields, either in the source or the target
-					if ( ! empty( $tr_metas[ $key ] ) ) {
-						// The synchronization of multiple values custom fields is easier if we delete all metas first
-						delete_metadata( $this->meta_type, $to, wp_slash( $key ) );
-					}
-
-					foreach ( $metas[ $key ] as $value ) {
-						$value = maybe_unserialize( $value );
-						$to_value = $this->maybe_translate_value( $value, $key, $from, $to, $lang );
-						add_metadata( $this->meta_type, $to, wp_slash( $key ), is_object( $to_value ) ? $to_value : wp_slash( $to_value ) );
-					}
+					add_metadata( $this->meta_type, $to, wp_slash( $key ), is_object( $to_value ) ? $to_value : wp_slash( $to_value ) );
 				}
 			}
 		}

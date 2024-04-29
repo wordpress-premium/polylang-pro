@@ -14,10 +14,10 @@ class PLL_Settings_Share_Slug extends PLL_Settings_Preview_Share_Slug {
 	 *
 	 * @since 3.1
 	 *
-	 * @param object $polylang Polylang object.
+	 * @param PLL_Settings $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
-		parent::__construct( $polylang );
+		parent::__construct( $polylang, array( 'active_option' => 'none' ) );
 
 		if ( get_option( 'permalink_structure' ) ) {
 			add_action( 'admin_print_footer_scripts', array( $this, 'print_js' ) );
@@ -47,17 +47,6 @@ class PLL_Settings_Share_Slug extends PLL_Settings_Preview_Share_Slug {
 	}
 
 	/**
-	 * Avoid displaying the upgrade message.
-	 *
-	 * @since 1.9
-	 *
-	 * @return string
-	 */
-	public function get_upgrade_message() {
-		return '';
-	}
-
-	/**
 	 * Displays the javascript to handle dynamically the change in url modifications
 	 * as sharing slugs is not possible when the language is set from the content
 	 *
@@ -74,8 +63,8 @@ class PLL_Settings_Share_Slug extends PLL_Settings_Preview_Share_Slug {
 		?>
 		<script>
 			jQuery(
-				function( $ ){
-					$( "input[name='force_lang']" ).on( 'change', function() {
+				function ( $ ) {
+					$( "input[name='force_lang']" ).on( 'change', function () {
 						var value = $( this ).val();
 						if ( value > 0 ) {
 							$( "#pll-module-share-slugs" ).removeClass( "inactive" ).addClass( "active" ).children( "td" ).children( ".row-actions" ).html( '<?php echo $activated; // phpcs:ignore WordPress.Security.EscapeOutput ?>' );

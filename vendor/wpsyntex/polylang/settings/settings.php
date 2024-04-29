@@ -47,12 +47,13 @@ class PLL_Settings extends PLL_Admin_Base {
 
 		add_action( 'admin_init', array( $this, 'register_settings_modules' ) );
 
-		// Adds screen options and the about box in the languages admin panel
+		// Adds screen options and the about box in the languages admin panel.
 		add_action( 'load-toplevel_page_mlang', array( $this, 'load_page' ) );
 		add_action( 'load-languages_page_mlang_strings', array( $this, 'load_page_strings' ) );
 
-		// Saves per-page value in screen option
-		add_filter( 'set-screen-option', array( $this, 'set_screen_option' ), 10, 3 );
+		// Saves the per-page value in screen options.
+		add_filter( 'set_screen_option_pll_lang_per_page', array( $this, 'set_screen_option' ), 10, 3 );
+		add_filter( 'set_screen_option_pll_strings_per_page', array( $this, 'set_screen_option' ), 10, 3 );
 	}
 
 	/**
@@ -151,18 +152,17 @@ class PLL_Settings extends PLL_Admin_Base {
 	}
 
 	/**
-	 * Save the "Views/Uploads per page" option set by this user
+	 * Saves the number of rows in the languages or strings table set by this user.
 	 *
 	 * @since 0.9.5
 	 *
-	 * @param mixed  $status false or value returned by previous filter
-	 * @param string $option Name of the option being changed
-	 * @param string $value  Value of the option
-	 *
-	 * @return string New value if this is our option, otherwise nothing
+	 * @param mixed  $screen_option False or value returned by a previous filter, not used.
+	 * @param string $option        The name of the option, not used.
+	 * @param int    $value         The new value of the option to save.
+	 * @return int The new value of the option.
 	 */
-	public function set_screen_option( $status, $option, $value ) {
-		return 'pll_lang_per_page' === $option || 'pll_strings_per_page' === $option ? $value : $status;
+	public function set_screen_option( $screen_option, $option, $value ) {
+		return (int) $value;
 	}
 
 	/**
@@ -180,18 +180,16 @@ class PLL_Settings extends PLL_Admin_Base {
 				$errors = $this->model->add_language( $_POST );
 
 				if ( is_wp_error( $errors ) ) {
-					foreach ( $errors->get_error_messages() as $message ) {
-						add_settings_error( 'general', 'pll_add_language', $message );
-					}
+						pll_add_notice( $errors );
 				} else {
-					add_settings_error( 'general', 'pll_languages_created', __( 'Language added.', 'polylang' ), 'updated' );
+					pll_add_notice( new WP_Error( 'pll_languages_created', __( 'Language added.', 'polylang' ), 'success' ) );
 					$locale = sanitize_locale_name( $_POST['locale'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 
 					if ( 'en_US' !== $locale && current_user_can( 'install_languages' ) ) {
 						// Attempts to install the language pack
 						require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 						if ( ! wp_download_language_pack( $locale ) ) {
-							add_settings_error( 'general', 'pll_download_mo', __( 'The language was created, but the WordPress language file was not downloaded. Please install it manually.', 'polylang' ) );
+							pll_add_notice( new WP_Error( 'pll_download_mo', __( 'The language was created, but the WordPress language file was not downloaded. Please install it manually.', 'polylang' ), 'warning' ) );
 						}
 
 						// Force checking for themes and plugins translations updates
@@ -206,7 +204,7 @@ class PLL_Settings extends PLL_Admin_Base {
 				check_admin_referer( 'delete-lang' );
 
 				if ( ! empty( $_GET['lang'] ) && $this->model->delete_language( (int) $_GET['lang'] ) ) {
-					add_settings_error( 'general', 'pll_languages_deleted', __( 'Language deleted.', 'polylang' ), 'updated' );
+					pll_add_notice( new WP_Error( 'pll_languages_deleted', __( 'Language deleted.', 'polylang' ), 'success' ) );
 				}
 
 				self::redirect(); // To refresh the page ( possible thanks to the $_GET['noheader']=true )
@@ -217,11 +215,9 @@ class PLL_Settings extends PLL_Admin_Base {
 				$errors = $this->model->update_language( $_POST );
 
 				if ( is_wp_error( $errors ) ) {
-					foreach ( $errors->get_error_messages() as $message ) {
-						add_settings_error( 'general', 'pll_update_language', $message );
-					}
+					pll_add_notice( $errors );
 				} else {
-					add_settings_error( 'general', 'pll_languages_updated', __( 'Language updated.', 'polylang' ), 'updated' );
+					pll_add_notice( new WP_Error( 'pll_languages_updated', __( 'Language updated.', 'polylang' ), 'success' ) );
 				}
 
 				self::redirect(); // To refresh the page ( possible thanks to the $_GET['noheader']=true )
@@ -323,7 +319,7 @@ class PLL_Settings extends PLL_Admin_Base {
 
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
-		wp_enqueue_script( 'pll_admin', plugins_url( '/js/build/admin' . $suffix . '.js', POLYLANG_ROOT_FILE ), array( 'jquery', 'wp-ajax-response', 'postbox', 'jquery-ui-selectmenu' ), POLYLANG_VERSION, true );
+		wp_enqueue_script( 'pll_admin', plugins_url( '/js/build/admin' . $suffix . '.js', POLYLANG_ROOT_FILE ), array( 'jquery', 'wp-ajax-response', 'postbox', 'jquery-ui-selectmenu', 'wp-hooks' ), POLYLANG_VERSION, true );
 		wp_localize_script( 'pll_admin', 'pll_admin', array( 'dismiss_notice' => esc_html__( 'Dismiss this notice.', 'polylang' ) ) );
 
 		wp_enqueue_style( 'pll_selectmenu', plugins_url( '/css/build/selectmenu' . $suffix . '.css', POLYLANG_ROOT_FILE ), array(), POLYLANG_VERSION );
@@ -357,7 +353,7 @@ class PLL_Settings extends PLL_Admin_Base {
 	 * @return void
 	 */
 	public static function redirect( $args = array() ) {
-		$errors = get_settings_errors();
+		$errors = get_settings_errors( 'polylang' );
 		if ( ! empty( $errors ) ) {
 			set_transient( 'settings_errors', $errors, 30 );
 			$args['settings-updated'] = 1;
@@ -406,7 +402,7 @@ class PLL_Settings extends PLL_Admin_Base {
 		 */
 		$languages = apply_filters( 'pll_predefined_languages', $languages );
 
-		// Keep only languages with all necessary informations
+		// Keep only languages with all necessary information
 		foreach ( $languages as $k => $lang ) {
 			if ( ! isset( $lang['code'], $lang['locale'], $lang['name'], $lang['dir'], $lang['flag'] ) ) {
 				unset( $languages[ $k ] );

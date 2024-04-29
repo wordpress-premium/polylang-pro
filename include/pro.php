@@ -94,7 +94,7 @@ class PLL_Pro {
 		if ( isset( $value->response ) ) {
 			if ( empty( $plugins['polylang/polylang.php'] ) ) {
 				unset( $value->response['polylang/polylang.php'] );
-			} elseif ( isset( $value->response['polylang/polylang.php']->new_version ) && $plugins['polylang/polylang.php']['Version'] == $value->response['polylang/polylang.php']->new_version ) {
+			} elseif ( isset( $value->response['polylang/polylang.php']->new_version ) && $plugins['polylang/polylang.php']['Version'] === $value->response['polylang/polylang.php']->new_version ) {
 				$value->no_update['polylang/polylang.php'] = $value->response['polylang/polylang.php'];
 				unset( $value->response['polylang/polylang.php'] );
 			}

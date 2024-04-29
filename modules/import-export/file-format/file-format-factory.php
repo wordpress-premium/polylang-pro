@@ -16,11 +16,13 @@ class PLL_File_Format_Factory {
 	 *
 	 * @var string[]
 	 *
-	 * @phpstan-var array<class-string<PLL_File_Format>>
+	 * @phpstan-var array<string,class-string<PLL_File_Format>>
 	 */
 	protected $base_formats = array(
-		PLL_PO_Format::class,
-		PLL_Xliff_Format::class,
+		'PO'        => PLL_PO_Format::class,
+		'XLIFF_2.1' => PLL_Xliff_Format::class,
+		'XLIFF_2.0' => PLL_Xliff_Format::class,
+		'XLIFF_1.2' => PLL_Xliff_Format::class,
 	);
 
 	/**
@@ -35,19 +37,20 @@ class PLL_File_Format_Factory {
 	 *
 	 * @since 3.1
 	 *
+	 * @param string $context Context `strings` or `posts` where the export is requested.
 	 * @return PLL_File_Format[]
 	 */
-	public function get_supported_formats() {
+	public function get_supported_formats( string $context = '' ) {
 		if ( empty( $this->supported_formats ) ) {
 			$this->supported_formats = array_filter(
 				array_map(
-					function( $class ) {
-						return new $class();
+					function ( $format ) {
+						return new $format();
 					},
 					$this->base_formats
 				),
-				function( $format ) {
-					return true === $format->is_supported();
+				function ( $format ) use( $context ) {
+					return true === $format->is_supported() && ! ( 'posts' === $context && 'po' === $format->extension );
 				}
 			);
 		}
@@ -55,7 +58,7 @@ class PLL_File_Format_Factory {
 	}
 
 	/**
-	 * Get the format that matches the given extension.
+	 * Gets the format that matches the given extension.
 	 *
 	 * @since 3.1
 	 *
@@ -71,7 +74,26 @@ class PLL_File_Format_Factory {
 	}
 
 	/**
-	 * Get the format that matches the given mime type.
+	 * Splits extension and version from the file type.
+	 *
+	 * @since 3.6
+	 *
+	 * @param string $filetype The file type chosen from the UI.
+	 * @return string[] File extension and file format version.
+	 *
+	 * @phpstan array{extension:string,version:string}
+	 */
+	public function split_filetype( $filetype ) {
+		$filetype = explode( '_', sanitize_key( $filetype ) );
+
+		return array(
+			'extension' => $filetype[0],
+			'version'   => $filetype[1] ?? '',
+		);
+	}
+
+	/**
+	 * Gets the format that matches the given mime type.
 	 *
 	 * @since 3.1
 	 *
@@ -84,6 +106,18 @@ class PLL_File_Format_Factory {
 				return is_array( $format->mime_type ) && in_array( $mime_type, $format->mime_type, true );
 			}
 		);
+	}
+
+	/**
+	 * Gets the file format formated label to be displayed.
+	 *
+	 * @since 3.6
+	 *
+	 * @param string $label The file format label.
+	 * @return string The label formated to be displayed.
+	 */
+	public static function get_format_label( $label ) {
+		return strtoupper( str_replace( '_', ' ', $label ) );
 	}
 
 	/**
@@ -103,17 +137,17 @@ class PLL_File_Format_Factory {
 			return reset( $matching_formats );
 		}
 
-		$formats = array_map( 'strtoupper', wp_list_pluck( $supported_formats, 'extension' ) );
-		$list = wp_sprintf_l( '%l', $formats );
+		$formats = array_map( array( $this, 'get_format_label' ), array_keys( $supported_formats ) );
+		$list    = wp_sprintf_l( '%l', $formats );
 
 		if ( count( $supported_formats ) === 1 ) {
 			/* translators: %s is a file format, for example PO */
-			$message = sprintf( esc_html__( 'Error: Wrong file format. The only supported file format is %s.', 'polylang-pro' ), $list );
+			$message = sprintf( __( 'Error: Wrong file format. The only supported file format is %s.', 'polylang-pro' ), $list );
 		} else {
 			/* translators: %s is a suite of comma separate file formats, for example: PO, XLIFF */
-			$message = sprintf( esc_html__( 'Error: Wrong file format. The supported file formats are: %s.', 'polylang-pro' ), $list );
+			$message = sprintf( __( 'Error: Wrong file format. The supported file formats are: %s.', 'polylang-pro' ), $list );
 		}
 
-		return new WP_Error( 'pll_import_error', $message );
+		return new WP_Error( 'pll_import_wrong_file_format', $message );
 	}
 }

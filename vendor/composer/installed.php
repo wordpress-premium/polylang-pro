@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'wpsyntex/polylang-pro',
-        'pretty_version' => '3.5.x-dev',
-        'version' => '3.5.9999999.9999999-dev',
-        'reference' => '54f41a96832368b16549c4bf15a55c9c8ae854e5',
+        'pretty_version' => '3.6.x-dev',
+        'version' => '3.6.9999999.9999999-dev',
+        'reference' => 'bba99364ccf650b1b31833e70d02eb2879c85d8c',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,18 +11,18 @@
     ),
     'versions' => array(
         'wpsyntex/polylang' => array(
-            'pretty_version' => '3.5.x-dev',
-            'version' => '3.5.9999999.9999999-dev',
-            'reference' => 'c75dac4953c2f1f892835d7aeb6c5618f81fdf2e',
+            'pretty_version' => '3.6.x-dev',
+            'version' => '3.6.9999999.9999999-dev',
+            'reference' => 'd762db6d83067556f6270aa0f41b8e0b9b427477',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../wpsyntex/polylang',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
         'wpsyntex/polylang-pro' => array(
-            'pretty_version' => '3.5.x-dev',
-            'version' => '3.5.9999999.9999999-dev',
-            'reference' => '54f41a96832368b16549c4bf15a55c9c8ae854e5',
+            'pretty_version' => '3.6.x-dev',
+            'version' => '3.6.9999999.9999999-dev',
+            'reference' => 'bba99364ccf650b1b31833e70d02eb2879c85d8c',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

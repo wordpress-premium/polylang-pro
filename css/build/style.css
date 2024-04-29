@@ -145,12 +145,12 @@ body:not(.rtl) .translations .pll-translation-language {
   color: #1e1e1e;
 }
 
-#pll-duplicate {
+.pll-before-post-translations-button {
   float: right;
   margin: 7px 0 0;
 }
 
-.rtl #pll-duplicate {
+.rtl .pll-before-post-translations-button {
   float: left;
 }
 

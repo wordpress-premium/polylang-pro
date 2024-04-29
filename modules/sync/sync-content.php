@@ -286,7 +286,7 @@ class PLL_Sync_Content {
 		$out = array();
 
 		foreach ( $attr as $k => $v ) {
-			if ( 'ids' == $k ) {
+			if ( 'ids' === $k ) {
 				$ids    = explode( ',', $v );
 				$tr_ids = array();
 				foreach ( $ids as $id ) {
@@ -316,7 +316,7 @@ class PLL_Sync_Content {
 		$out = array();
 
 		foreach ( $attr as $k => $v ) {
-			if ( 'id' == $k ) {
+			if ( 'id' === $k ) {
 				$idarr = explode( '_', $v );
 				$id    = $idarr[1]; // Remember this
 				$tr_id = $idarr[1] = $this->translate_media( (int) $id );

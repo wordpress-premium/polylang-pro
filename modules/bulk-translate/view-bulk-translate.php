@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly
-};
+}
 
 ?>
 <form method="get"><table style="display: none"><tbody id="pll-bulk-translate">
@@ -35,16 +35,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<div class="inline-edit-col">
 							<span class="title"><?php esc_html_e( 'Action', 'polylang-pro' ); ?></span>
 							<?php
-							$option_nb = 0;
 							if ( isset( $bulk_translate_options ) ) {
+								$selected = reset( $bulk_translate_options );
 								foreach ( $bulk_translate_options as $bulk_translate_option ) {
-									?>
-									<label>
-										<span class="option"><input name="translate" type="radio" value="<?php echo esc_attr( $bulk_translate_option->get_name() ); ?>"<?php checked( 0, $option_nb ); ?>/></span>
-										<span class="description"><?php echo esc_html( $bulk_translate_option->get_description() ); ?></span>
-									</label>
-									<?php
-									$option_nb++;
+									$bulk_translate_option->display( $selected->get_name() );
 								}
 							}
 							?>

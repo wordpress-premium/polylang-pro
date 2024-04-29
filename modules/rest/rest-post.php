@@ -86,27 +86,40 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	 */
 	public function prepare_response( $response, $post, $request ) {
 		global $wpdb;
+
+		if ( ! in_array( $request->get_method(), array( 'POST', 'PUT' ), true ) ) {
+			return $response;
+		}
+
 		$data = $response->get_data();
 
-		if ( ! empty( $data['slug'] ) && in_array( $request->get_method(), array( 'POST', 'PUT' ) ) ) {
-			$params     = $request->get_params();
-			$attributes = $request->get_attributes();
-
-			if ( ! empty( $params['slug'] ) ) {
-				$requested_slug = $params['slug'];
-			} elseif ( is_array( $attributes['callback'] ) && 'create_item' === $attributes['callback'][1] ) {
-				// Allow sharing slug by default when creating a new post.
-				$requested_slug = sanitize_title( $post->post_title );
-			}
-
-			if ( isset( $requested_slug ) && $post->post_name !== $requested_slug ) {
-				$slug = wp_unique_post_slug( $requested_slug, $post->ID, $post->post_status, $post->post_type, $post->post_parent );
-				if ( $slug !== $data['slug'] && $wpdb->update( $wpdb->posts, array( 'post_name' => $slug ), array( 'ID' => $post->ID ) ) ) {
-					$data['slug'] = $slug;
-					$response->set_data( $data );
-				}
-			}
+		if ( ! is_array( $data ) || empty( $data['slug'] ) ) {
+			return $response;
 		}
+
+		$params     = $request->get_params();
+		$attributes = $request->get_attributes();
+
+		if ( ! empty( $params['slug'] ) ) {
+			$requested_slug = $params['slug'];
+		} elseif ( is_array( $attributes['callback'] ) && 'create_item' === $attributes['callback'][1] ) {
+			// Allow sharing slug by default when creating a new post.
+			$requested_slug = sanitize_title( $post->post_title );
+		}
+
+		if ( ! isset( $requested_slug ) || $post->post_name === $requested_slug ) {
+			return $response;
+		}
+
+		$slug = wp_unique_post_slug( $requested_slug, $post->ID, $post->post_status, $post->post_type, $post->post_parent );
+
+		if ( $slug === $data['slug'] || ! $wpdb->update( $wpdb->posts, array( 'post_name' => $slug ), array( 'ID' => $post->ID ) ) ) {
+			return $response;
+		}
+
+		$data['slug'] = $slug;
+		$response->set_data( $data );
+
 		return $response;
 	}
 
@@ -233,7 +246,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 			array_keys(  // Otherwise rest_base equals to the post type name.
 				array_filter(
 					$post_type_rest_bases,
-					function( $value ) {
+					function ( $value ) {
 						return ! $value;
 					}
 				)

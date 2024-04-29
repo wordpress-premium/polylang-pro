@@ -1,15 +1,15 @@
 === Polylang ===
 Contributors: Chouby, manooweb, raaaahman, marianne38, sebastienserre, greglone, hugod
 Donate link: https://polylang.pro
-Tags: multilingual, bilingual, translate, translation, language, multilanguage, international, localization
-Requires at least: 5.9
-Tested up to: 6.4
+Tags: multilingual, translate, translation, language, localization
+Requires at least: 6.2
+Tested up to: 6.5
 Requires PHP: 7.0
-Stable tag: 3.5.4
+Stable tag: 3.6.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Go multilingual in a simple and efficient way. Keep writing posts, creating categories and post tags as usual while defining the languages all at once.
+Go multilingual in a simple and efficient way. Keep writing posts and taxonomy terms as usual while defining their languages all at once.
 
 == Description ==
 
@@ -27,8 +27,8 @@ Polylang and [Polylang Pro](https://polylang.pro) share the same core providing 
 * Translating posts, pages, media, categories, post tags, custom post types and taxonomies, RSS feeds; RTL scripts are supported.
 * The language is either set by the language code in URL, or you can use a different sub-domain or domain per language.
 * Automatic copy of categories, post tags and other metas when creating a new post or page translation.
-* Translating menus and widgets.
-* Customizable language switcher available as a widget or a navigation menu item.
+* Translating classic menus and classic widgets. Also accessible with [Site Editor Classic Features](https://wordpress.org/plugins/fse-classic/) in block themes.
+* Customizable language switcher available as a classic widget or a classic navigation menu item.
 * Compatibility with Yoast SEO.
 
 ### Polylang Pro
@@ -64,7 +64,7 @@ Neither of them will allow to do automated translation.
 
 * [WPML to Polylang](https://wordpress.org/plugins/wpml-to-polylang/) allows migrating from WPML to Polylang.
 * [DynaMo](https://wordpress.org/plugins/dynamo/) speeds up the translation of WordPress for all non-English sites.
-* [Site Editor Classic Features](https://wordpress.org/plugins/fse-classic/) allows to use legacy widgets (including the Polylang language switcher) and menus in the site editor (FSE).
+* [Site Editor Classic Features](https://wordpress.org/plugins/fse-classic/) allows to use classic widgets (including the Polylang language switcher) and menus in the site editor (FSE).
 
 = Credits =
 
@@ -75,7 +75,7 @@ Wherever third party code has been used, credit has been given in the code’s c
 
 == Installation ==
 
-1. Make sure you are using WordPress 5.9 or later and that your server is running PHP 7.0 or later (same requirement as WordPress itself).
+1. Make sure you are using WordPress 6.2 or later and that your server is running PHP 7.0 or later (same requirement as WordPress itself).
 1. If you tried other multilingual plugins, deactivate them before activating Polylang, otherwise, you may get unexpected results!
 1. Install and activate the plugin as usual from the 'Plugins' menu in WordPress.
 1. The [setup wizard](https://polylang.pro/doc/setup-wizard/) is automatically launched to help you get started more easily with Polylang by configuring the main features.
@@ -104,7 +104,36 @@ Wherever third party code has been used, credit has been given in the code’s c
 
 == Changelog ==
 
-= 3.5.4 (2023-02-06) =
+= 3.6.1 (2024-04-09) =
+
+* Pro: Fix ACF fields not swown after a post was translated with DeepL
+* Remove rewrite when registering the language taxonomy #1457
+* Fix search block not filtered when displayed as button only #1459
+* Fix current language not kept when using switch_to_blog() in multisite #1458
+
+= 3.6 (2024-03-18) =
+
+* Requires WP 6.2 as minimum version
+* Add compatibility with WP 6.5
+* Pro: Add DeepL machine translation for posts
+* Pro: Add export and import in XLIFF 2.0/2.1 formats
+* Pro: Improve translator comments in exported PO files
+* Pro: Allow to export JSON encoded post and term metas in XLIFF files
+* Pro: Allow to export block sub-attributes in XLIFF files
+* Pro: Add footer notes block to XLIFF files
+* Pro: Single files are now exported directly instead of inside a zip
+* Pro: Reworked the language switcher navigation block
+* Pro: Fix language switcher navigation block justification not aligned with core settings in overlay menu (requires WP 6.5)
+* Pro: Fix a race condition which could lead to display a notice to the wrong user
+* Pro: Fix a conflict with ACF when rewrite rules are flushed with WP-CLI on a multisite
+* Pro: Fix import of several metas with same sources but different translations
+* Add filter `pll_cookie_args` to filter the Polylang cookie arguments #1406
+* Fix wrong translated post types and taxononies after a `switch_to_blog()` #1415
+* Fix a minor performance issue for the page for posts #1412
+* Fix a JS errors after quick edit. Props @mcguffin #1435, #1444
+* Fix a possible warning in view-translations-post.php #1439
+
+= 3.5.4 (2024-02-06) =
 
 * Pro: Fix an accessibility issue int the navigation language switcher block
 * Pro: Fix featured image not exported for posts with blocks

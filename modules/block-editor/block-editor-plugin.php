@@ -173,10 +173,21 @@ class PLL_Block_Editor_Plugin {
 				$editor_lang = $editor_lang->to_array();
 			}
 			$pll_settings = 'let pll_block_editor_plugin_settings = ' . wp_json_encode(
-				array(
-					'lang' => $editor_lang,
+				/**
+				 * Filters settings required by the UI.
+				 *
+				 * @since 3.6
+				 *
+				 * @param array $settings.
+				 */
+				(array) apply_filters(
+					'pll_block_editor_plugin_settings',
+					array(
+						'lang' => $editor_lang,
+					)
 				)
 			);
+
 			wp_add_inline_script( $script_handle, $pll_settings, 'before' );
 
 			if ( ! empty( $this->block_editor ) ) {
@@ -193,6 +204,7 @@ class PLL_Block_Editor_Plugin {
 					'wp-api-fetch',
 					'wp-data',
 					'wp-i18n',
+					'wp-sanitize',
 					'lodash',
 				),
 				POLYLANG_VERSION,

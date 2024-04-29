@@ -52,32 +52,6 @@ abstract class PLL_Bulk_Translate_Option {
 	protected $priority;
 
 	/**
-	 * Once the action executed, its results are stored in this array
-	 *
-	 * @since 2.7
-	 *
-	 * @var array
-	 */
-	protected $results = array();
-
-	/**
-	 * Every notices raised during bulk action execution will be stored here
-	 *
-	 * @since 2.7
-	 *
-	 * @var array {
-	 *     PLL_Bulk_Translate::ERROR   array
-	 *     PLL_Bulk_Trasnlate::WARNING array
-	 *     PLL_Bulk_Translate::UPDATED array
-	 * }
-	 */
-	protected $notices = array(
-		PLL_Bulk_Translate::ERROR   => array(),
-		PLL_Bulk_Translate::WARNING => array(),
-		PLL_Bulk_Translate::UPDATED => array(),
-	);
-
-	/**
 	 * Constructor
 	 *
 	 * @since 2.7
@@ -95,6 +69,19 @@ abstract class PLL_Bulk_Translate_Option {
 		$this->priority = array_key_exists( 'priority', $args ) ? $args['priority'] : 10;
 
 		$this->model = $model;
+	}
+
+	/**
+	 * Displays the input bulk option in the bulk translate form.
+	 *
+	 * @since 3.6
+	 *
+	 * @param string $selected The selected option name.
+	 * @return void
+	 */
+	public function display( string $selected ) {
+		$bulk_translate_option = $this;
+		include __DIR__ . '/view-bulk-translate-option.php';
 	}
 
 	/**
@@ -170,16 +157,13 @@ abstract class PLL_Bulk_Translate_Option {
 	 * The actual effect of the bulk translate action
 	 *
 	 * @since 2.7
+	 * @since 3.6 Returns as WP_Error instead of an array.
 	 *
 	 * @param int[]    $object_ids An array of the id of the WordPress objects to translate.
 	 * @param string[] $languages  An array of the locales of the languages in which to translate.
-	 *
-	 * @return array {
-	 *     array PLL_Bulk_Translate::UPDATED Info notices to be displayed to the user.
-	 *     array PLL_Bulk_Translate::WARNING Warning notices to be displayed to the user.
-	 * }
+	 * @return WP_Error Info notices to be displayed to the user.
 	 */
-	public function do_bulk_action( $object_ids, $languages ) {
+	public function do_bulk_action( $object_ids, $languages ): WP_Error {
 		$done = 0;
 		$missed = 0;
 
@@ -189,35 +173,41 @@ abstract class PLL_Bulk_Translate_Option {
 					foreach ( $languages as $lang ) {
 						if ( $this->filter( $object_id, $lang ) ) {
 							$this->translate( $object_id, $lang );
-							$done ++;
+							++$done;
 						} else {
-							$missed ++;
+							++$missed;
 						}
 					}
 				}
 			}
 		}
 
+		$notice = new WP_Error();
+
 		if ( 0 < $done ) {
-			$this->notices[ PLL_Bulk_Translate::UPDATED ] = array(
+			$notice->add(
+				'pll_bulk_translate_success',
 				sprintf(
 					/* translators: %d is a number of posts */
 					_n( '%d translation created.', '%d translations created.', $done, 'polylang-pro' ),
 					$done
 				),
+				'success'
 			);
 		}
 
 		if ( 0 < $missed ) {
-			$this->notices[ PLL_Bulk_Translate::WARNING ] = array(
+			$notice->add(
+				'pll_bulk_translate_warning',
 				sprintf(
 					/* translators: %d is a number of posts */
 					_n( 'To avoid overwriting content, %d translation was not created.', 'To avoid overwriting content, %d translations were not created.', $missed, 'polylang-pro' ),
 					$missed
 				),
+				'warning'
 			);
 		}
 
-		return array_merge( $this->results, $this->notices );
+		return $notice;
 	}
 }

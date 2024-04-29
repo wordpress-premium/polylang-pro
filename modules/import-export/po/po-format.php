@@ -46,12 +46,14 @@ class PLL_PO_Format extends PLL_File_Format {
 	/**
 	 * Returns the associated export class.
 	 *
-	 * @since 3.1
+	 * @since 3.6
 	 *
-	 * @return PLL_PO_Export
+	 * @param string $version Optional file format version. Not used for PO.
+	 * @return string
+	 *
+	 * @phpstan-return class-string<PLL_PO_Export>
 	 */
-	public function get_export() {
-		return new PLL_PO_Export();
+	public function get_export_class( $version = '' ): string { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+		return PLL_PO_Export::class;
 	}
-
 }

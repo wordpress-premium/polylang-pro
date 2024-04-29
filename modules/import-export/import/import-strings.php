@@ -70,7 +70,7 @@ class PLL_Import_Strings implements PLL_Import_Object_Interface {
 				// Checks that the string did not exist or has been edited before updating.
 				if ( ! isset( $pll_mo_clone->entries[ $key ]->translations[0] ) || $pll_mo_clone->entries[ $key ]->translations[0] !== $sanitized_translation ) {
 					$pll_mo->add_entry( $pll_mo->make_entry( $entry->singular, $sanitized_translation ) );
-					$this->success++;
+					++$this->success;
 
 					// Store the source strings as ids during the import process.
 					$this->imported_strings[] = $entry->singular;
@@ -112,14 +112,13 @@ class PLL_Import_Strings implements PLL_Import_Object_Interface {
 		}
 
 		return new WP_Error(
-			'pll_import_updated',
-			esc_html(
-				sprintf(
-					/* translators: %d is a number of strings translations */
-					_n( '%d string translation updated.', '%d string translations updated.', $this->success, 'polylang-pro' ),
-					$this->success
-				)
-			)
+			'pll_import_strings_success',
+			sprintf(
+				/* translators: %d is a number of strings translations */
+				_n( '%d string translation updated.', '%d string translations updated.', $this->success, 'polylang-pro' ),
+				$this->success
+			),
+			'success'
 		);
 	}
 

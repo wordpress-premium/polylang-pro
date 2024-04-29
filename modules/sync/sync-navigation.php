@@ -125,11 +125,11 @@ class PLL_Sync_Navigation {
 			if ( $tr_term_id ) {
 				$tr_term = get_term( $tr_term_id );
 
-				return array(
+				return $tr_term instanceof WP_Term ? array(
 					'id'    => $tr_term_id,
 					'label' => $tr_term->name,
 					'url'   => get_category_link( $tr_term_id ),
-				);
+				) : array();
 			}
 		}
 		return array( 'id' => $id );

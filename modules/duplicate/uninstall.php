@@ -3,10 +3,6 @@
  * @package Polylang-Pro
  */
 
-if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) { // If uninstall not called from WordPress exit
-	exit();
-}
+defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
-foreach ( get_users( array( 'fields' => 'ID' ) ) as $user_id ) {
-	delete_user_meta( $user_id, 'pll_duplicate_content' );
-}
+delete_metadata( 'user', 0, 'pll_duplicate_content', '', true );

@@ -4,13 +4,13 @@ var __webpack_exports__ = {};
  */
 
 jQuery(
-	function( $ ) {
+	function ( $ ) {
 		/**
 		 * Ajax for changing the post's language in the languages metabox.
 		 */
 		$( '.post_lang_choice' ).on(
 			'change',
-			function() {
+			function () {
 
 				// Reloads the relationship fields
 				if ( $( ".acf-field-relationship" ).length ) {
@@ -20,7 +20,7 @@ jQuery(
 				var fields = new Array();
 
 				$( '.acf-field-taxonomy' ).each(
-					function() {
+					function () {
 						var field = $( this ).attr( 'data-key' );
 						fields.push( field );
 					}

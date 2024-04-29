@@ -21,11 +21,11 @@ class PLL_CPAC {
 	public function init() {
 		foreach ( PLL()->model->get_translated_post_types() as $type ) {
 			if ( isset( $_REQUEST['list_screen'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-				$filter = 'manage_' . ( 'attachment' == $type ? 'upload' : 'edit-' . $type ) . '_columns';
+				$filter = 'manage_' . ( 'attachment' === $type ? 'upload' : 'edit-' . $type ) . '_columns';
 				add_filter( $filter, array( $this, 'remove_filter_lang' ), 90 ); // Before Polylang.
 			}
 
-			$filter = 'option_cpac_options_' . ( 'attachment' == $type ? 'wp-media' : $type ) . '__default';
+			$filter = 'option_cpac_options_' . ( 'attachment' === $type ? 'wp-media' : $type ) . '__default';
 			add_filter( $filter, array( $this, 'filter_default_columns' ) );
 		}
 	}

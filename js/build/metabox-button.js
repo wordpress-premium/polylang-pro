@@ -6,11 +6,11 @@ var __webpack_exports__ = {};
  */
 
 jQuery(
-	function( $ ) {
+	function ( $ ) {
 		$( '#ml_box' ).on(
 			'click',
 			'.pll-button',
-			function(){
+			function () {
 				var value = $( this ).hasClass( 'wp-ui-text-highlight' );
 				var id = $( this ).attr( 'id' );
 				var post_id = $( '#htr_lang_' + id.replace( 'pll_sync_post[', '' ).replace( ']', '' ) ).val();
@@ -26,12 +26,12 @@ jQuery(
 					$.post(
 						ajaxurl,
 						data,
-						function( response ){
+						function ( response ) {
 							// Target a non existing WP HTML id to avoid a conflict with WP ajax requests.
 							var res = wpAjax.parseAjaxResponse( response, 'pll-ajax-response' );
 							$.each(
 								res.responses,
-								function() {
+								function () {
 									id = id.replace( '[', '\\[' ).replace( ']', '\\]' );
 									$( '#' + id ).toggleClass( 'wp-ui-text-highlight' ).attr( 'title', this.data ).children( 'span' ).text( this.data );
 									$( 'input[name="' + id + '"]' ).val( ! data['value'] );

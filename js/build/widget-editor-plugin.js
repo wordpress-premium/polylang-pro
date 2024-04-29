@@ -119,6 +119,7 @@ var external_lodash_ = __webpack_require__(991);
  *
  * @package Polylang-Pro
  */
+
 const settings_MODULE_KEY = 'pll/metabox';
 const settings_MODULE_CORE_EDITOR_KEY = 'core/editor';
 const settings_MODULE_SITE_EDITOR_KEY = 'core/edit-site';
@@ -147,6 +148,7 @@ const settings_TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN = '[a-z_-]+'; // Its va
 
 
 
+
 /**
  * Internal dependencies
  */
@@ -162,7 +164,7 @@ const settings_TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN = '[a-z_-]+'; // Its va
 function convertArrayToMap( array, key ){
 	const map = new Map();
 	array.reduce(
-		function(accumulator, currentValue){
+		function (accumulator, currentValue) {
 			accumulator.set( currentValue[key], currentValue );
 			return accumulator;
 		},
@@ -394,7 +396,7 @@ function isCurrentPostRequest( options ){
 	// and the id from the post currently edited corresponds on the id passed to the REST request
 	// Return false otherwise
 	return -1 !== postTypeURLs.findIndex(
-		function( element ) {
+		function ( element ) {
 			return new RegExp( `${ escapeRegExp( element ) }` ).test( options.path );
 		}
 	) && postId === id;
@@ -525,6 +527,7 @@ function getLangSlugRegex() {
 
 
 
+
 /**
  * Internal dependencies
  */
@@ -571,11 +574,19 @@ const store = (0,external_this_wp_data_.createReduxStore)(
 					};
 				case 'SET_CURRENT_USER':
 					if ( action.save ) {
-						updateCurrentUser( action.currentUser );
-					}
-					return {
-						...state,
-						currentUser: action.currentUser
+						updateCurrentUser( action.currentUser ).then(
+							currentUser => {
+								action.currentUser = currentUser;
+								return {
+									...state,
+									currentUser: action.currentUser
+								};
+						} );
+					} else {
+						return {
+							...state,
+							currentUser: action.currentUser
+						}
 					};
 				case 'SET_FROM_POST':
 					return {
@@ -626,17 +637,20 @@ const store = (0,external_this_wp_data_.createReduxStore)(
 (0,external_this_wp_data_.register)( store );
 
 /**
- * Save current user when it is wondered
+ * Save current user when it is wondered.
  *
  * @param {object} currentUser
+ * @returns {object} The current user updated.
  */
 function updateCurrentUser( currentUser ) {
-	external_this_wp_apiFetch_default()(
-		{
-			path: '/wp/v2/users/me',
-			data: currentUser,
-			method: 'POST'
-		}
+	return Promise.resolve(
+		external_this_wp_apiFetch_default()(
+			{
+				path: '/wp/v2/users/me',
+				data: currentUser,
+				method: 'POST'
+			}
+		)
 	);
 }
 

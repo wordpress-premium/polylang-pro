@@ -11,7 +11,7 @@ if ( ! $polylang->model->has_languages() ) {
 
 add_action(
 	'pll_init',
-	function( $polylang ) {
+	function ( $polylang ) {
 		$pll_fse_sub_modules = array(
 			PLL_FSE_Default_Language_Change::class,
 			PLL_FSE_Language::class,
@@ -37,7 +37,7 @@ add_action(
 		// PLL_FSE_REST_Template is required only in a REST context.
 		add_action(
 			'rest_api_init',
-			function() use ( $polylang ) {
+			function () use ( $polylang ) {
 				$polylang->rest_api->template = ( new PLL_FSE_REST_Template( $polylang->rest_api, PLL_FSE_Tools::get_template_post_types() ) )->init();
 			},
 			20 // Load the FSE modules after the PLL_REST_API.

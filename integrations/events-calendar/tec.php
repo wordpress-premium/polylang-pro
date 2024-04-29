@@ -598,7 +598,7 @@ class PLL_TEC {
 		}
 
 		return array_map(
-			function( $base ) {
+			function ( $base ) {
 				return str_replace( '\\-', '-', $base );
 			},
 			$bases

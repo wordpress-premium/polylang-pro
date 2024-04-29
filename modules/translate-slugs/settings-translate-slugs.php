@@ -10,6 +10,17 @@
  */
 class PLL_Settings_Translate_Slugs extends PLL_Settings_Preview_Translate_Slugs {
 	/**
+	 * Constructor.
+	 *
+	 * @since 3.6
+	 *
+	 * @param PLL_Settings $polylang Polylang object.
+	 */
+	public function __construct( &$polylang ) {
+		parent::__construct( $polylang, array( 'active_option' => 'none' ) );
+	}
+
+	/**
 	 * Returns the module description.
 	 *
 	 * @since 3.1
@@ -29,16 +40,5 @@ class PLL_Settings_Translate_Slugs extends PLL_Settings_Preview_Translate_Slugs 
 	 */
 	public function is_active() {
 		return get_option( 'permalink_structure' );
-	}
-
-	/**
-	 * Avoid displaying the upgrade message.
-	 *
-	 * @since 1.9
-	 *
-	 * @return string
-	 */
-	public function get_upgrade_message() {
-		return '';
 	}
 }

@@ -71,7 +71,7 @@ class PLL_Translate_Slugs {
 	public function pll_term_link( $url, $lang, $term ) {
 		global $wp_rewrite;
 
-		if ( 'post_format' == $term->taxonomy ) {
+		if ( 'post_format' === $term->taxonomy ) {
 			$url = $this->slugs_model->translate_slug( $url, $lang, $term->slug ); // Occurs only on frontend.
 		}
 

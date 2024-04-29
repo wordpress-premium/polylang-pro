@@ -27,7 +27,9 @@
 	margin: auto 10px auto 7px;
 }
 
-#export-string-translation label, #import-translation label {
+#export-string-translation label,
+#export-string-translation label[for="pll-select-format"] span,
+#import-translation label {
 	display: block;
 	margin: 0.35em 0 0.5em;
 }

@@ -9,6 +9,12 @@
  * @since 3.2
  */
 class PLL_Navigation_Language_Switcher_Block extends PLL_Abstract_Language_Switcher_Block {
+	/**
+	 * Placeholder used to add language name or flag after WordPress renders the link labels.
+	 *
+	 * @var string
+	 */
+	const PLACEHOLDER = '%pll%';
 
 	/**
 	 * Adds the required hooks specific to the navigation langague switcher.
@@ -21,6 +27,9 @@ class PLL_Navigation_Language_Switcher_Block extends PLL_Abstract_Language_Switc
 		parent::init();
 
 		add_action( 'rest_api_init', array( $this, 'register_switcher_menu_item_options_meta_rest_field' ) );
+		add_filter( 'block_type_metadata', array( $this, 'register_custom_attributes' ) );
+		add_filter( 'render_block_core/navigation-link', array( $this, 'render_custom_attributes' ), 10, 3 );
+		add_filter( 'render_block_core/navigation-submenu', array( $this, 'render_custom_attributes' ), 10, 3 );
 
 		return $this;
 	}
@@ -46,8 +55,6 @@ class PLL_Navigation_Language_Switcher_Block extends PLL_Abstract_Language_Switc
 	 */
 	protected function get_context() {
 		return array(
-			'showSubmenuIcon',
-			'openSubmenusOnClick',
 			'textColor',
 			'customTextColor',
 			'backgroundColor',
@@ -58,8 +65,10 @@ class PLL_Navigation_Language_Switcher_Block extends PLL_Abstract_Language_Switc
 			'customOverlayBackgroundColor',
 			'fontSize',
 			'customFontSize',
+			'showSubmenuIcon',
+			'maxNestingLevel',
+			'openSubmenusOnClick',
 			'style',
-			'overlayMenu',
 			'isResponsive', // Backward compatibility.
 		);
 	}
@@ -76,51 +85,63 @@ class PLL_Navigation_Language_Switcher_Block extends PLL_Abstract_Language_Switc
 	 * @return string The HTML string output to serve.
 	 */
 	public function render( $attributes, $content, $block ) {
-		$attributes = $this->set_attributes_for_block( $attributes );
+		$attributes        = $this->set_attributes_for_block( $attributes );
+		$switcher          = new PLL_Switcher();
+		$switcher_elements = (array) $switcher->the_languages( $this->links, array_merge( $attributes, array( 'raw' => true ) ) );
+		$output            = '';
 
-		$attributes['raw'] = true;
+		if ( $attributes['dropdown'] ) {
+			$inner_nav_link_blocks = array();
+			$top_level_lang        = reset( $switcher_elements );
+			foreach ( $switcher_elements as $switcher_element ) {
+				$nav_link_block_args = array(
+					'blockName' => 'core/navigation-link',
+					'attrs'     => $this->get_core_block_attributes( $attributes, $switcher_element ),
+				);
 
-		$switcher_attributes = $attributes;
-		$switcher_attributes['hide_current'] = false;
+				$inner_nav_link_blocks[] = new WP_Block( $nav_link_block_args, $block->context );
 
-		$switcher = new PLL_Switcher();
-		$switcher_items = $switcher->the_languages( $this->links, $switcher_attributes );
-		$language_navigation_output = '';
+				if ( $switcher_element['current_lang'] && ! $attributes['hide_current'] ) {
+					$top_level_lang = $switcher_element;
+				}
+			}
 
-		$top_level_item = $this->find_current_lang_item( $switcher_items );
-		$is_submenu     = $attributes['dropdown'] && $top_level_item;
+			$attributes               = $this->get_core_block_attributes( $attributes, $top_level_lang );
+			$attributes['className'] .= ' ' . wp_apply_generated_classname_support( $block->block_type )['class'];
+			$submenu_block_args       = array(
+				'blockName'   => 'core/navigation-submenu',
+				'attrs'       => $attributes,
+				'innerBlocks' => $inner_nav_link_blocks,
+			);
 
-		if ( $is_submenu ) {
-			$language_navigation_output = $this->render_link_item( $top_level_item, $attributes, $block, $switcher_items );
+			$submenu_block = new WP_Block( $submenu_block_args, $block->context );
+			$output        = $submenu_block->render();
 		} else {
-			foreach ( $switcher_items as $switcher_item ) {
-				$language_navigation_output .= $this->render_link_item( $switcher_item, $attributes, $block );
+			foreach ( $switcher_elements as $switcher_element ) {
+				$link_attributes               = $this->get_core_block_attributes( $attributes, $switcher_element );
+				$link_attributes['className'] .= ' ' . wp_apply_generated_classname_support( $block->block_type )['class'];
+				$nav_link_block_args = array(
+					'blockName' => 'core/navigation-link',
+					'attrs'     => $link_attributes,
+				);
+
+				$link_block  = new WP_Block( $nav_link_block_args, $block->context );
+				$output     .= $link_block->render();
 			}
 		}
 
-		if ( empty( $language_navigation_output ) ) {
-			return '';
+		if ( version_compare( $GLOBALS['wp_version'], '6.5-alpha', '<' ) ) {
+			/*
+			 * Backward compatibility with WordPress < 6.5.
+			 * Since WordPress 6.5, our block is rendered automatically inside the auto-generated `<ul>` wrapper.
+			 */
+			return sprintf(
+				'<ul class="wp-block-navigation__container wp-block-navigation">%s</ul>',
+				$output
+			);
 		}
 
-
-		// Adds is-layout-flex in admin for space between language items.
-		$is_layout_flex = ! empty( $attributes['admin_render'] ) ? ' is-layout-flex' : '';
-
-		/*
-		 * This is for backwards compatibility after `isResponsive` attribute has been removed.
-		 * Copied from `render_block_core_navigation()`.
-		 */
-		$has_old_responsive_attribute = $is_submenu && ! empty( $block->context['isResponsive'] );
-		$is_responsive_menu           = isset( $block->context['overlayMenu'] ) && 'never' !== $block->context['overlayMenu'] && $is_submenu || $has_old_responsive_attribute;
-
-		// As WordPress won't render our polylang/navigation-language-switcher (see: https://github.com/WordPress/WordPress/blob/5.9/wp-includes/blocks/navigation.php#L488-L491)
-		// We have to do it ourselves.
-		return sprintf(
-			'<ul class="wp-block-navigation__container%s%s wp-block-navigation">%s</ul>',
-			$is_layout_flex,
-			$is_responsive_menu ? ' is-responsive' : '',
-			$language_navigation_output
-		);
+		return $output;
 	}
 
 	/**
@@ -151,233 +172,129 @@ class PLL_Navigation_Language_Switcher_Block extends PLL_Abstract_Language_Switc
 	}
 
 	/**
-	 * Renders language switcher in dropdown mode for navigation block. Applies recursively for dropdown.
-	 * Partial copy of the WordPress functions render_block_core_navigation_link() and render_block_core_navigation_submenu().
-	 * See: https://github.com/WordPress/wordpress-develop/blob/5.9.0/src/wp-includes/blocks/navigation-link.php#L116-L125 and https://github.com/WordPress/wordpress-develop/blob/5.9.0/src/wp-includes/blocks/navigation-submenu.php#L116-L125
+	 * Filters core/navigation-link and core/navigation-submenu attributes during registration to add our own.
 	 *
-	 * @since 3.2
-	 * @since 3.4.5 Changed the second param from string[] to WP_Block.
+	 * @since 3.6
 	 *
-	 * @param array    $switcher_item Raw element of a language switcher.
-	 * @param array    $attributes    The attributes of the language switcher.
-	 * @param WP_Block $block         The block to render.
-	 * @param array    $inner_items   Elements of the submenu, used for dropdown. Default to empty array.
-	 * @return string The rendered switcher.
+	 * @param array $metadata Metadata for registering a block type.
+	 *
+	 * @return array The filtered metadata if about a core/navigation-link.
 	 */
-	protected function render_link_item( $switcher_item, $attributes, $block, $inner_items = array() ) {
-		$context                      = $block->context;
-		$has_submenu                  = ! empty( $inner_items ) && $attributes['dropdown'] && $switcher_item['current_lang'];
-		$attributes['isTopLevelItem'] = $has_submenu || ! $attributes['dropdown']; // used in block_core_navigation_submenu_build_css_colors();
-		if ( empty( $inner_items ) && $attributes['hide_current'] && $switcher_item['current_lang'] ) {
-			return '';
-		}
-
-		$is_active               = $switcher_item['current_lang'];
-		$show_submenu_indicators = isset( $context['showSubmenuIcon'] ) && $context['showSubmenuIcon'] && $has_submenu;
-		$open_on_click           = isset( $context['openSubmenusOnClick'] ) && $context['openSubmenusOnClick'] && $has_submenu;
-		$open_on_hover_and_click = isset( $context['openSubmenusOnClick'] ) && ! $context['openSubmenusOnClick'] && $show_submenu_indicators;
-
-		$submenu_classes = array(
-			'wp-block-navigation-submenu',
-			'has-child',
-			$open_on_click ? 'open-on-click' : '',
-			$open_on_hover_and_click ? 'open-on-hover-click' : '',
-		);
-
-		$font_sizes       = block_core_navigation_submenu_build_css_font_sizes( $context );
-		$style_attributes = $this->safecss_filter_attr( $font_sizes['inline_styles'] );
-
-		$wp_classes = array(
-			$is_active ? 'current-menu-item wp-block-navigation-item' : 'wp-block-navigation-item',
-		);
-		$classes = array_merge(
-			isset( $switcher_item['classes'] ) ? $switcher_item['classes'] : array(),
-			$font_sizes['css_classes'],
-			$wp_classes,
-			$has_submenu ? $submenu_classes : array( 'wp-block-navigation-link' )
-		);
-		$css_classes = trim( implode( ' ', $classes ) );
-
-		$wrapper_attributes = get_block_wrapper_attributes(
-			array(
-				'class' => $css_classes,
-				'style' => $style_attributes,
-			)
-		); // Returns escaped attributes.
-
-		$aria_label = esc_attr__( 'Language switcher submenu.', 'polylang-pro' );
-
-		$html = '<li ' . $wrapper_attributes . '>';
-
-		$menu_item_classes = array( 'wp-block-navigation-item__content' );
-
-		if ( $has_submenu ) {
-			$menu_item_classes[] = 'current-menu-ancestor';
-		}
-
-		if ( ! $open_on_click ) {
-			// Start appending HTML attributes to anchor tag.
-			$html .= '<a class="' . implode( ' ', $menu_item_classes ) . '"';
-
-			if ( ! empty( $switcher_item['url'] ) ) {
-				$html .= ' href="' . esc_url( $switcher_item['url'] ) . '"';
-			}
-
-			if ( $is_active ) {
-				$html .= ' aria-current="page"';
-			}
-
-			if ( isset( $switcher_item['locale'] ) ) {
-				$html .= ' hreflang="' . esc_attr( $switcher_item['locale'] ) . '"';
-
-				$html .= ' lang="' . esc_attr( $switcher_item['locale'] ) . '"';
-			}
-
-			$html .= '>'; // End appending HTML attributes to anchor tag.
-
-			$html .= $this->get_item_title( $switcher_item, $attributes );
-
-			$html .= '</a>'; // End anchor tag content.
-
-			if ( $show_submenu_indicators ) {
-				// Render submenu icon in a button next to the anchor tag for accessibility.
-				$menu_item_classes[] = 'wp-block-navigation__submenu-icon';
-				$menu_item_classes[] = 'wp-block-navigation-submenu__toggle';
-
-				$html .= '<button aria-label="' . esc_attr( $aria_label ) . '" class="' . implode( ' ', $menu_item_classes ) . '" aria-expanded="false">';
-
-				$html .= block_core_navigation_submenu_render_submenu_icon();
-
-				$html .= '</button>';
-			}
-		} else {
-			$menu_item_classes[] = 'wp-block-navigation-submenu__toggle';
-
-			// If menus open on click, we render the parent as a button.
-			$html .= '<button aria-label="' . $aria_label . '" class="' . implode( ' ', $menu_item_classes ) . '" aria-expanded="false">';
-
-			$html .= $this->get_item_title( $switcher_item, $attributes );
-
-			$html .= '</button>';
-
-			$html .= '<span class="wp-block-navigation__submenu-icon">' . block_core_navigation_submenu_render_submenu_icon() . '</span>';
-		}
-
-		if ( $has_submenu ) {
-			// Copy some attributes from the parent block to this one.
-			// Ideally this would happen in the client when the block is created.
-			if ( array_key_exists( 'overlayTextColor', $context ) ) {
-				$attributes['textColor'] = $context['overlayTextColor'];
-			}
-			if ( array_key_exists( 'overlayBackgroundColor', $context ) ) {
-				$attributes['backgroundColor'] = $context['overlayBackgroundColor'];
-			}
-			if ( array_key_exists( 'customOverlayTextColor', $context ) ) {
-				$attributes['style']['color']['text'] = $context['customOverlayTextColor'];
-			}
-			if ( array_key_exists( 'customOverlayBackgroundColor', $context ) ) {
-				$attributes['style']['color']['background'] = $context['customOverlayBackgroundColor'];
-			}
-
-			// This allows us to be able to get a response from wp_apply_colors_support.
-			$block->block_type->supports['color'] = true;
-			$colors_supports                      = wp_apply_colors_support( $block->block_type, $attributes );
-			$css_classes                          = 'wp-block-navigation__submenu-container';
-			if ( array_key_exists( 'class', $colors_supports ) ) {
-				$css_classes .= ' ' . $colors_supports['class'];
-			}
-
-			$style_attribute = '';
-			if ( array_key_exists( 'style', $colors_supports ) ) {
-				$style_attribute = $this->safecss_filter_attr( $colors_supports['style'] );
-			}
-
-			// Start inner content for submenu.
-			$inner_blocks_html = '';
-			foreach ( $inner_items as $inner_item ) {
-				$inner_blocks_html .= $this->render_link_item( $inner_item, $attributes, $block );
-			}
-
-			$wrapper_attributes = get_block_wrapper_attributes(
-				array(
-					'class' => $css_classes,
-					'style' => $style_attribute,
-				)
+	public function register_custom_attributes( $metadata ) {
+		if ( 'core/navigation-link' === $metadata['name'] || 'core/navigation-submenu' === $metadata['name'] ) {
+			$pll_attributes = array(
+				'hreflang'       => array(
+					'type' => 'string',
+				),
+				'lang'           => array(
+					'type' => 'string',
+				),
+				'pll_show_flags' => array(
+					'type' => 'boolean',
+				),
+				'pll_show_names' => array(
+					'type' => 'boolean',
+				),
+				'pll_flag'       => array(
+					'type' => 'string',
+				),
+				'pll_name'       => array(
+					'type' => 'string',
+				),
 			);
-
-			$html .= sprintf(
-				'<ul %s>%s</ul>',
-				$wrapper_attributes,
-				$inner_blocks_html
-			);
-			// End inner content for submenu.
+			$metadata['attributes'] = array_merge( $metadata['attributes'], $pll_attributes );
 		}
 
-		$html .= '</li>';
-
-		return $html;
+		return $metadata;
 	}
 
 	/**
-	 * Returns the current language item from the switcher elements.
+	 * Renders a core/naviagation-link or core/naviagation-submenu block by adding hreflang and lang attributes to the <a> tag
+	 * and also the language flag if required.
 	 *
-	 * @since 3.2
+	 * @since 3.6
 	 *
-	 * @param array $switcher_items An array of raw switcher items.
-	 * @return array|false The item in the current language if found, false otherwise.
+	 * @param string   $block_content The block content.
+	 * @param array    $block         The full block, including name and attributes.
+	 * @param WP_Block $instance      The block instance.
+	 *
+	 * @return string A formated HTML string representing the core/navigation-link or core/navigation-submenu block.
 	 */
-	protected function find_current_lang_item( $switcher_items ) {
-		$filtered_items = wp_list_filter( $switcher_items, array( 'current_lang' => true ) );
+	public function render_custom_attributes( $block_content, $block, $instance ) {
+		if ( ! isset(
+			$instance->attributes['pll_show_flags'],
+			$instance->attributes['pll_show_names'],
+			$instance->attributes['pll_flag'],
+			$instance->attributes['pll_name'],
+			$instance->attributes['lang'],
+			$instance->attributes['hreflang']
+		)
+		) {
+			return $block_content;
+		}
 
-		return reset( $filtered_items );
-	}
+		$content_tags = new WP_HTML_Tag_Processor( $block_content );
 
-	/**
-	 * Formats a language item title based on attributes.
-	 *
-	 * @since 3.3
-	 *
-	 * @param array $item       A raw language switcher item.
-	 * @param array $attributes The language switcher attributes.
-	 * @return string Formatted menu item title
-	 */
-	protected function get_item_title( $item, $attributes ) {
-		if ( $attributes['show_flags'] ) {
-			if ( $attributes['show_names'] ) {
-				$title = sprintf( '%1$s<span style="margin-%2$s:0.3em;">%3$s</span>', $item['flag'], is_rtl() ? 'right' : 'left', esc_html( $item['name'] ) );
-			} else {
-				$title = $item['flag'];
+		if ( 'core/navigation-submenu' === $instance->name ) {
+			// If `openSubmenusOnClick`, the submenu is rendered as a button, so there are no `<a>` to process.
+			if ( empty( $instance->context['openSubmenusOnClick'] ) && $content_tags->next_tag( array( 'tag_name' => 'a' ) ) ) {
+				$content_tags->set_attribute( 'hreflang', $instance->attributes['hreflang'] );
+				$content_tags->set_attribute( 'lang', $instance->attributes['lang'] );
 			}
-		} else {
-			$title = esc_html( $item['name'] );
+			if ( $content_tags->next_tag( array( 'tag_name' => 'button' ) ) ) {
+				$content_tags->set_attribute(
+					'aria-label',
+					str_replace(
+						static::PLACEHOLDER,
+						__( 'Languages', 'polylang-pro' ),
+						(string) $content_tags->get_attribute( 'aria-label' )
+					)
+				);
+			}
+		} elseif ( $content_tags->next_tag( array( 'tag_name' => 'a' ) ) ) {
+			$content_tags->set_attribute( 'hreflang', $instance->attributes['hreflang'] );
+			$content_tags->set_attribute( 'lang', $instance->attributes['lang'] );
 		}
 
-		// Wrap title with span to isolate it from submenu icon.
-		$html  = '<span class="wp-block-navigation-item__label">';
-		$html .= $title;
-		$html .= '</span>';
+		$overridden_block_content = $content_tags->get_updated_html();
 
-		return $html;
+		$link_label = '';
+
+		if ( $instance->attributes['pll_show_flags'] ) {
+			$link_label .= $instance->attributes['pll_flag'];
+		}
+
+		if ( $instance->attributes['pll_show_names'] ) {
+			$link_label .= $instance->attributes['pll_show_flags'] ? ' ' . $instance->attributes['pll_name'] : $instance->attributes['pll_name'];
+		}
+
+		return str_replace(
+			static::PLACEHOLDER,
+			$link_label,
+			$overridden_block_content
+		);
 	}
 
 	/**
-	 * Filters and normalizes an inline style attribute by removing disallowed rules and adding a trailing semicolon.
+	 * Returns attributes that fit for core/navigation-link or core/navigation-submenu and specific to polylang/navigation-language-switcher.
 	 *
-	 * @since 3.3.3
-	 * @since 3.4.6 Use `wp_strip_all_tags()`.
+	 * @since 3.6
 	 *
-	 * @param string $attributes A string of CSS rules.
-	 * @return string Filtered and trimmed string of CSS attribute.
+	 * @param array $attributes    Array of polylang/navigation-language-switcher attributes.
+	 * @param array $switcher_item Array of a switcher item data.
+	 * @return array Attributes to be rendered by core.
 	 */
-	private function safecss_filter_attr( $attributes ) {
-		$attributes = wp_strip_all_tags( $attributes );
-		$attributes = safecss_filter_attr( $attributes );
-
-		if ( ! empty( $attributes ) ) {
-			// safecss_filter_attr() strips last semicolon out, let's put it back.
-			$attributes = rtrim( $attributes, ';' ) . ';';
-		}
-
-		return $attributes;
+	private function get_core_block_attributes( $attributes, $switcher_item ) {
+		return array(
+			'label'          => static::PLACEHOLDER,
+			'url'            => $switcher_item['url'],
+			'pll_show_flags' => $attributes['show_flags'],
+			'pll_show_names' => $attributes['show_names'],
+			'lang'           => $switcher_item['locale'],
+			'hreflang'       => $switcher_item['locale'],
+			'pll_flag'       => $switcher_item['flag'],
+			'pll_name'       => $switcher_item['name'],
+			'className'      => trim( implode( ' ', (array) $switcher_item['classes'] ) ),
+		);
 	}
 }

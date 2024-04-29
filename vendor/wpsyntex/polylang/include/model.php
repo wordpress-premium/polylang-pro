@@ -12,7 +12,7 @@ class PLL_Model {
 	/**
 	 * Internal non persistent cache object.
 	 *
-	 * @var PLL_Cache
+	 * @var PLL_Cache<mixed>
 	 */
 	public $cache;
 
@@ -186,11 +186,10 @@ class PLL_Model {
 
 		$languages = array_filter(
 			$languages,
-			function( $lang ) use ( $args ) {
+			function ( $lang ) use ( $args ) {
 				$keep_empty   = empty( $args['hide_empty'] ) || $lang->get_tax_prop( 'language', 'count' );
 				$keep_default = empty( $args['hide_default'] ) || ! $lang->is_default;
 				return $keep_empty && $keep_default;
-
 			}
 		);
 
@@ -586,8 +585,8 @@ class PLL_Model {
 			$q['post_type'] = array( 'post' ); // We *need* a post type.
 		}
 
-		$cache_key = 'pll_count_posts_' . md5( maybe_serialize( $q ) );
-		$counts = wp_cache_get( $cache_key, 'counts' );
+		$cache_key = $this->cache->get_unique_key( 'pll_count_posts_', $q );
+		$counts    = wp_cache_get( $cache_key, 'counts' );
 
 		if ( ! is_array( $counts ) ) {
 			$counts  = array();
@@ -810,7 +809,7 @@ class PLL_Model {
 		/**
 		 * Keep track of types where we set the language:
 		 * those are types where we may have more items to process if we have more than 1000 items in total.
-		 * This will prevent unecessary SQL queries in the next recursion: if we have 0 items in this recursion for
+		 * This will prevent unnecessary SQL queries in the next recursion: if we have 0 items in this recursion for
 		 * a type, we'll still have 0 in the next one, no need for a new query.
 		 */
 		$types_with_objects = array();
@@ -917,7 +916,7 @@ class PLL_Model {
 	 * @param string            $name       Language name (label).
 	 * @param PLL_Language|null $language   Optional. A language object. Required to update the existing terms.
 	 * @param string[]          $taxonomies Optional. List of language taxonomies to deal with. An empty value means
-	 *                                      all of them. Defauls to all taxonomies.
+	 *                                      all of them. Defaults to all taxonomies.
 	 * @return void
 	 *
 	 * @phpstan-param non-empty-string $slug

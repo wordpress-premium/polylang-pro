@@ -5,12 +5,12 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly.
-};
+}
 
 if ( $polylang->model->has_languages() ) {
 	add_filter(
 		'pll_settings_modules',
-		function( $modules ) {
+		function ( $modules ) {
 			$k = array_search( 'PLL_Settings_Preview_Share_Slug', $modules );
 			if ( $k ) {
 				$modules[ $k ] = 'PLL_Settings_Share_Slug';

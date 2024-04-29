@@ -36,7 +36,7 @@ class PLL_Language_Switcher_Block extends PLL_Abstract_Language_Switcher_Block {
 	 */
 	public function render( $attributes, $content, $block ) { //phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		static $dropdown_id = 0;
-		$dropdown_id++;
+		++$dropdown_id;
 
 		// Sets a unique id for dropdown in PLL_Switcher::the_language().
 		$attributes['dropdown'] = empty( $attributes['dropdown'] ) ? 0 : $dropdown_id;

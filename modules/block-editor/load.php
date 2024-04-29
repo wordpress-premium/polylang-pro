@@ -5,11 +5,11 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly.
-};
+}
 
 add_action(
 	'pll_init',
-	function( $polylang ) {
+	function ( $polylang ) {
 		if ( $polylang->model->has_languages() && pll_use_block_editor_plugin() ) {
 			if ( $polylang instanceof PLL_Admin ) {
 				$polylang->block_editor_plugin = new PLL_Block_Editor_Plugin( $polylang );

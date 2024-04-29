@@ -5,11 +5,11 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly.
-};
+}
 
 add_action(
 	'after_setup_theme',
-	function() {
+	function () {
 		/**
 		 * This must be checked only after the theme is loaded (not earlier than 'after_setup_theme') because some
 		 * themes include ACF.

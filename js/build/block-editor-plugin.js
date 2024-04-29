@@ -119,6 +119,7 @@ var external_this_wp_url_ = __webpack_require__(470);
  *
  * @package Polylang-Pro
  */
+
 const settings_MODULE_KEY = 'pll/metabox';
 const settings_MODULE_CORE_EDITOR_KEY = 'core/editor';
 const settings_MODULE_SITE_EDITOR_KEY = 'core/edit-site';
@@ -147,6 +148,7 @@ const settings_TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN = '[a-z_-]+'; // Its va
 
 
 
+
 /**
  * Internal dependencies
  */
@@ -162,7 +164,7 @@ const settings_TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN = '[a-z_-]+'; // Its va
 function convertArrayToMap( array, key ){
 	const map = new Map();
 	array.reduce(
-		function(accumulator, currentValue){
+		function (accumulator, currentValue) {
 			accumulator.set( currentValue[key], currentValue );
 			return accumulator;
 		},
@@ -394,7 +396,7 @@ function isCurrentPostRequest( options ){
 	// and the id from the post currently edited corresponds on the id passed to the REST request
 	// Return false otherwise
 	return -1 !== postTypeURLs.findIndex(
-		function( element ) {
+		function ( element ) {
 			return new RegExp( `${ (0,external_lodash_.escapeRegExp)( element ) }` ).test( options.path );
 		}
 	) && postId === id;
@@ -525,6 +527,7 @@ function getLangSlugRegex() {
 
 
 
+
 /**
  * Internal dependencies
  */
@@ -548,9 +551,9 @@ const isBlockPostEditorContextInitialized = () => {
 	 * Set a promise for waiting for the current post has been fully loaded before making other processes.
 	 */
 	const isCurrentPostLoaded = new Promise(
-		function( resolve ) {
+		function ( resolve ) {
 			let unsubscribe = subscribe(
-				function() {
+				function () {
 					const currentPost = select( MODULE_CORE_EDITOR_KEY ).getCurrentPost();
 					if ( ! isEmpty( currentPost ) ) {
 						unsubscribe();
@@ -563,7 +566,7 @@ const isBlockPostEditorContextInitialized = () => {
 
 	// Wait for current post has been loaded and languages list initialized.
 	return Promise.all( [ isCurrentPostLoaded, isLanguagesinitialized() ] ).then(
-		function() {
+		function () {
 			// If we come from another post for creating a new one, we have to update translations from the original post.
 			const fromPost = select( MODULE_KEY ).getFromPost();
 			if ( ! isNil( fromPost ) && ! isNil( fromPost.id ) ) {
@@ -591,9 +594,9 @@ const isSiteEditorContextInitialized = () => {
 	 * It allows to see if both Site Editor and Core stores are available (@see getCurrentPostFromDataStore()).
 	 */
 	const isTemplatePartLoaded = new Promise(
-		function( resolve ) {
+		function ( resolve ) {
 			let unsubscribe = subscribe(
-				function() {
+				function () {
 					const store = select( MODULE_SITE_EDITOR_KEY );
 					if ( store ) {
 						unsubscribe();
@@ -611,9 +614,9 @@ const isSiteEditorContextInitialized = () => {
  * Returns a promise fulfilled when the languages list is correctly initialized before making other processes.
  */
 const isLanguagesinitialized = () => new Promise(
-	function( resolve ) {
+	function ( resolve ) {
 		let unsubscribe = subscribe(
-			function() {
+			function () {
 				const languages = select( MODULE_KEY )?.getLanguages();
 				if ( languages?.size > 0 ) {
 					unsubscribe();
@@ -662,7 +665,7 @@ const getEditedPostContextWithLegacy = () => {
 	if ( siteEditorSelector.hasOwnProperty( 'getEditedPostContext' ) ) {
 		const context = siteEditorSelector.getEditedPostContext();
 
-		return null != context && null !== context.postType && null !== context.postId
+		return context?.postType && context?.postId
 			? context
 			: _context;
 	}
@@ -873,7 +876,7 @@ function maybeAddLangSuffixToTemplatePart( options, langSlug ){
 // Duplicate code of PLL_Admin_Base::admin_print_footer_scripts() to add lang parameter in admin ajax requests in FSE.
 if ( typeof jQuery != 'undefined' ) {
 	jQuery(
-		function( $ ){
+		function ( $ ) {
 			$.ajaxPrefilter( function ( options, originalOptions, jqXHR ) {
 				if ( -1 != options.url.indexOf( ajaxurl ) || -1 != ajaxurl.indexOf( options.url ) ) {
 

@@ -65,7 +65,7 @@ class PLL_Settings_Licenses extends PLL_Settings_Module {
 	 */
 	protected function form() {
 		if ( ! empty( $this->items ) ) { ?>
-			<table id="pll-licenses-table" class="form-table">
+			<table id="pll-licenses-table" class="form-table pll-table-top">
 				<?php
 				foreach ( $this->items as $item ) {
 					echo $this->get_row( $item ); // phpcs:ignore WordPress.Security.EscapeOutput
@@ -110,9 +110,9 @@ class PLL_Settings_Licenses extends PLL_Settings_Module {
 			}
 
 			// Updated message
-			add_settings_error( 'general', 'settings_updated', __( 'Settings saved.', 'polylang' ), 'updated' );
+			pll_add_notice( new WP_Error( 'settings_updated', __( 'Settings saved.', 'polylang' ), 'success' ) );
 			ob_start();
-			settings_errors();
+			settings_errors( 'polylang' );
 			$x->Add( array( 'what' => 'success', 'data' => ob_get_clean() ) );
 			$x->send();
 		}

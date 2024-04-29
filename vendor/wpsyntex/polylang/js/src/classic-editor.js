@@ -4,7 +4,7 @@
 
 import {
 	initializeLanguageOldValue,
-	initializeConfimationModal
+	initializeConfirmationModal
 } from './lib/confirmation-modal';
 
 import {
@@ -13,9 +13,9 @@ import {
 
 // tag suggest in metabox
 jQuery(
-	function( $ ) {
+	function ( $ ) {
 		$.ajaxPrefilter(
-			function( options, originalOptions, jqXHR ) {
+			function ( options, originalOptions, jqXHR ) {
 				var lang = $( '.post_lang_choice' ).val();
 				if ( 'string' === typeof options.data && -1 !== options.url.indexOf( 'action=ajax-tag-search' ) && lang ) {
 					options.data = 'lang=' + lang + '&' + options.data;
@@ -27,9 +27,9 @@ jQuery(
 
 // overrides tagBox.get
 jQuery(
-	function( $ ) {
+	function ( $ ) {
 		// overrides function to add the language
-		tagBox.get = function( id ) {
+		tagBox.get = function ( id ) {
 			var tax = id.substr( id.indexOf( '-' ) + 1 );
 
 			// add the language in the $_POST variable
@@ -42,7 +42,7 @@ jQuery(
 			$.post(
 				ajaxurl,
 				data,
-				function( r, stat ) {
+				function ( r, stat ) {
 					if ( 0 == r || 'success' != stat ) {
 						r = wpAjax.broken;
 					}
@@ -52,14 +52,14 @@ jQuery(
 					r = $( '<div />' ).addClass( 'the-tagcloud' ).attr( 'id', 'tagcloud-' + tax ).html( r ); // phpcs:ignore WordPressVIPMinimum.JS.HTMLExecutingFunctions.html
 					$( 'a', r ).on(
 						'click',
-						function(){
+						function () {
 							tagBox.flushTags( $( this ).closest( '.inside' ).children( '.tagsdiv' ), this );
 							return false;
 						}
 					);
 
 					var tagCloud = $( '#tagcloud-' + tax );
-					// add an if else condition to allow modifying the tags outputed when switching the language
+					// add an if else condition to allow modifying the tags outputted when switching the language
 					var v = tagCloud.css( 'display' );
 					if ( v ) {
 						// See the comment above when r variable is created.
@@ -77,11 +77,11 @@ jQuery(
 );
 
 jQuery(
-	function( $ ) {
+	function ( $ ) {
 		// collect taxonomies - code partly copied from WordPress
 		var taxonomies = new Array();
 		$( '.categorydiv' ).each(
-			function(){
+			function () {
 				var this_id = $( this ).attr( 'id' ), taxonomyParts, taxonomy;
 
 				taxonomyParts = this_id.split( '-' );
@@ -107,9 +107,9 @@ jQuery(
 		// ajax for changing the post's language in the languages metabox
 		$( '.post_lang_choice' ).on(
 			'change',
-			function( event ) {
+			function ( event ) {
 				// Initialize the confirmation dialog box.
-				const confirmationModal = initializeConfimationModal();
+				const confirmationModal = initializeConfirmationModal();
 				const { dialogContainer: dialog } = confirmationModal;
 				let { dialogResult } = confirmationModal;
 				// The selected option in the dropdown list.
@@ -139,12 +139,12 @@ jQuery(
 						$.post(
 							ajaxurl,
 							data,
-							function( response ) {
+							function ( response ) {
 								// Target a non existing WP HTML id to avoid a conflict with WP ajax requests.
 								var res = wpAjax.parseAjaxResponse( response, 'pll-ajax-response' );
 								$.each(
 									res.responses,
-									function() {
+									function () {
 										switch ( this.what ) {
 											case 'translations': // translations fields
 												// Data is built and come from server side and is well escaped when necessary
@@ -187,7 +187,7 @@ jQuery(
 								initializeLanguageOldValue();
 								// modifies the language in the tag cloud
 								$( '.tagcloud-link' ).each(
-									function() {
+									function () {
 										var id = $( this ).attr( 'id' );
 										tagBox.get( id );
 									}
@@ -257,7 +257,7 @@ var media = _.extend(
 		 * @param {Object} [props]
 		 * @return {wp.media.model.Attachments}
 		 */
-		query: function( props ) {
+		query: function ( props ) {
 			var attachments = pll.media.query.delegate( props );
 
 			pll.media.attachmentsCollections.push( attachments );
@@ -265,14 +265,14 @@ var media = _.extend(
 			return attachments;
 		},
 
-		resetAllAttachmentsCollections: function() {
+		resetAllAttachmentsCollections: function () {
 			this.attachmentsCollections.forEach(
-				function( attachmentsCollection ) {
+				function ( attachmentsCollection ) {
 					/**
 					 * First reset the { @see wp.media.model.Attachments } collection.
 					 * Then, if it is mirroring a { @see wp.media.model.Query } collection,
 					 * refresh this one too, so it will fetch new data from the server,
-					 * and then the wp.media.model.Attachments collection will syncrhonize with the new data.
+					 * and then the wp.media.model.Attachments collection will synchronize with the new data.
 					 */
 					attachmentsCollection.reset();
 					if (attachmentsCollection.mirroring) {

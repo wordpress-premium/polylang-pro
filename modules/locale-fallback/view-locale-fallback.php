@@ -7,7 +7,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly.
-};
+}
 ?>
 <div class="form-field">
 	<label for="lang_fallback"><?php esc_html_e( 'Locale fallback', 'polylang-pro' ); ?></label>
