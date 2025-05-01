@@ -46,13 +46,14 @@ class PLL_Xliff_Export_21 extends PLL_Xliff_Export_Base {
 			$xliff,
 			'file',
 			array(
-				'id'       => '1', // We will have only one `<file>` tag.
-				'original' => sprintf(
+				'id'           => '1', // We will have only one `<file>` tag.
+				'original'     => sprintf(
 					'%s|%s|%s',
 					PLL_Import_Export::APP_NAME,
 					POLYLANG_VERSION,
 					get_site_url()
 				),
+				'canResegment' => 'no',
 			)
 		);
 	}

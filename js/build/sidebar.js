@@ -1,7 +1,151 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 184:
+/***/ 20:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+/**
+ * @license React
+ * react-jsx-runtime.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+var f=__webpack_require__(677),k=Symbol.for("react.element"),l=Symbol.for("react.fragment"),m=Object.prototype.hasOwnProperty,n=f.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner,p={key:!0,ref:!0,__self:!0,__source:!0};
+function q(c,a,g){var b,d={},e=null,h=null;void 0!==g&&(e=""+g);void 0!==a.key&&(e=""+a.key);void 0!==a.ref&&(h=a.ref);for(b in a)m.call(a,b)&&!p.hasOwnProperty(b)&&(d[b]=a[b]);if(c&&c.defaultProps)for(b in a=c.defaultProps,a)void 0===d[b]&&(d[b]=a[b]);return{$$typeof:k,type:c,key:e,ref:h,props:d,_owner:n.current}}exports.Fragment=l;exports.jsx=q;exports.jsxs=q;
+
+
+/***/ }),
+
+/***/ 848:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+if (true) {
+  module.exports = __webpack_require__(20);
+} else {}
+
+
+/***/ }),
+
+/***/ 677:
+/***/ ((module) => {
+
+module.exports = (function() { return this["React"]; }());
+
+/***/ }),
+
+/***/ 419:
+/***/ ((module) => {
+
+module.exports = (function() { return this["lodash"]; }());
+
+/***/ }),
+
+/***/ 631:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["apiFetch"]; }());
+
+/***/ }),
+
+/***/ 959:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["components"]; }());
+
+/***/ }),
+
+/***/ 897:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["compose"]; }());
+
+/***/ }),
+
+/***/ 488:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["coreData"]; }());
+
+/***/ }),
+
+/***/ 987:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["data"]; }());
+
+/***/ }),
+
+/***/ 53:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["editPost"]; }());
+
+/***/ }),
+
+/***/ 324:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["editSite"]; }());
+
+/***/ }),
+
+/***/ 601:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["element"]; }());
+
+/***/ }),
+
+/***/ 75:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["i18n"]; }());
+
+/***/ }),
+
+/***/ 860:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["keycodes"]; }());
+
+/***/ }),
+
+/***/ 672:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["notices"]; }());
+
+/***/ }),
+
+/***/ 125:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["plugins"]; }());
+
+/***/ }),
+
+/***/ 933:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["primitives"]; }());
+
+/***/ }),
+
+/***/ 172:
+/***/ ((module) => {
+
+module.exports = (function() { return this["wp"]["url"]; }());
+
+/***/ }),
+
+/***/ 942:
 /***/ ((module, exports) => {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -15,41 +159,58 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
 	'use strict';
 
 	var hasOwn = {}.hasOwnProperty;
-	var nativeCodeString = '[native code]';
 
-	function classNames() {
-		var classes = [];
+	function classNames () {
+		var classes = '';
 
 		for (var i = 0; i < arguments.length; i++) {
 			var arg = arguments[i];
-			if (!arg) continue;
-
-			var argType = typeof arg;
-
-			if (argType === 'string' || argType === 'number') {
-				classes.push(arg);
-			} else if (Array.isArray(arg)) {
-				if (arg.length) {
-					var inner = classNames.apply(null, arg);
-					if (inner) {
-						classes.push(inner);
-					}
-				}
-			} else if (argType === 'object') {
-				if (arg.toString !== Object.prototype.toString && !arg.toString.toString().includes('[native code]')) {
-					classes.push(arg.toString());
-					continue;
-				}
-
-				for (var key in arg) {
-					if (hasOwn.call(arg, key) && arg[key]) {
-						classes.push(key);
-					}
-				}
+			if (arg) {
+				classes = appendClass(classes, parseValue(arg));
 			}
 		}
 
-		return classes.join(' ');
+		return classes;
+	}
+
+	function parseValue (arg) {
+		if (typeof arg === 'string' || typeof arg === 'number') {
+			return arg;
+		}
+
+		if (typeof arg !== 'object') {
+			return '';
+		}
+
+		if (Array.isArray(arg)) {
+			return classNames.apply(null, arg);
+		}
+
+		if (arg.toString !== Object.prototype.toString && !arg.toString.toString().includes('[native code]')) {
+			return arg.toString();
+		}
+
+		var classes = '';
+
+		for (var key in arg) {
+			if (hasOwn.call(arg, key) && arg[key]) {
+				classes = appendClass(classes, key);
+			}
+		}
+
+		return classes;
+	}
+
+	function appendClass (value, newClass) {
+		if (!newClass) {
+			return value;
+		}
+	
+		if (value) {
+			return value + ' ' + newClass;
+		}
+	
+		return value + newClass;
 	}
 
 	if ( true && module.exports) {
@@ -64,118 +225,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
 	} else {}
 }());
 
-
-/***/ }),
-
-/***/ 991:
-/***/ ((module) => {
-
-module.exports = (function() { return this["lodash"]; }());
-
-/***/ }),
-
-/***/ 514:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["apiFetch"]; }());
-
-/***/ }),
-
-/***/ 893:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["components"]; }());
-
-/***/ }),
-
-/***/ 576:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["compose"]; }());
-
-/***/ }),
-
-/***/ 848:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["coreData"]; }());
-
-/***/ }),
-
-/***/ 15:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["data"]; }());
-
-/***/ }),
-
-/***/ 197:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["editPost"]; }());
-
-/***/ }),
-
-/***/ 353:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["editSite"]; }());
-
-/***/ }),
-
-/***/ 293:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["element"]; }());
-
-/***/ }),
-
-/***/ 638:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["htmlEntities"]; }());
-
-/***/ }),
-
-/***/ 122:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["i18n"]; }());
-
-/***/ }),
-
-/***/ 19:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["keycodes"]; }());
-
-/***/ }),
-
-/***/ 703:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["notices"]; }());
-
-/***/ }),
-
-/***/ 571:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["plugins"]; }());
-
-/***/ }),
-
-/***/ 776:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["primitives"]; }());
-
-/***/ }),
-
-/***/ 470:
-/***/ ((module) => {
-
-module.exports = (function() { return this["wp"]["url"]; }());
 
 /***/ })
 
@@ -235,39 +284,27 @@ module.exports = (function() { return this["wp"]["url"]; }());
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ 	})();
 /******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: external {"this":["wp","element"]}
-var external_this_wp_element_ = __webpack_require__(293);
+var external_this_wp_element_ = __webpack_require__(601);
 // EXTERNAL MODULE: external {"this":["wp","editPost"]}
-var external_this_wp_editPost_ = __webpack_require__(197);
+var external_this_wp_editPost_ = __webpack_require__(53);
 // EXTERNAL MODULE: external {"this":["wp","editSite"]}
-var external_this_wp_editSite_ = __webpack_require__(353);
+var external_this_wp_editSite_ = __webpack_require__(324);
 // EXTERNAL MODULE: external {"this":["wp","plugins"]}
-var external_this_wp_plugins_ = __webpack_require__(571);
+var external_this_wp_plugins_ = __webpack_require__(125);
 // EXTERNAL MODULE: external {"this":["wp","primitives"]}
-var external_this_wp_primitives_ = __webpack_require__(776);
+var external_this_wp_primitives_ = __webpack_require__(933);
 // EXTERNAL MODULE: external "lodash"
-var external_lodash_ = __webpack_require__(991);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/duplication.js
-
+var external_lodash_ = __webpack_require__(419);
+// EXTERNAL MODULE: ./node_modules/react/jsx-runtime.js
+var jsx_runtime = __webpack_require__(848);
+;// ./modules/block-editor/js/icons/library/duplication.js
 /**
  * Duplication icon - admin-page Dashicon.
  *
@@ -279,18 +316,19 @@ var external_lodash_ = __webpack_require__(991);
  */
 
 
+
 const isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const duplication = isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const duplication = isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M6 15v-13h10v13h-10zM5 16h8v2h-10v-13h2v11z"
-})) : 'admin-page';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M6 15v-13h10v13h-10zM5 16h8v2h-10v-13h2v11z"
+  })
+}) : 'admin-page';
 /* harmony default export */ const library_duplication = (duplication);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/pencil.js
-
+;// ./modules/block-editor/js/icons/library/pencil.js
 /**
  * Pencil icon - edit Dashicon.
  *
@@ -302,18 +340,19 @@ const duplication = isPrimitivesComponents ? (0,external_this_wp_element_.create
  */
 
 
+
 const pencil_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const pencil = pencil_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const pencil = pencil_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M13.89 3.39l2.71 2.72c0.46 0.46 0.42 1.24 0.030 1.64l-8.010 8.020-5.56 1.16 1.16-5.58s7.6-7.63 7.99-8.030c0.39-0.39 1.22-0.39 1.68 0.070zM11.16 6.18l-5.59 5.61 1.11 1.11 5.54-5.65zM8.19 14.41l5.58-5.6-1.070-1.080-5.59 5.6z"
-})) : 'edit';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M13.89 3.39l2.71 2.72c0.46 0.46 0.42 1.24 0.030 1.64l-8.010 8.020-5.56 1.16 1.16-5.58s7.6-7.63 7.99-8.030c0.39-0.39 1.22-0.39 1.68 0.070zM11.16 6.18l-5.59 5.61 1.11 1.11 5.54-5.65zM8.19 14.41l5.58-5.6-1.070-1.080-5.59 5.6z"
+  })
+}) : 'edit';
 /* harmony default export */ const library_pencil = (pencil);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/plus.js
-
+;// ./modules/block-editor/js/icons/library/plus.js
 /**
  * Plus icon - plus Dashicon.
  *
@@ -325,18 +364,19 @@ const pencil = pencil_isPrimitivesComponents ? (0,external_this_wp_element_.crea
  */
 
 
+
 const plus_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const plus = plus_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const plus = plus_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M17 7v3h-5v5h-3v-5h-5v-3h5v-5h3v5h5z"
-})) : 'plus';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M17 7v3h-5v5h-3v-5h-5v-3h5v-5h3v5h5z"
+  })
+}) : 'plus';
 /* harmony default export */ const library_plus = (plus);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/synchronization.js
-
+;// ./modules/block-editor/js/icons/library/synchronization.js
 /**
  * Synchronization icon - controls-repeat Dashicon.
  *
@@ -348,18 +388,19 @@ const plus = plus_isPrimitivesComponents ? (0,external_this_wp_element_.createEl
  */
 
 
+
 const synchronization_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const synchronization = synchronization_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const synchronization = synchronization_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M5 7v3l-2 1.5v-6.5h11v-2l4 3.010-4 2.99v-2h-9zM15 13v-3l2-1.5v6.5h-11v2l-4-3.010 4-2.99v2h9z"
-})) : 'controls-repeat';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M5 7v3l-2 1.5v-6.5h11v-2l4 3.010-4 2.99v-2h-9zM15 13v-3l2-1.5v6.5h-11v2l-4-3.010 4-2.99v2h9z"
+  })
+}) : 'controls-repeat';
 /* harmony default export */ const library_synchronization = (synchronization);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/translation.js
-
+;// ./modules/block-editor/js/icons/library/translation.js
 /**
  * Translation icon - translation Dashicon.
  *
@@ -371,18 +412,19 @@ const synchronization = synchronization_isPrimitivesComponents ? (0,external_thi
  */
 
 
+
 const translation_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const translation = translation_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const translation = translation_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M11 7H9.49c-.63 0-1.25.3-1.59.7L7 5H4.13l-2.39 7h1.69l.74-2H7v4H2c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h7c1.1 0 2 .9 2 2v2zM6.51 9H4.49l1-2.93zM10 8h7c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2h-7c-1.1 0-2-.9-2-2v-7c0-1.1.9-2 2-2zm7.25 5v-1.08h-3.17V9.75h-1.16v2.17H9.75V13h1.28c.11.85.56 1.85 1.28 2.62-.87.36-1.89.62-2.31.62-.01.02.22.97.2 1.46.84 0 2.21-.5 3.28-1.15 1.09.65 2.48 1.15 3.34 1.15-.02-.49.2-1.44.2-1.46-.43 0-1.49-.27-2.38-.63.7-.77 1.14-1.77 1.25-2.61h1.36zm-3.81 1.93c-.5-.46-.85-1.13-1.01-1.93h2.09c-.17.8-.51 1.47-1 1.93l-.04.03s-.03-.02-.04-.03z"
-})) : 'translation';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M11 7H9.49c-.63 0-1.25.3-1.59.7L7 5H4.13l-2.39 7h1.69l.74-2H7v4H2c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h7c1.1 0 2 .9 2 2v2zM6.51 9H4.49l1-2.93zM10 8h7c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2h-7c-1.1 0-2-.9-2-2v-7c0-1.1.9-2 2-2zm7.25 5v-1.08h-3.17V9.75h-1.16v2.17H9.75V13h1.28c.11.85.56 1.85 1.28 2.62-.87.36-1.89.62-2.31.62-.01.02.22.97.2 1.46.84 0 2.21-.5 3.28-1.15 1.09.65 2.48 1.15 3.34 1.15-.02-.49.2-1.44.2-1.46-.43 0-1.49-.27-2.38-.63.7-.77 1.14-1.77 1.25-2.61h1.36zm-3.81 1.93c-.5-.46-.85-1.13-1.01-1.93h2.09c-.17.8-.51 1.47-1 1.93l-.04.03s-.03-.02-.04-.03z"
+  })
+}) : 'translation';
 /* harmony default export */ const library_translation = (translation);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/trash.js
-
+;// ./modules/block-editor/js/icons/library/trash.js
 /**
  * Trash icon - trash Dashicon.
  *
@@ -394,18 +436,19 @@ const translation = translation_isPrimitivesComponents ? (0,external_this_wp_ele
  */
 
 
+
 const trash_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const trash = trash_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const trash = trash_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M12 4h3c.6 0 1 .4 1 1v1H3V5c0-.6.5-1 1-1h3c.2-1.1 1.3-2 2.5-2s2.3.9 2.5 2zM8 4h3c-.2-.6-.9-1-1.5-1S8.2 3.4 8 4zM4 7h11l-.9 10.1c0 .5-.5.9-1 .9H5.9c-.5 0-.9-.4-1-.9L4 7z"
-})) : 'trash';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M12 4h3c.6 0 1 .4 1 1v1H3V5c0-.6.5-1 1-1h3c.2-1.1 1.3-2 2.5-2s2.3.9 2.5 2zM8 4h3c-.2-.6-.9-1-1.5-1S8.2 3.4 8 4zM4 7h11l-.9 10.1c0 .5-.5.9-1 .9H5.9c-.5 0-.9-.4-1-.9L4 7z"
+  })
+}) : 'trash';
 /* harmony default export */ const library_trash = (trash);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/star.js
-
+;// ./modules/block-editor/js/icons/library/star.js
 /**
  * Star icon - star-filled Dashicon.
  *
@@ -417,18 +460,19 @@ const trash = trash_isPrimitivesComponents ? (0,external_this_wp_element_.create
  */
 
 
+
 const star_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const star = star_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const star = star_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "m10 1 3 6 6 .75-4.12 4.62L16 19l-6-3-6 3 1.13-6.63L1 7.75 7 7z"
-})) : 'star-filled';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "m10 1 3 6 6 .75-4.12 4.62L16 19l-6-3-6 3 1.13-6.63L1 7.75 7 7z"
+  })
+}) : 'star-filled';
 /* harmony default export */ const library_star = (star);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/submenu.js
-
+;// ./modules/block-editor/js/icons/library/submenu.js
 /**
  * Submenu icon
  *
@@ -443,19 +487,21 @@ const star = star_isPrimitivesComponents ? (0,external_this_wp_element_.createEl
  * External dependencies
  */
 
+
 const submenu_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const SubmenuIcon = () => submenu_isPrimitivesComponents ? createElement(SVG, {
+const SubmenuIcon = () => submenu_isPrimitivesComponents ? /*#__PURE__*/_jsx(SVG, {
   xmlns: "http://www.w3.org/2000/svg",
   width: "12",
   height: "12",
   viewBox: "0 0 12 12",
-  fill: "none"
-}, createElement(Path, {
-  d: "M1.50002 4L6.00002 8L10.5 4",
-  strokeWidth: "1.5"
-})) : 'submenu';
+  fill: "none",
+  children: /*#__PURE__*/_jsx(Path, {
+    d: "M1.50002 4L6.00002 8L10.5 4",
+    strokeWidth: "1.5"
+  })
+}) : 'submenu';
 /* harmony default export */ const submenu = ((/* unused pure expression or super */ null && (SubmenuIcon)));
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/index.js
+;// ./modules/block-editor/js/icons/index.js
 /**
  * Icons library
  *
@@ -470,8 +516,7 @@ const SubmenuIcon = () => submenu_isPrimitivesComponents ? createElement(SVG, {
 
 
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/app.js
-
+;// ./modules/block-editor/js/sidebar/app.js
 /**
  * WordPress Dependencies.
  *
@@ -484,13 +529,13 @@ const SubmenuIcon = () => submenu_isPrimitivesComponents ? createElement(SVG, {
  * Internal Dependencies.
  */
 
-const App = _ref => {
-  let {
-    sidebar,
-    sidebarName,
-    onPromise,
-    children
-  } = _ref;
+
+const App = ({
+  sidebar,
+  sidebarName,
+  onPromise,
+  children
+}) => {
   onPromise().then(result => {
     (0,external_this_wp_plugins_.registerPlugin)(sidebarName, {
       icon: library_translation,
@@ -499,14 +544,16 @@ const App = _ref => {
   }, reason => {
     console.info(reason);
   });
-  return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, children);
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(jsx_runtime.Fragment, {
+    children: children
+  });
 };
 /* harmony default export */ const app = (App);
 // EXTERNAL MODULE: external {"this":["wp","data"]}
-var external_this_wp_data_ = __webpack_require__(15);
+var external_this_wp_data_ = __webpack_require__(987);
 // EXTERNAL MODULE: external {"this":["wp","url"]}
-var external_this_wp_url_ = __webpack_require__(470);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/settings.js
+var external_this_wp_url_ = __webpack_require__(172);
+;// ./modules/block-editor/js/sidebar/settings.js
 /**
  * Module Constants
  *
@@ -530,7 +577,7 @@ const POST_TYPE_WITH_TRASH = ['page'];
 const TEMPLATE_PART_SLUG_SEPARATOR = '___'; // Its value must be synchronized with its equivalent in PHP @see PLL_FSE_Template_Slug::SEPARATOR
 const TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN = '[a-z_-]+'; // Its value must be synchronized with it equivalent in PHP @see PLL_FSE_Template_Slug::SEPARATOR
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/utils.js
+;// ./modules/block-editor/js/sidebar/utils.js
 /**
  * WordPress Dependencies
  *
@@ -887,7 +934,7 @@ function getLangSlugRegex() {
   }
   return new RegExp(`${TEMPLATE_PART_SLUG_SEPARATOR}(?:${languageCheckPattern})$`);
 }
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/store/utils.js
+;// ./modules/block-editor/js/sidebar/store/utils.js
 /**
  * WordPress Dependencies
  *
@@ -1033,7 +1080,7 @@ const getCurrentPostFromDataStore = () => {
   const editedContext = getEditedPostContextWithLegacy();
   return null === editedContext ? null : (0,external_this_wp_data_.select)(settings_MODULE_CORE_KEY).getEntityRecord('postType', editedContext.postType, editedContext.postId);
 };
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/cache-flush-provider/index.js
+;// ./modules/block-editor/js/sidebar/components/cache-flush-provider/index.js
 /**
  * @package Polylang-Pro
  */
@@ -1048,10 +1095,9 @@ const getCurrentPostFromDataStore = () => {
  */
 
 
-const CacheFlushProvider = _ref => {
-  let {
-    onPromise
-  } = _ref;
+const CacheFlushProvider = ({
+  onPromise
+}) => {
   const currentLanguageRef = (0,external_this_wp_element_.useRef)({});
   const getCurrentLanguage = () => {
     var _getSelectedLanguage;
@@ -1105,8 +1151,8 @@ const CacheFlushProvider = _ref => {
 };
 /* harmony default export */ const cache_flush_provider = (CacheFlushProvider);
 // EXTERNAL MODULE: external {"this":["wp","notices"]}
-var external_this_wp_notices_ = __webpack_require__(703);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/display-notices/index.js
+var external_this_wp_notices_ = __webpack_require__(672);
+;// ./modules/block-editor/js/sidebar/components/display-notices/index.js
 /**
  * @package Polylang-Pro
  */
@@ -1119,10 +1165,9 @@ var external_this_wp_notices_ = __webpack_require__(703);
 const {
   stripTags
 } = wp.sanitize;
-const DisplayNotices = _ref => {
-  let {
-    notices
-  } = _ref;
+const DisplayNotices = ({
+  notices
+}) => {
   if (!notices) {
     return null;
   }
@@ -1161,9 +1206,8 @@ const DisplayNotices = _ref => {
 };
 /* harmony default export */ const display_notices = (DisplayNotices);
 // EXTERNAL MODULE: external {"this":["wp","i18n"]}
-var external_this_wp_i18n_ = __webpack_require__(122);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/sidebar/index.js
-
+var external_this_wp_i18n_ = __webpack_require__(75);
+;// ./modules/block-editor/js/sidebar/components/sidebar/index.js
 /**
  * WordPress dependencies
  *
@@ -1171,20 +1215,20 @@ var external_this_wp_i18n_ = __webpack_require__(122);
  */
 
 
-const Sidebar = _ref => {
-  let {
-    PluginSidebarSlot,
-    sidebarName,
-    children
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)(PluginSidebarSlot, {
+
+const Sidebar = ({
+  PluginSidebarSlot,
+  sidebarName,
+  children
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(PluginSidebarSlot, {
     name: sidebarName,
-    title: (0,external_this_wp_i18n_.__)('Languages', 'polylang-pro')
-  }, children);
+    title: (0,external_this_wp_i18n_.__)('Languages', 'polylang-pro'),
+    children: children
+  });
 };
 /* harmony default export */ const sidebar = (Sidebar);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/menu-item/index.js
-
+;// ./modules/block-editor/js/sidebar/components/menu-item/index.js
 /**
  * WordPress dependencies.
  *
@@ -1192,18 +1236,18 @@ const Sidebar = _ref => {
  */
 
 
-const MenuItem = _ref => {
-  let {
-    PluginSidebarMoreMenuItemSlot,
-    sidebarName
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)(PluginSidebarMoreMenuItemSlot, {
-    target: sidebarName
-  }, (0,external_this_wp_i18n_.__)("Languages", "polylang-pro"));
+
+const MenuItem = ({
+  PluginSidebarMoreMenuItemSlot,
+  sidebarName
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(PluginSidebarMoreMenuItemSlot, {
+    target: sidebarName,
+    children: (0,external_this_wp_i18n_.__)("Languages", "polylang-pro")
+  });
 };
 /* harmony default export */ const menu_item = (MenuItem);
-;// CONCATENATED MODULE: ./modules/block-editor/js/components/language-flag.js
-
+;// ./modules/block-editor/js/components/language-flag.js
 /**
  * @package Polylang-Pro
  */
@@ -1228,28 +1272,32 @@ const MenuItem = _ref => {
  *
  * @return {Object}
  */
-function LanguageFlag(_ref) {
-  let {
-    language
-  } = _ref;
-  return !(0,external_lodash_.isNil)(language) ? !(0,external_lodash_.isEmpty)(language.flag_url) ? (0,external_this_wp_element_.createElement)("span", {
-    className: "pll-select-flag"
-  }, (0,external_this_wp_element_.createElement)("img", {
-    src: language.flag_url,
-    alt: language.name,
-    title: language.name,
-    className: "flag"
-  })) : (0,external_this_wp_element_.createElement)("abbr", null, language.slug, (0,external_this_wp_element_.createElement)("span", {
-    className: "screen-reader-text"
-  }, language.name)) : (0,external_this_wp_element_.createElement)("span", {
-    className: "pll-translation-icon"
-  }, library_translation);
+
+function LanguageFlag({
+  language
+}) {
+  return !(0,external_lodash_.isNil)(language) ? !(0,external_lodash_.isEmpty)(language.flag_url) ? /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+    className: "pll-select-flag",
+    children: /*#__PURE__*/(0,jsx_runtime.jsx)("img", {
+      src: language.flag_url,
+      alt: language.name,
+      title: language.name,
+      className: "flag"
+    })
+  }) : /*#__PURE__*/(0,jsx_runtime.jsxs)("abbr", {
+    children: [language.slug, /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+      className: "screen-reader-text",
+      children: language.name
+    })]
+  }) : /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+    className: "pll-translation-icon",
+    children: library_translation
+  });
 }
 /* harmony default export */ const language_flag = (LanguageFlag);
 // EXTERNAL MODULE: external {"this":["wp","components"]}
-var external_this_wp_components_ = __webpack_require__(893);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/default-lang-icon/index.js
-
+var external_this_wp_components_ = __webpack_require__(959);
+;// ./modules/block-editor/js/sidebar/components/default-lang-icon/index.js
 /**
  * WordPress dependencies
  *
@@ -1264,15 +1312,18 @@ var external_this_wp_components_ = __webpack_require__(893);
  * Internal dependencies
  */
 
-const DefaultLangIcon = () => (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(external_this_wp_components_.Icon, {
-  icon: library_star,
-  className: "pll-defaut-lang-icon"
-}), (0,external_this_wp_element_.createElement)("span", {
-  className: "screen-reader-text"
-}, (0,external_this_wp_i18n_.__)('Default language.', 'polylang-pro')));
+
+const DefaultLangIcon = () => /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_element_.Fragment, {
+  children: [/*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Icon, {
+    icon: library_star,
+    className: "pll-defaut-lang-icon"
+  }), /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+    className: "screen-reader-text",
+    children: (0,external_this_wp_i18n_.__)('Default language.', 'polylang-pro')
+  })]
+});
 /* harmony default export */ const default_lang_icon = (DefaultLangIcon);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/language-item/index.js
-
+;// ./modules/block-editor/js/sidebar/components/language-item/index.js
 /**
  * WordPress dependencies
  *
@@ -1288,25 +1339,36 @@ const DefaultLangIcon = () => (0,external_this_wp_element_.createElement)(extern
 
 
 
-const LanguageItem = _ref => {
-  var _ref2;
-  let {
-    language,
-    currentPost
-  } = _ref;
+
+const LanguageItem = ({
+  language,
+  currentPost
+}) => {
+  var _ref;
   const postType = (0,external_this_wp_data_.useSelect)(select => select(settings_MODULE_CORE_KEY).getPostType(currentPost.type), []);
-  return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)("p", null, (0,external_this_wp_element_.createElement)("strong", null, (0,external_this_wp_i18n_.__)("Language", "polylang-pro"))), (0,external_this_wp_element_.createElement)("div", {
-    className: "pll-language-item"
-  }, (0,external_this_wp_element_.createElement)(language_flag, {
-    language: language
-  }), (0,external_this_wp_element_.createElement)("span", {
-    className: "pll-language-name"
-  }, (0,external_this_wp_i18n_.__)(language.name, 'polylang-pro')), language.is_default && (0,external_this_wp_element_.createElement)(default_lang_icon, null)), language.is_default && (0,external_this_wp_element_.createElement)("div", null, (0,external_this_wp_element_.createElement)("span", {
-    className: "pll-metabox-info"
-  }, (_ref2 = 'wp_template_part' === postType?.slug) !== null && _ref2 !== void 0 ? _ref2 : (0,external_this_wp_i18n_.__)('This template part is used for languages that have not yet been translated.', 'polylang-pro'))));
+  return /*#__PURE__*/(0,jsx_runtime.jsxs)(jsx_runtime.Fragment, {
+    children: [/*#__PURE__*/(0,jsx_runtime.jsx)("p", {
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)("strong", {
+        children: (0,external_this_wp_i18n_.__)("Language", "polylang-pro")
+      })
+    }), /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
+      className: "pll-language-item",
+      children: [/*#__PURE__*/(0,jsx_runtime.jsx)(language_flag, {
+        language: language
+      }), /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+        className: "pll-language-name",
+        children: (0,external_this_wp_i18n_.__)(language.name, 'polylang-pro')
+      }), language.is_default && /*#__PURE__*/(0,jsx_runtime.jsx)(default_lang_icon, {})]
+    }), language.is_default && /*#__PURE__*/(0,jsx_runtime.jsx)("div", {
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+        className: "pll-metabox-info",
+        children: (_ref = 'wp_template_part' === postType?.slug) !== null && _ref !== void 0 ? _ref : (0,external_this_wp_i18n_.__)('This template part is used for languages that have not yet been translated.', 'polylang-pro')
+      })
+    })]
+  });
 };
 /* harmony default export */ const language_item = (LanguageItem);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/metaboxes/metabox-wrapper/index.js
+;// ./modules/block-editor/js/sidebar/components/metaboxes/metabox-wrapper/index.js
 
 /**
  * WordPress dependencies
@@ -1314,19 +1376,19 @@ const LanguageItem = _ref => {
  * @package Polylang-Pro
  */
 
-const MetaboxWrapper = _ref => {
-  let {
-    children
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)("div", {
-    className: "components-panel__body is-opened"
-  }, (0,external_this_wp_element_.createElement)("div", {
-    className: "pll-metabox-location"
-  }, children));
+const MetaboxWrapper = ({
+  children
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("div", {
+    className: "components-panel__body is-opened",
+    children: /*#__PURE__*/(0,jsx_runtime.jsx)("div", {
+      className: "pll-metabox-location",
+      children: children
+    })
+  });
 };
 /* harmony default export */ const metabox_wrapper = (MetaboxWrapper);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/not-translatable-notice/index.js
-
+;// ./modules/block-editor/js/sidebar/components/not-translatable-notice/index.js
 /**
  * @package Polylang-Pro
  */
@@ -1335,22 +1397,23 @@ const MetaboxWrapper = _ref => {
  * WordPress Dependencies.
  */
 
-const NotTranslatableNotice = _ref => {
-  let {
-    postType
-  } = _ref;
+
+const NotTranslatableNotice = ({
+  postType
+}) => {
   if ('wp_template' === postType) {
-    return (0,external_this_wp_element_.createElement)("div", {
-      className: "pll-metabox-error components-notice is-warning"
-    }, (0,external_this_wp_i18n_.__)('Templates are not translatable, only template parts are.', 'polylang-pro'));
+    return /*#__PURE__*/(0,jsx_runtime.jsx)("div", {
+      className: "pll-metabox-error components-notice is-warning",
+      children: (0,external_this_wp_i18n_.__)('Templates are not translatable, only template parts are.', 'polylang-pro')
+    });
   }
-  return (0,external_this_wp_element_.createElement)("div", {
-    className: "pll-metabox-error components-notice is-warning"
-  }, (0,external_this_wp_i18n_.__)('This entity is not translatable.', 'polylang-pro'));
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("div", {
+    className: "pll-metabox-error components-notice is-warning",
+    children: (0,external_this_wp_i18n_.__)('This entity is not translatable.', 'polylang-pro')
+  });
 };
 /* harmony default export */ const not_translatable_notice = (NotTranslatableNotice);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/metaboxes/metabox-container/index.js
-
+;// ./modules/block-editor/js/sidebar/components/metaboxes/metabox-container/index.js
 /**
  * @package Polylang-Pro
  */
@@ -1365,27 +1428,34 @@ const NotTranslatableNotice = _ref => {
  */
 
 
-const MetaboxContainer = _ref => {
-  let {
-    isError,
-    isAllowedPostType,
-    postType,
-    children
-  } = _ref;
+
+const MetaboxContainer = ({
+  isError,
+  isAllowedPostType,
+  postType,
+  children
+}) => {
   if (!isAllowedPostType) {
-    return (0,external_this_wp_element_.createElement)(metabox_wrapper, null, (0,external_this_wp_element_.createElement)(not_translatable_notice, {
-      postType: postType
-    }));
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(metabox_wrapper, {
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)(not_translatable_notice, {
+        postType: postType
+      })
+    });
   }
   if (isError) {
-    return (0,external_this_wp_element_.createElement)(metabox_wrapper, null, (0,external_this_wp_element_.createElement)("div", {
-      className: "pll-metabox-error components-notice is-error"
-    }, (0,external_this_wp_i18n_.__)('Unable to retrieve the content language', 'polylang-pro')));
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(metabox_wrapper, {
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)("div", {
+        className: "pll-metabox-error components-notice is-error",
+        children: (0,external_this_wp_i18n_.__)('Unable to retrieve the content language', 'polylang-pro')
+      })
+    });
   }
-  return (0,external_this_wp_element_.createElement)(metabox_wrapper, null, children);
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(metabox_wrapper, {
+    children: children
+  });
 };
 /* harmony default export */ const metabox_container = (MetaboxContainer);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/cells/add-or-edit-cell/index.js
+;// ./modules/block-editor/js/sidebar/components/cells/add-or-edit-cell/index.js
 
 /**
  * WordPress dependencies
@@ -1393,17 +1463,16 @@ const MetaboxContainer = _ref => {
  * @package Polylang-Pro
  */
 
-const AddOrEditCell = _ref => {
-  let {
-    children
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)("td", {
-    className: "pll-edit-column pll-column-icon"
-  }, children);
+const AddOrEditCell = ({
+  children
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("td", {
+    className: "pll-edit-column pll-column-icon",
+    children: children
+  });
 };
 /* harmony default export */ const add_or_edit_cell = (AddOrEditCell);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/cells/default-language-cell/index.js
-
+;// ./modules/block-editor/js/sidebar/components/cells/default-language-cell/index.js
 /**
  * WordPress dependencies
  *
@@ -1414,16 +1483,17 @@ const AddOrEditCell = _ref => {
  * Internal Dependencies
  */
 
-const DefaultLanguageCell = _ref => {
-  let {
-    isDefault
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)("td", {
-    className: "pll-default-lang-column pll-column-icon"
-  }, isDefault && (0,external_this_wp_element_.createElement)(default_lang_icon, null));
+
+const DefaultLanguageCell = ({
+  isDefault
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("td", {
+    className: "pll-default-lang-column pll-column-icon",
+    children: isDefault && /*#__PURE__*/(0,jsx_runtime.jsx)(default_lang_icon, {})
+  });
 };
 /* harmony default export */ const default_language_cell = (DefaultLanguageCell);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/cells/delete-cell/index.js
+;// ./modules/block-editor/js/sidebar/components/cells/delete-cell/index.js
 
 /**
  * WordPress dependencies
@@ -1431,17 +1501,16 @@ const DefaultLanguageCell = _ref => {
  * @package Polylang-Pro
  */
 
-const DeleteCell = _ref => {
-  let {
-    children
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)("td", {
-    className: "pll-delete-column pll-column-icon"
-  }, children);
+const DeleteCell = ({
+  children
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("td", {
+    className: "pll-delete-column pll-column-icon",
+    children: children
+  });
 };
 /* harmony default export */ const delete_cell = (DeleteCell);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/cells/flag-cell/index.js
-
+;// ./modules/block-editor/js/sidebar/components/cells/flag-cell/index.js
 /**
  * WordPress dependencies
  *
@@ -1452,24 +1521,29 @@ const DeleteCell = _ref => {
  * External dependencies.
  */
 
-const FlagCell = _ref => {
-  let {
-    language
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)("th", {
-    className: "pll-language-column"
-  }, !(0,external_lodash_.isEmpty)(language.flag) ? (0,external_this_wp_element_.createElement)("span", {
-    className: "pll-select-flag flag"
-  }, (0,external_this_wp_element_.createElement)("img", {
-    src: language.flag_url,
-    alt: language.name,
-    title: language.name
-  })) : (0,external_this_wp_element_.createElement)("abbr", null, language.slug, (0,external_this_wp_element_.createElement)("span", {
-    className: "screen-reader-text"
-  }, language.name)));
+
+const FlagCell = ({
+  language
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("th", {
+    className: "pll-language-column",
+    children: !(0,external_lodash_.isEmpty)(language.flag) ? /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+      className: "pll-select-flag flag",
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)("img", {
+        src: language.flag_url,
+        alt: language.name,
+        title: language.name
+      })
+    }) : /*#__PURE__*/(0,jsx_runtime.jsxs)("abbr", {
+      children: [language.slug, /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+        className: "screen-reader-text",
+        children: language.name
+      })]
+    })
+  });
 };
 /* harmony default export */ const flag_cell = (FlagCell);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/cells/synchronization-cell/index.js
+;// ./modules/block-editor/js/sidebar/components/cells/synchronization-cell/index.js
 
 /**
  * WordPress dependencies
@@ -1477,16 +1551,16 @@ const FlagCell = _ref => {
  * @package Polylang-Pro
  */
 
-const SynchronizationCell = _ref => {
-  let {
-    children
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)("td", {
-    className: "pll-sync-column pll-column-icon"
-  }, children);
+const SynchronizationCell = ({
+  children
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("td", {
+    className: "pll-sync-column pll-column-icon",
+    children: children
+  });
 };
 /* harmony default export */ const synchronization_cell = (SynchronizationCell);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/cells/translation-input-cell/index.js
+;// ./modules/block-editor/js/sidebar/components/cells/translation-input-cell/index.js
 
 /**
  * WordPress dependencies
@@ -1494,16 +1568,16 @@ const SynchronizationCell = _ref => {
  * @package Polylang-Pro
  */
 
-const TranslationInputCell = _ref => {
-  let {
-    children
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)("td", {
-    className: "pll-translation-column"
-  }, children);
+const TranslationInputCell = ({
+  children
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("td", {
+    className: "pll-translation-column",
+    children: children
+  });
 };
 /* harmony default export */ const translation_input_cell = (TranslationInputCell);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/cells/index.js
+;// ./modules/block-editor/js/sidebar/components/cells/index.js
 /**
  * Cells components for translations table.
  *
@@ -1516,8 +1590,7 @@ const TranslationInputCell = _ref => {
 
 
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/buttons/add-button/index.js
-
+;// ./modules/block-editor/js/sidebar/components/buttons/add-button/index.js
 /**
  * WordPress dependencies
  *
@@ -1540,27 +1613,29 @@ const TranslationInputCell = _ref => {
  * @param {function} handleAddClick Callback to add a translation, default to null.
  * @returns
  */
-const AddButton = _ref => {
-  let {
-    language,
-    href,
-    handleAddClick = null
-  } = _ref;
+
+const AddButton = ({
+  language,
+  href,
+  handleAddClick = null
+}) => {
   const accessibilityText = (0,external_this_wp_i18n_.sprintf)((0,external_this_wp_i18n_.__)('Add a translation in %s', 'polylang-pro'), language.name);
-  return (0,external_this_wp_element_.createElement)(external_this_wp_components_.Button, {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Button, {
     href: href,
     icon: library_plus,
     label: accessibilityText,
     className: `pll-button`,
     onClick: handleAddClick,
     "data-target-language": language.slug // Store the target language to retrieve it through the click event.
-  }, (0,external_this_wp_element_.createElement)("span", {
-    className: "screen-reader-text"
-  }, accessibilityText));
+    ,
+    children: /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+      className: "screen-reader-text",
+      children: accessibilityText
+    })
+  });
 };
 /* harmony default export */ const add_button = (AddButton);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/buttons/delete-button/index.js
-
+;// ./modules/block-editor/js/sidebar/components/buttons/delete-button/index.js
 /**
  * WordPress dependencies
  *
@@ -1574,27 +1649,28 @@ const AddButton = _ref => {
  * Internal dependencies
  */
 
-const DeleteButton = _ref => {
-  let {
-    language,
-    disabled,
-    onClick
-  } = _ref;
+
+const DeleteButton = ({
+  language,
+  disabled,
+  onClick
+}) => {
   // translators: %s is a native language name.
   const translationScreenReaderText = (0,external_this_wp_i18n_.sprintf)((0,external_this_wp_i18n_.__)('Delete the translation in %s', 'polylang-pro'), language.name);
-  return (0,external_this_wp_element_.createElement)(external_this_wp_components_.Button, {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Button, {
     icon: library_trash,
     label: translationScreenReaderText,
     disabled: disabled,
     className: "pll-button",
-    onClick: onClick
-  }, (0,external_this_wp_element_.createElement)("span", {
-    className: "screen-reader-text"
-  }, translationScreenReaderText));
+    onClick: onClick,
+    children: /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+      className: "screen-reader-text",
+      children: translationScreenReaderText
+    })
+  });
 };
 /* harmony default export */ const delete_button = (DeleteButton);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/buttons/persisting-user-data-button/index.js
-
+;// ./modules/block-editor/js/sidebar/components/buttons/persisting-user-data-button/index.js
 /**
  * WordPress dependencies
  *
@@ -1609,15 +1685,15 @@ const DeleteButton = _ref => {
  * Internal dependencies
  */
 
-const PersistingUserDataButton = _ref => {
-  let {
-    id,
-    postType,
-    userPreferenceName,
-    activeLabel,
-    inactiveLabel,
-    icon
-  } = _ref;
+
+const PersistingUserDataButton = ({
+  id,
+  postType,
+  userPreferenceName,
+  activeLabel,
+  inactiveLabel,
+  icon
+}) => {
   const currentUser = (0,external_this_wp_data_.useSelect)(select => select(settings_MODULE_KEY).getCurrentUser(), []);
   const buttonInitialState = () => {
     if (undefined === currentUser || undefined === currentUser[userPreferenceName] || undefined === currentUser[userPreferenceName][postType]) {
@@ -1643,19 +1719,20 @@ const PersistingUserDataButton = _ref => {
     // Updates component state.
     setIsActive(isActive => !isActive);
   };
-  return (0,external_this_wp_element_.createElement)(external_this_wp_components_.Button, {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Button, {
     id: id,
     className: `pll-button pll-before-post-translations-button ${isActive && `wp-ui-text-highlight`}`,
     onClick: saveStateInUserPreferences,
     icon: icon,
-    label: label
-  }, (0,external_this_wp_element_.createElement)("span", {
-    className: "screen-reader-text"
-  }, label));
+    label: label,
+    children: /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+      className: "screen-reader-text",
+      children: label
+    })
+  });
 };
 /* harmony default export */ const persisting_user_data_button = (PersistingUserDataButton);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/buttons/machine-translation-button/index.js
-
+;// ./modules/block-editor/js/sidebar/components/buttons/machine-translation-button/index.js
 /**
  * WordPress dependencies
  *
@@ -1669,6 +1746,7 @@ const PersistingUserDataButton = _ref => {
  * Internal dependencies
  */
 
+
 const MachineTranslationButton = props => {
   const {
     path_d,
@@ -1678,7 +1756,7 @@ const MachineTranslationButton = props => {
     type: 'svg',
     props: {
       ...iconProps,
-      children: (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
         d: path_d
       })
     }
@@ -1687,17 +1765,18 @@ const MachineTranslationButton = props => {
     ...props,
     id: 'pll-machine-translation',
     userPreferenceName: `pll_machine_translation_${props.slug}`,
-    activeLabel: (0,external_this_wp_i18n_.sprintf)( /* translators: %s is the name of the machine translation service. */
+    activeLabel: (0,external_this_wp_i18n_.sprintf)(/* translators: %s is the name of the machine translation service. */
     (0,external_this_wp_i18n_.__)('Deactivate %s machine translation', 'polylang-pro'), props.name),
-    inactiveLabel: (0,external_this_wp_i18n_.sprintf)( /* translators: %s is the name of the machine translation service. */
+    inactiveLabel: (0,external_this_wp_i18n_.sprintf)(/* translators: %s is the name of the machine translation service. */
     (0,external_this_wp_i18n_.__)('Activate %s machine translation', 'polylang-pro'), props.name),
     icon: iconElement
   };
-  return (0,external_this_wp_element_.createElement)(persisting_user_data_button, newProps);
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(persisting_user_data_button, {
+    ...newProps
+  });
 };
 /* harmony default export */ const machine_translation_button = (MachineTranslationButton);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/buttons/duplicate-button/index.js
-
+;// ./modules/block-editor/js/sidebar/components/buttons/duplicate-button/index.js
 /**
  * @package Polylang-Pro
  */
@@ -1707,6 +1786,7 @@ const MachineTranslationButton = props => {
 /**
  * Internal dependencies
  */
+
 
 
 const DuplicateButton = props => {
@@ -1720,11 +1800,12 @@ const DuplicateButton = props => {
     inactiveLabel: (0,external_this_wp_i18n_.__)('Activate the content duplication', 'polylang-pro'),
     icon: library_duplication
   };
-  return (0,external_this_wp_element_.createElement)(persisting_user_data_button, newProps);
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(persisting_user_data_button, {
+    ...newProps
+  });
 };
 /* harmony default export */ const duplicate_button = (DuplicateButton);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/buttons/edit-button/index.js
-
+;// ./modules/block-editor/js/sidebar/components/buttons/edit-button/index.js
 /**
  * WordPress dependencies
  *
@@ -1747,35 +1828,38 @@ const DuplicateButton = props => {
  * @param {function} handleEditClick Callback to edit a translation, default to null.
  * @returns
  */
-const EditButton = _ref => {
-  let {
-    language,
-    href,
-    handleEditClick = null
-  } = _ref;
+
+const EditButton = ({
+  language,
+  href,
+  handleEditClick = null
+}) => {
   /* translators: accessibility text, %s is a native language name. For example Deutsch for German or Français for french. */
   const accessibilityText = (0,external_this_wp_i18n_.sprintf)((0,external_this_wp_i18n_.__)('Edit the translation in %s', 'polylang-pro'), language.name);
-  return (0,external_this_wp_element_.createElement)(external_this_wp_components_.Button, {
+  return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Button, {
     href: href,
     icon: library_pencil,
     label: accessibilityText,
     className: `pll-button`,
     onClick: handleEditClick,
     "data-target-language": language.slug // Store the target language to retrieve it through the click event.
-  }, (0,external_this_wp_element_.createElement)("span", {
-    className: "screen-reader-text"
-  }, accessibilityText));
+    ,
+    children: /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+      className: "screen-reader-text",
+      children: accessibilityText
+    })
+  });
 };
 /* harmony default export */ const edit_button = (EditButton);
 // EXTERNAL MODULE: external {"this":["wp","compose"]}
-var external_this_wp_compose_ = __webpack_require__(576);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/confirmation-modal/index.js
-
+var external_this_wp_compose_ = __webpack_require__(897);
+;// ./modules/block-editor/js/sidebar/components/confirmation-modal/index.js
 /**
  * Wordpress dependencies
  *
  * @package Polylang-Pro
  */
+
 
 
 
@@ -1798,28 +1882,32 @@ class ConfirmationModal extends external_this_wp_element_.Component {
       handleChange,
       children
     } = this.props;
-    return (0,external_this_wp_element_.createElement)(external_this_wp_components_.Modal, {
+    return /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_components_.Modal, {
       title: title,
       className: "confirmBox",
       onRequestClose: updateState,
       shouldCloseOnEsc: false,
       shouldCloseOnClickOutside: false,
-      focusOnMount: false
-    }, children, (0,external_this_wp_element_.createElement)(external_this_wp_components_.ButtonGroup, {
-      className: "buttons"
-    }, (0,external_this_wp_element_.createElement)(external_this_wp_components_.Button, {
-      id: `${idPrefix}_confirm`,
-      ref: this.confirmButton,
-      isPrimary: true,
-      onClick: event => {
-        handleChange(event);
-        updateState();
-      }
-    }, (0,external_this_wp_i18n_.__)('OK', 'polylang-pro')), (0,external_this_wp_element_.createElement)(external_this_wp_components_.Button, {
-      id: `${idPrefix}_cancel`,
-      isSecondary: true,
-      onClick: () => updateState()
-    }, (0,external_this_wp_i18n_.__)('Cancel', 'polylang-pro'))));
+      focusOnMount: false,
+      children: [children, /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_components_.ButtonGroup, {
+        className: "buttons",
+        children: [/*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Button, {
+          id: `${idPrefix}_confirm`,
+          ref: this.confirmButton,
+          isPrimary: true,
+          onClick: event => {
+            handleChange(event);
+            updateState();
+          },
+          children: (0,external_this_wp_i18n_.__)('OK', 'polylang-pro')
+        }), /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Button, {
+          id: `${idPrefix}_cancel`,
+          isSecondary: true,
+          onClick: () => updateState(),
+          children: (0,external_this_wp_i18n_.__)('Cancel', 'polylang-pro')
+        })]
+      })]
+    });
   }
 }
 
@@ -1882,17 +1970,24 @@ const withConfirmation = function (idPrefix, ModalContent, handleChangeCallback)
         }, {
           handleChange: this.handleChange
         });
-        return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(WrappedComponent, wrappedComponentProps), this.state.isOpen && (0,external_this_wp_element_.createElement)(ConfirmationModal, {
-          title: WrappedComponent.labelConfirmationModal,
-          idPrefix: idPrefix,
-          handleChange: () => handleChangeCallback(this.state.changeValue),
-          updateState: () => this.setState({
-            isOpen: false,
-            changeValue: null
-          })
-        }, (0,external_this_wp_element_.createElement)(ModalContent, !(0,external_lodash_.isNil)(isDefaultLang) ? {
-          isDefaultLang: isDefaultLang
-        } : {})));
+        return /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_element_.Fragment, {
+          children: [/*#__PURE__*/(0,jsx_runtime.jsx)(WrappedComponent, {
+            ...wrappedComponentProps
+          }), this.state.isOpen && /*#__PURE__*/(0,jsx_runtime.jsx)(ConfirmationModal, {
+            title: WrappedComponent.labelConfirmationModal,
+            idPrefix: idPrefix,
+            handleChange: () => handleChangeCallback(this.state.changeValue),
+            updateState: () => this.setState({
+              isOpen: false,
+              changeValue: null
+            }),
+            children: /*#__PURE__*/(0,jsx_runtime.jsx)(ModalContent, {
+              ...(!(0,external_lodash_.isNil)(isDefaultLang) ? {
+                isDefaultLang: isDefaultLang
+              } : {})
+            })
+          })]
+        });
       }
     }
     ;
@@ -1924,8 +2019,7 @@ const withConfirmation = function (idPrefix, ModalContent, handleChangeCallback)
  */
 
 /* harmony default export */ const confirmation_modal = (withConfirmation);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/buttons/synchronization-button/index.js
-
+;// ./modules/block-editor/js/sidebar/components/buttons/synchronization-button/index.js
 /**
  * WordPress dependencies
  *
@@ -1941,6 +2035,7 @@ const withConfirmation = function (idPrefix, ModalContent, handleChangeCallback)
 /**
  * Internal dependencies
  */
+
 
 
 
@@ -1990,26 +2085,30 @@ class SynchronizationButton extends external_this_wp_element_.Component {
     const isSynchronized = !(0,external_lodash_.isEmpty)(synchronizedPosts) && synchronizedPosts.has(translationData.lang.slug);
     const highlightButtonClass = isSynchronized && 'wp-ui-text-highlight';
     const synchronizeButtonText = isSynchronized ? (0,external_this_wp_i18n_.__)("Don't synchronize this post", 'polylang-pro') : (0,external_this_wp_i18n_.__)('Synchronize this post', 'polylang-pro');
-    return (0,external_this_wp_element_.createElement)(external_this_wp_components_.Button, {
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Button, {
       icon: library_synchronization,
       label: synchronizeButtonText,
       id: `pll_sync_post[${translationData.lang.slug}]`,
       className: `pll-button ${highlightButtonClass}`,
       onClick: event => {
         this.props.handleChange(event);
-      }
-    }, (0,external_this_wp_element_.createElement)("span", {
-      className: "screen-reader-text"
-    }, synchronizeButtonText));
+      },
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+        className: "screen-reader-text",
+        children: synchronizeButtonText
+      })
+    });
   }
 }
 SynchronizationButton.labelConfirmationModal = (0,external_this_wp_i18n_.__)('Synchronize this post', 'polylang-pro');
 const ModalContent = function () {
-  return (0,external_this_wp_element_.createElement)("p", null, (0,external_this_wp_i18n_.__)('You are about to overwrite an existing translation. Are you sure you want to proceed?', 'polylang-pro'));
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("p", {
+    children: (0,external_this_wp_i18n_.__)('You are about to overwrite an existing translation. Are you sure you want to proceed?', 'polylang-pro')
+  });
 };
 const SynchronizationButtonWithConfirmation = confirmation_modal('pll_sync_post', ModalContent, SynchronizationButton.handleSynchronizationChange)(SynchronizationButton);
 /* harmony default export */ const synchronization_button = (SynchronizationButtonWithConfirmation);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/buttons/index.js
+;// ./modules/block-editor/js/sidebar/components/buttons/index.js
 /**
  * Buttons components.
  *
@@ -2023,9 +2122,9 @@ const SynchronizationButtonWithConfirmation = confirmation_modal('pll_sync_post'
 
 
 // EXTERNAL MODULE: ./node_modules/classnames/index.js
-var classnames = __webpack_require__(184);
+var classnames = __webpack_require__(942);
 var classnames_default = /*#__PURE__*/__webpack_require__.n(classnames);
-;// CONCATENATED MODULE: ./node_modules/dom-scroll-into-view/dist-web/index.js
+;// ./node_modules/dom-scroll-into-view/dist-web/index.js
 function _typeof(obj) {
   if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
     _typeof = function (obj) {
@@ -2672,14 +2771,12 @@ function scrollIntoView(elem, container, config) {
 /* harmony default export */ const dist_web = (scrollIntoView);
 //# sourceMappingURL=index.js.map
 
-// EXTERNAL MODULE: external {"this":["wp","htmlEntities"]}
-var external_this_wp_htmlEntities_ = __webpack_require__(638);
 // EXTERNAL MODULE: external {"this":["wp","keycodes"]}
-var external_this_wp_keycodes_ = __webpack_require__(19);
+var external_this_wp_keycodes_ = __webpack_require__(860);
 // EXTERNAL MODULE: external {"this":["wp","apiFetch"]}
-var external_this_wp_apiFetch_ = __webpack_require__(514);
+var external_this_wp_apiFetch_ = __webpack_require__(631);
 var external_this_wp_apiFetch_default = /*#__PURE__*/__webpack_require__.n(external_this_wp_apiFetch_);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/translation-input/input-change.js
+;// ./modules/block-editor/js/sidebar/components/translation-input/input-change.js
 /**
  * WordPress dependencies
  *
@@ -2695,14 +2792,13 @@ var external_this_wp_apiFetch_default = /*#__PURE__*/__webpack_require__.n(exter
  */
 
 
-const onInputChange = _ref => {
-  let {
-    value,
-    post = null,
-    translatedPosts,
-    translationData,
-    language
-  } = _ref;
+const onInputChange = ({
+  value,
+  post = null,
+  translatedPosts,
+  translationData,
+  language
+}) => {
   if ((0,external_lodash_.isEmpty)(post)) {
     translationData.translated_post = {
       id: null,
@@ -2717,7 +2813,7 @@ const onInputChange = _ref => {
     translatedPosts.set(language.slug, post.id);
     translationData.translated_post = {
       id: post.id,
-      title: post.title.rendered
+      title: post.title.raw
     };
     translationData.block_editor = {
       edit_link: post.block_editor.edit_link
@@ -2734,8 +2830,7 @@ const onInputChange = _ref => {
   });
 };
 /* harmony default export */ const input_change = (onInputChange);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/translation-input/index.js
-
+;// ./modules/block-editor/js/sidebar/components/translation-input/index.js
 /**
  * External dependencies
  *
@@ -2758,7 +2853,6 @@ const onInputChange = _ref => {
 
 
 
-
 /**
  * Internal dependencies
  */
@@ -2768,6 +2862,7 @@ const onInputChange = _ref => {
 // Since TranslationInput is rendered in the context of other inputs, but should be
 // considered a separate modal node, prevent keyboard events from propagating
 // as being considered from the input.
+
 const stopEventPropagation = event => event.stopPropagation();
 class TranslationInput extends external_this_wp_element_.Component {
   constructor() {
@@ -2811,8 +2906,7 @@ class TranslationInput extends external_this_wp_element_.Component {
       this.suggestionNodes[index] = ref;
     };
   }
-  updateSuggestions(value) {
-    let noControl = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  updateSuggestions(value, noControl = false) {
     // Show the suggestions after typing at least 2 characters
     // and also for URLs
     if (value.length < 2 && !noControl) {
@@ -2854,7 +2948,7 @@ class TranslationInput extends external_this_wp_element_.Component {
         loading: false
       });
       if (!!posts.length) {
-        this.props.debouncedSpeak((0,external_this_wp_i18n_.sprintf)( /* translators: accessibility text. %d is a number of posts. */
+        this.props.debouncedSpeak((0,external_this_wp_i18n_.sprintf)(/* translators: accessibility text. %d is a number of posts. */
         (0,external_this_wp_i18n_._n)('%d result found, use up and down arrow keys to navigate.', '%d results found, use up and down arrow keys to navigate.', posts.length, 'polylang-pro'), posts.length), 'assertive');
       } else {
         /* translators: accessibility text */
@@ -2965,7 +3059,7 @@ class TranslationInput extends external_this_wp_element_.Component {
     const translatedPosts = this.props.translatedPosts;
     const language = this.props.translationData.lang;
     input_change({
-      value: post.title.rendered,
+      value: post.title.raw,
       post,
       translatedPosts,
       translationData,
@@ -2991,58 +3085,63 @@ class TranslationInput extends external_this_wp_element_.Component {
       loading
     } = this.state;
     const currentUserCanAddOrEdit = translationData.caps.edit || translationData.caps.add;
-    return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)("label", {
-      className: "screen-reader-text",
-      htmlFor: `tr_lang_${translationData.lang.slug}`
-    }, /* translators: accessibility text */(0,external_this_wp_i18n_.__)('Translation', 'polylang-pro')), (0,external_this_wp_element_.createElement)("div", {
-      className: "translation-input"
-    }, (0,external_this_wp_element_.createElement)("input", {
-      lang: language.w3c,
-      dir: language.is_rtl ? 'rtl' : 'ltr',
-      style: {
-        direction: language.is_rtl ? 'rtl' : 'ltr'
-      },
-      autoFocus: autoFocus,
-      disabled: !currentUserCanAddOrEdit,
-      type: "text",
-      "aria-label": /* translators: accessibility text */(0,external_this_wp_i18n_.__)('URL', 'polylang-pro'),
-      required: true,
-      value: value,
-      onChange: this.onChange,
-      onInput: stopEventPropagation,
-      placeholder: (0,external_this_wp_i18n_.__)('Start typing the post title', 'polylang-pro'),
-      onKeyDown: this.onKeyDown,
-      role: "combobox",
-      "aria-expanded": showSuggestions,
-      "aria-autocomplete": "list",
-      "aria-owns": `translation-input-suggestions-${instanceId}`,
-      "aria-activedescendant": selectedSuggestion !== null ? `translation-input-suggestion-${instanceId}-${selectedSuggestion}` : undefined
-    }), loading && (0,external_this_wp_element_.createElement)(external_this_wp_components_.Spinner, null)), showSuggestions && !!posts.length && (0,external_this_wp_element_.createElement)(external_this_wp_components_.Popover, {
-      position: "bottom",
-      noArrow: true,
-      focusOnMount: false
-    }, (0,external_this_wp_element_.createElement)("div", {
-      className: "translation-input__suggestions",
-      id: `translation-input-suggestions-${instanceId}`,
-      ref: this.bindListNode,
-      role: "listbox"
-    }, posts.map((post, index) => (0,external_this_wp_element_.createElement)("button", {
-      key: post.id,
-      role: "option",
-      tabIndex: "-1",
-      id: `translation-input-suggestion-${instanceId}-${index}`,
-      ref: this.bindSuggestionNode(index),
-      className: classnames_default()('translation-input__suggestion', {
-        'is-selected': index === selectedSuggestion
-      }),
-      onClick: () => this.selectLink(post),
-      "aria-selected": index === selectedSuggestion
-    }, (0,external_this_wp_htmlEntities_.decodeEntities)(post.title.rendered) || (0,external_this_wp_i18n_.__)('(no title)', 'polylang-pro'))))));
+    return /*#__PURE__*/(0,jsx_runtime.jsxs)(jsx_runtime.Fragment, {
+      children: [/*#__PURE__*/(0,jsx_runtime.jsx)("label", {
+        className: "screen-reader-text",
+        htmlFor: `tr_lang_${translationData.lang.slug}`,
+        children: /* translators: accessibility text */(0,external_this_wp_i18n_.__)('Translation', 'polylang-pro')
+      }), /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
+        className: "translation-input",
+        children: [/*#__PURE__*/(0,jsx_runtime.jsx)("input", {
+          lang: language.w3c,
+          dir: language.is_rtl ? 'rtl' : 'ltr',
+          style: {
+            direction: language.is_rtl ? 'rtl' : 'ltr'
+          },
+          autoFocus: autoFocus,
+          disabled: !currentUserCanAddOrEdit,
+          type: "text",
+          "aria-label": /* translators: accessibility text */(0,external_this_wp_i18n_.__)('URL', 'polylang-pro'),
+          required: true,
+          value: value,
+          onChange: this.onChange,
+          onInput: stopEventPropagation,
+          placeholder: (0,external_this_wp_i18n_.__)('Start typing the post title', 'polylang-pro'),
+          onKeyDown: this.onKeyDown,
+          role: "combobox",
+          "aria-expanded": showSuggestions,
+          "aria-autocomplete": "list",
+          "aria-owns": `translation-input-suggestions-${instanceId}`,
+          "aria-activedescendant": selectedSuggestion !== null ? `translation-input-suggestion-${instanceId}-${selectedSuggestion}` : undefined
+        }), loading && /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Spinner, {})]
+      }), showSuggestions && !!posts.length && /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Popover, {
+        position: "bottom",
+        noArrow: true,
+        focusOnMount: false,
+        children: /*#__PURE__*/(0,jsx_runtime.jsx)("div", {
+          className: "translation-input__suggestions",
+          id: `translation-input-suggestions-${instanceId}`,
+          ref: this.bindListNode,
+          role: "listbox",
+          children: posts.map((post, index) => /*#__PURE__*/(0,jsx_runtime.jsx)("button", {
+            role: "option",
+            tabIndex: "-1",
+            id: `translation-input-suggestion-${instanceId}-${index}`,
+            ref: this.bindSuggestionNode(index),
+            className: classnames_default()('translation-input__suggestion', {
+              'is-selected': index === selectedSuggestion
+            }),
+            onClick: () => this.selectLink(post),
+            "aria-selected": index === selectedSuggestion,
+            children: post.title.raw || (0,external_this_wp_i18n_.__)('(no title)', 'polylang-pro')
+          }, post.id))
+        })
+      })]
+    });
   }
 }
 /* harmony default export */ const translation_input = ((0,external_this_wp_components_.withSpokenMessages)((0,external_this_wp_compose_.withInstanceId)(TranslationInput)));
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/translation-row/index.js
-
+;// ./modules/block-editor/js/sidebar/components/translation-row/index.js
 /**
  * WordPress dependencies
  *
@@ -3053,18 +3152,19 @@ class TranslationInput extends external_this_wp_element_.Component {
  * Internal dependencies.
  */
 
-const TranslationRow = _ref => {
-  let {
-    language,
-    children
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(flag_cell, {
-    language: language
-  }), children);
+
+const TranslationRow = ({
+  language,
+  children
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsxs)(jsx_runtime.Fragment, {
+    children: [/*#__PURE__*/(0,jsx_runtime.jsx)(flag_cell, {
+      language: language
+    }), children]
+  });
 };
 /* harmony default export */ const translation_row = (TranslationRow);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/translations-table/post-editor-translation-table/index.js
-
+;// ./modules/block-editor/js/sidebar/components/translations-table/post-editor-translation-table/index.js
 /**
  * WordPress dependencies
  *
@@ -3082,11 +3182,11 @@ const TranslationRow = _ref => {
 
 
 
-const PostEditorTranslationsTable = _ref => {
-  let {
-    selectedLanguage,
-    translationsTable
-  } = _ref;
+
+const PostEditorTranslationsTable = ({
+  selectedLanguage,
+  translationsTable
+}) => {
   const translations = (0,external_this_wp_data_.select)(settings_MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('translations');
   const translatedPosts = getTranslatedPosts(translations, translationsTable, selectedLanguage.slug);
   return Array.from(translationsTable.values()).map(translationData => {
@@ -3099,36 +3199,42 @@ const PostEditorTranslationsTable = _ref => {
     const currentUSerCanCreate = translationData.caps.add;
     const addEditButton = () => {
       if (isTranslated && currentUserCanEdit) {
-        return (0,external_this_wp_element_.createElement)(edit_button, {
+        return /*#__PURE__*/(0,jsx_runtime.jsx)(edit_button, {
           href: decodeURI(translationData.block_editor.edit_link),
           language: translationData.lang
         });
       } else if (currentUSerCanCreate) {
-        return (0,external_this_wp_element_.createElement)(add_button, {
+        return /*#__PURE__*/(0,jsx_runtime.jsx)(add_button, {
           href: decodeURI(translationData.links.add_link),
           language: translationData.lang
         });
       }
       return null;
     };
-    return (0,external_this_wp_element_.createElement)("tr", {
-      key: translationData.lang.slug
-    }, (0,external_this_wp_element_.createElement)(translation_row, {
-      language: translationData.lang
-    }, (0,external_this_wp_element_.createElement)(add_or_edit_cell, null, addEditButton()), (0,external_this_wp_element_.createElement)(synchronization_cell, null, translationData.can_synchronize && (0,external_this_wp_element_.createElement)(synchronization_button, {
-      translationData: translationData
-    })), (0,external_this_wp_element_.createElement)(translation_input_cell, null, (0,external_this_wp_element_.createElement)(translation_input, {
-      id: `htr_lang_${translationData.lang.slug}`,
-      autoFocus: false,
-      translatedPosts: translatedPosts,
-      translationData: translationData,
-      value: undefined !== translationData.translated_post?.title ? translationData.translated_post?.title : ''
-    }))));
+    return /*#__PURE__*/(0,jsx_runtime.jsx)("tr", {
+      children: /*#__PURE__*/(0,jsx_runtime.jsxs)(translation_row, {
+        language: translationData.lang,
+        children: [/*#__PURE__*/(0,jsx_runtime.jsx)(add_or_edit_cell, {
+          children: addEditButton()
+        }), /*#__PURE__*/(0,jsx_runtime.jsx)(synchronization_cell, {
+          children: translationData.can_synchronize && /*#__PURE__*/(0,jsx_runtime.jsx)(synchronization_button, {
+            translationData: translationData
+          })
+        }), /*#__PURE__*/(0,jsx_runtime.jsx)(translation_input_cell, {
+          children: /*#__PURE__*/(0,jsx_runtime.jsx)(translation_input, {
+            id: `htr_lang_${translationData.lang.slug}`,
+            autoFocus: false,
+            translatedPosts: translatedPosts,
+            translationData: translationData,
+            value: undefined !== translationData.translated_post?.title ? translationData.translated_post?.title : ''
+          })
+        })]
+      })
+    }, translationData.lang.slug);
   });
 };
 /* harmony default export */ const post_editor_translation_table = (PostEditorTranslationsTable);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/delete-modal-body/index.js
-
+;// ./modules/block-editor/js/sidebar/components/delete-modal-body/index.js
 /**
  * WordPress dependencies
  *
@@ -3136,22 +3242,28 @@ const PostEditorTranslationsTable = _ref => {
  */
 
 
-const DeleteModalBody = _ref => {
-  let {
-    isDefaultLang
-  } = _ref;
+
+const DeleteModalBody = ({
+  isDefaultLang
+}) => {
   const defaultLangText = () => {
     if (!isDefaultLang) {
       return null;
     }
-    return (0,external_this_wp_element_.createElement)("p", null, (0,external_this_wp_i18n_.__)('You are about to delete an entity in the default language.', 'polylang-pro'), (0,external_this_wp_element_.createElement)("br", null), (0,external_this_wp_i18n_.__)('This will delete its customizations and all its corresponding translations.', 'polylang-pro'));
+    return /*#__PURE__*/(0,jsx_runtime.jsxs)("p", {
+      children: [(0,external_this_wp_i18n_.__)('You are about to delete an entity in the default language.', 'polylang-pro'), /*#__PURE__*/(0,jsx_runtime.jsx)("br", {}), (0,external_this_wp_i18n_.__)('This will delete its customizations and all its corresponding translations.', 'polylang-pro')]
+    });
   };
-  return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, defaultLangText(), (0,external_this_wp_element_.createElement)("p", null, (0,external_this_wp_i18n_.__)('Are you sure you want to delete this translation?', 'polylang-pro')));
+  return /*#__PURE__*/(0,jsx_runtime.jsxs)(jsx_runtime.Fragment, {
+    children: [defaultLangText(), /*#__PURE__*/(0,jsx_runtime.jsx)("p", {
+      children: (0,external_this_wp_i18n_.__)('Are you sure you want to delete this translation?', 'polylang-pro')
+    })]
+  });
 };
 /* harmony default export */ const delete_modal_body = (DeleteModalBody);
 // EXTERNAL MODULE: external {"this":["wp","coreData"]}
-var external_this_wp_coreData_ = __webpack_require__(848);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/delete-with-confirmation/use-delete-post.js
+var external_this_wp_coreData_ = __webpack_require__(488);
+;// ./modules/block-editor/js/sidebar/components/delete-with-confirmation/use-delete-post.js
 /**
  * WordPress dependencies
  *
@@ -3183,7 +3295,7 @@ const useDeletePost = () => {
         type: 'snackbar'
       });
     } catch (error) {
-      createErrorNotice((0,external_this_wp_i18n_.sprintf)( /* translators: %s: Error message describing why the post could not be deleted. */
+      createErrorNotice((0,external_this_wp_i18n_.sprintf)(/* translators: %s: Error message describing why the post could not be deleted. */
       (0,external_this_wp_i18n_.__)('Unable to delete the translation. %s', 'polylang-pro'), error?.message), {
         type: 'snackbar'
       });
@@ -3194,7 +3306,7 @@ const useDeletePost = () => {
   };
 };
 /* harmony default export */ const use_delete_post = (useDeletePost);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/delete-with-confirmation/maybe-redirect.js
+;// ./modules/block-editor/js/sidebar/components/delete-with-confirmation/maybe-redirect.js
 /**
  * WordPress dependencies
  *
@@ -3224,8 +3336,7 @@ const maybeRedirect = (postLang, postType) => {
   location.href = (0,external_this_wp_url_.addQueryArgs)(newUrl, queryString);
 };
 /* harmony default export */ const maybe_redirect = (maybeRedirect);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/delete-with-confirmation/index.js
-
+;// ./modules/block-editor/js/sidebar/components/delete-with-confirmation/index.js
 /**
  * WordPress Dependencies.
  *
@@ -3243,12 +3354,12 @@ const maybeRedirect = (postLang, postType) => {
 
 
 
-const DeleteWithConfirmation = _ref => {
-  let {
-    translationData,
-    postType,
-    onDeleteSuccess
-  } = _ref;
+
+const DeleteWithConfirmation = ({
+  translationData,
+  postType,
+  onDeleteSuccess
+}) => {
   const [isOpen, setOpen] = (0,external_this_wp_element_.useState)(false);
   const openModal = () => setOpen(true);
   const closeModal = () => setOpen(false);
@@ -3263,30 +3374,38 @@ const DeleteWithConfirmation = _ref => {
     closeModal();
     maybe_redirect(translationData.lang, postType);
   };
-  return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(delete_button, {
-    onClick: openModal,
-    language: translationData.lang,
-    disabled: !isTranslated || !canTrash
-  }), isOpen && (0,external_this_wp_element_.createElement)(external_this_wp_components_.Modal, {
-    title: "Delete",
-    onRequestClose: closeModal
-  }, (0,external_this_wp_element_.createElement)(delete_modal_body, {
-    isDefaultLang: translationData.lang.is_default && 'page' !== postType // No message for default language deletion with a page.
-  }), (0,external_this_wp_element_.createElement)("div", {
-    role: "group",
-    className: "components-button-group buttons"
-  }, (0,external_this_wp_element_.createElement)(external_this_wp_components_.Button, {
-    variant: "tertiary",
-    onClick: closeModal,
-    type: "button"
-  }, (0,external_this_wp_i18n_.__)('Cancel', 'polylang-pro')), (0,external_this_wp_element_.createElement)("span", null, "\xA0"), (0,external_this_wp_element_.createElement)(external_this_wp_components_.Button, {
-    variant: "primary",
-    onClick: _handleDelete,
-    type: "submit"
-  }, (0,external_this_wp_i18n_.__)('Delete', 'polylang-pro')))));
+  return /*#__PURE__*/(0,jsx_runtime.jsxs)(jsx_runtime.Fragment, {
+    children: [/*#__PURE__*/(0,jsx_runtime.jsx)(delete_button, {
+      onClick: openModal,
+      language: translationData.lang,
+      disabled: !isTranslated || !canTrash
+    }), isOpen && /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_components_.Modal, {
+      title: "Delete",
+      onRequestClose: closeModal,
+      children: [/*#__PURE__*/(0,jsx_runtime.jsx)(delete_modal_body, {
+        isDefaultLang: translationData.lang.is_default && 'page' !== postType // No message for default language deletion with a page.
+      }), /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
+        role: "group",
+        className: "components-button-group buttons",
+        children: [/*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Button, {
+          variant: "tertiary",
+          onClick: closeModal,
+          type: "button",
+          children: (0,external_this_wp_i18n_.__)('Cancel', 'polylang-pro')
+        }), /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+          children: "\xA0"
+        }), /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Button, {
+          variant: "primary",
+          onClick: _handleDelete,
+          type: "submit",
+          children: (0,external_this_wp_i18n_.__)('Delete', 'polylang-pro')
+        })]
+      })]
+    })]
+  });
 };
 /* harmony default export */ const delete_with_confirmation = (DeleteWithConfirmation);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/translations-table/site-editor-translation-table/use-create-translation.js
+;// ./modules/block-editor/js/sidebar/components/translations-table/site-editor-translation-table/use-create-translation.js
 /**
  * WordPress dependencies
  *
@@ -3353,8 +3472,7 @@ const useCreateTranslation = () => {
   };
 };
 /* harmony default export */ const use_create_translation = (useCreateTranslation);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/translations-table/site-editor-translation-table/index.js
-
+;// ./modules/block-editor/js/sidebar/components/translations-table/site-editor-translation-table/index.js
 /**
  * WordPress dependencies
  *
@@ -3372,12 +3490,12 @@ const useCreateTranslation = () => {
 
 
 
-const SiteEditorTranslationsTable = _ref => {
-  let {
-    translationsTable,
-    currentPost,
-    translationsTabeDispatch
-  } = _ref;
+
+const SiteEditorTranslationsTable = ({
+  translationsTable,
+  currentPost,
+  translationsTabeDispatch
+}) => {
   const {
     handleCreateTranslation
   } = use_create_translation();
@@ -3398,7 +3516,7 @@ const SiteEditorTranslationsTable = _ref => {
     || translationData.caps.add;
     const addEditButton = () => {
       if (isTranslated && currentUserCanEdit) {
-        return (0,external_this_wp_element_.createElement)(edit_button, {
+        return /*#__PURE__*/(0,jsx_runtime.jsx)(edit_button, {
           href: decodeURI(translationData.site_editor.edit_link),
           language: translationData.lang
         });
@@ -3406,7 +3524,7 @@ const SiteEditorTranslationsTable = _ref => {
         const _handleCreateTranslation = () => {
           handleCreateTranslation(translationData.lang.slug, currentPost);
         };
-        return (0,external_this_wp_element_.createElement)(add_button, {
+        return /*#__PURE__*/(0,jsx_runtime.jsx)(add_button, {
           href: `#`,
           language: translationData.lang,
           handleAddClick: _handleCreateTranslation
@@ -3414,24 +3532,31 @@ const SiteEditorTranslationsTable = _ref => {
       }
       return null;
     };
-    return (0,external_this_wp_element_.createElement)("tr", {
-      key: translationData.lang.slug
-    }, (0,external_this_wp_element_.createElement)(translation_row, {
-      language: translationData.lang
-    }, (0,external_this_wp_element_.createElement)(translation_input_cell, null, (0,external_this_wp_element_.createElement)("span", {
-      className: "pll-translation-language"
-    }, translationData.lang.name)), (0,external_this_wp_element_.createElement)(add_or_edit_cell, null, addEditButton()), (0,external_this_wp_element_.createElement)(delete_cell, null, (0,external_this_wp_element_.createElement)(delete_with_confirmation, {
-      translationData: translationData,
-      postType: currentPost.type,
-      onDeleteSuccess: onDeleteSuccess
-    })), (0,external_this_wp_element_.createElement)(default_language_cell, {
-      isDefault: translationData.lang.is_default
-    })));
+    return /*#__PURE__*/(0,jsx_runtime.jsx)("tr", {
+      children: /*#__PURE__*/(0,jsx_runtime.jsxs)(translation_row, {
+        language: translationData.lang,
+        children: [/*#__PURE__*/(0,jsx_runtime.jsx)(translation_input_cell, {
+          children: /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+            className: "pll-translation-language",
+            children: translationData.lang.name
+          })
+        }), /*#__PURE__*/(0,jsx_runtime.jsx)(add_or_edit_cell, {
+          children: addEditButton()
+        }), /*#__PURE__*/(0,jsx_runtime.jsx)(delete_cell, {
+          children: /*#__PURE__*/(0,jsx_runtime.jsx)(delete_with_confirmation, {
+            translationData: translationData,
+            postType: currentPost.type,
+            onDeleteSuccess: onDeleteSuccess
+          })
+        }), /*#__PURE__*/(0,jsx_runtime.jsx)(default_language_cell, {
+          isDefault: translationData.lang.is_default
+        })]
+      })
+    }, translationData.lang.slug);
   });
 };
 /* harmony default export */ const site_editor_translation_table = (SiteEditorTranslationsTable);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/translations-table/translations-table-wrapper/index.js
-
+;// ./modules/block-editor/js/sidebar/components/translations-table/translations-table-wrapper/index.js
 /**
  * WordPress dependencies
  *
@@ -3442,17 +3567,26 @@ const SiteEditorTranslationsTable = _ref => {
  * External Dependencies.
  */
 
-const TranslationsTableWrapper = _ref => {
-  let {
-    children
-  } = _ref;
-  return (0,external_this_wp_element_.createElement)("div", {
+
+const TranslationsTableWrapper = ({
+  children
+}) => {
+  return /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
     id: "post-translations",
-    className: "translations"
-  }, (0,external_this_wp_element_.createElement)("p", null, (0,external_this_wp_element_.createElement)("strong", null, (0,external_this_wp_i18n_.__)("Translations", "polylang-pro"))), (0,external_this_wp_element_.createElement)("table", null, (0,external_this_wp_element_.createElement)("tbody", null, children)));
+    className: "translations",
+    children: [/*#__PURE__*/(0,jsx_runtime.jsx)("p", {
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)("strong", {
+        children: (0,external_this_wp_i18n_.__)("Translations", "polylang-pro")
+      })
+    }), /*#__PURE__*/(0,jsx_runtime.jsx)("table", {
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)("tbody", {
+        children: children
+      })
+    })]
+  });
 };
 /* harmony default export */ const translations_table_wrapper = (TranslationsTableWrapper);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/translations-table/index.js
+;// ./modules/block-editor/js/sidebar/components/translations-table/index.js
 /**
  * Translations table components.
  *
@@ -3462,8 +3596,7 @@ const TranslationsTableWrapper = _ref => {
 
 
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/metaboxes/site-editor-metabox/index.js
-
+;// ./modules/block-editor/js/sidebar/components/metaboxes/site-editor-metabox/index.js
 /**
  * @package Polylang-Pro
  */
@@ -3477,6 +3610,7 @@ const TranslationsTableWrapper = _ref => {
 /**
  * Internal Dependencies.
  */
+
 
 
 
@@ -3526,22 +3660,24 @@ const SiteEditorMetabox = () => {
       table: getTranslationsTable(currentPost?.translations_table)
     });
   }, [setCurrentPost, setCurrentPostType, setSelectedLanguage, tableDispatch]);
-  return (0,external_this_wp_element_.createElement)(metabox_container, {
+  return /*#__PURE__*/(0,jsx_runtime.jsxs)(metabox_container, {
     isError: !selectedLanguage,
     isAllowedPostType: !UNTRANSLATABLE_POST_TYPE.includes(currentPostType),
-    postType: currentPostType
-  }, (0,external_this_wp_element_.createElement)(language_item, {
-    language: selectedLanguage,
-    currentPost: currentPost
-  }), (0,external_this_wp_element_.createElement)(translations_table_wrapper, null, (0,external_this_wp_element_.createElement)(site_editor_translation_table, {
-    translationsTable: translationTable,
-    currentPost: currentPost,
-    translationsTabeDispatch: tableDispatch
-  })));
+    postType: currentPostType,
+    children: [/*#__PURE__*/(0,jsx_runtime.jsx)(language_item, {
+      language: selectedLanguage,
+      currentPost: currentPost
+    }), /*#__PURE__*/(0,jsx_runtime.jsx)(translations_table_wrapper, {
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)(site_editor_translation_table, {
+        translationsTable: translationTable,
+        currentPost: currentPost,
+        translationsTabeDispatch: tableDispatch
+      })
+    })]
+  });
 };
 /* harmony default export */ const site_editor_metabox = (SiteEditorMetabox);
-;// CONCATENATED MODULE: ./modules/block-editor/js/components/language-dropdown.js
-
+;// ./modules/block-editor/js/components/language-dropdown.js
 /**
  * @package Polylang-Pro
  */
@@ -3561,25 +3697,27 @@ const SiteEditorMetabox = () => {
  *
  * @return {Object} A dropdown selector for languages.
  */
-function LanguageDropdown(_ref) {
-  let {
-    handleChange,
-    children,
-    selectedLanguage = null,
-    defaultValue = ''
-  } = _ref;
+
+function LanguageDropdown({
+  handleChange,
+  children,
+  selectedLanguage = null,
+  defaultValue = ''
+}) {
   const selectedLanguageSlug = selectedLanguage?.slug ? selectedLanguage.slug : defaultValue;
-  return (0,external_this_wp_element_.createElement)("div", {
-    id: "select-post-language"
-  }, (0,external_this_wp_element_.createElement)(language_flag, {
-    language: selectedLanguage
-  }), children && (0,external_this_wp_element_.createElement)("select", {
-    value: selectedLanguageSlug,
-    onChange: event => handleChange(event),
-    id: "pll_post_lang_choice",
-    name: "pll_post_lang_choice",
-    className: "post_lang_choice"
-  }, children));
+  return /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
+    id: "select-post-language",
+    children: [/*#__PURE__*/(0,jsx_runtime.jsx)(language_flag, {
+      language: selectedLanguage
+    }), children && /*#__PURE__*/(0,jsx_runtime.jsx)("select", {
+      value: selectedLanguageSlug,
+      onChange: event => handleChange(event),
+      id: "pll_post_lang_choice",
+      name: "pll_post_lang_choice",
+      className: "post_lang_choice",
+      children: children
+    })]
+  });
 }
 
 /**
@@ -3591,26 +3729,21 @@ function LanguageDropdown(_ref) {
  *
  * @return {Object} A list of <option> tags to be used in a <select> tag.
  */
-function LanguagesOptionsList(_ref2) {
-  let {
-    languages
-  } = _ref2;
-  return Array.from(languages.values()).map(_ref3 => {
-    let {
-      slug,
-      name,
-      w3c
-    } = _ref3;
-    return (0,external_this_wp_element_.createElement)("option", {
-      value: slug,
-      lang: w3c,
-      key: slug
-    }, name);
-  });
+function LanguagesOptionsList({
+  languages
+}) {
+  return Array.from(languages.values()).map(({
+    slug,
+    name,
+    w3c
+  }) => /*#__PURE__*/(0,jsx_runtime.jsx)("option", {
+    value: slug,
+    lang: w3c,
+    children: name
+  }, slug));
 }
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/switcher/index.js
-
+;// ./modules/block-editor/js/sidebar/components/switcher/index.js
 /**
  * WordPress dependencies
  *
@@ -3627,6 +3760,7 @@ function LanguagesOptionsList(_ref2) {
 /**
  * Internal dependencies
  */
+
 
 
 
@@ -3727,25 +3861,34 @@ class Switcher extends external_this_wp_element_.Component {
     const languages = (0,external_this_wp_data_.select)(settings_MODULE_KEY).getLanguages();
     const lang = (0,external_this_wp_data_.select)(settings_MODULE_CORE_EDITOR_KEY).getEditedPostAttribute('lang');
     const selectedLanguage = getSelectedLanguage(lang);
-    return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)("p", null, (0,external_this_wp_element_.createElement)("strong", null, (0,external_this_wp_i18n_.__)("Language", "polylang-pro"))), (0,external_this_wp_element_.createElement)("label", {
-      className: "screen-reader-text",
-      htmlFor: "pll_post_lang_choice"
-    }, (0,external_this_wp_i18n_.__)("Language", "polylang-pro")), (0,external_this_wp_element_.createElement)(LanguageDropdown, {
-      selectedLanguage: selectedLanguage,
-      handleChange: this.props.handleChange
-    }, (0,external_this_wp_element_.createElement)(LanguagesOptionsList, {
-      languages: languages
-    })));
+    return /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_element_.Fragment, {
+      children: [/*#__PURE__*/(0,jsx_runtime.jsx)("p", {
+        children: /*#__PURE__*/(0,jsx_runtime.jsx)("strong", {
+          children: (0,external_this_wp_i18n_.__)("Language", "polylang-pro")
+        })
+      }), /*#__PURE__*/(0,jsx_runtime.jsx)("label", {
+        className: "screen-reader-text",
+        htmlFor: "pll_post_lang_choice",
+        children: (0,external_this_wp_i18n_.__)("Language", "polylang-pro")
+      }), /*#__PURE__*/(0,jsx_runtime.jsx)(LanguageDropdown, {
+        selectedLanguage: selectedLanguage,
+        handleChange: this.props.handleChange,
+        children: /*#__PURE__*/(0,jsx_runtime.jsx)(LanguagesOptionsList, {
+          languages: languages
+        })
+      })]
+    });
   }
 }
 Switcher.labelConfirmationModal = (0,external_this_wp_i18n_.__)('Change language', 'polylang-pro');
 const switcher_ModalContent = function () {
-  return (0,external_this_wp_element_.createElement)("p", null, (0,external_this_wp_i18n_.__)('Are you sure you want to change the language of the current content?', 'polylang-pro'));
+  return /*#__PURE__*/(0,jsx_runtime.jsx)("p", {
+    children: (0,external_this_wp_i18n_.__)('Are you sure you want to change the language of the current content?', 'polylang-pro')
+  });
 };
 const SwitcherWithConfirmation = confirmation_modal('pll_change_lang', switcher_ModalContent, Switcher.handleLanguageChange)(Switcher);
 /* harmony default export */ const switcher = (SwitcherWithConfirmation);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/metaboxes/post-editor-metabox/index.js
-
+;// ./modules/block-editor/js/sidebar/components/metaboxes/post-editor-metabox/index.js
 /**
  * @package Polylang-Pro
  */
@@ -3758,6 +3901,7 @@ const SwitcherWithConfirmation = confirmation_modal('pll_change_lang', switcher_
 /**
  * Internal Dependencies.
  */
+
 
 
 
@@ -3788,26 +3932,29 @@ const PostEditorMetabox = () => {
     };
   }, []);
   const machineTranslation = pll_block_editor_plugin_settings.machine_translation;
-  return (0,external_this_wp_element_.createElement)(metabox_container, {
+  return /*#__PURE__*/(0,jsx_runtime.jsxs)(metabox_container, {
     isError: !selectedLanguage,
     isAllowedPostType: isAllowedPostType,
-    postType: currentPost?.type
-  }, (0,external_this_wp_element_.createElement)(switcher, {
-    selectedLanguage: selectedLanguage
-  }), (0,external_this_wp_element_.createElement)(duplicate_button, {
-    postType: currentPostType
-  }), machineTranslation?.isActive && (0,external_this_wp_element_.createElement)(machine_translation_button, {
-    postType: currentPostType,
-    slug: machineTranslation.slug,
-    name: machineTranslation.name,
-    icon: machineTranslation.icon
-  }), (0,external_this_wp_element_.createElement)(translations_table_wrapper, null, (0,external_this_wp_element_.createElement)(post_editor_translation_table, {
-    translationsTable: translationsTable,
-    selectedLanguage: selectedLanguage
-  })));
+    postType: currentPost?.type,
+    children: [/*#__PURE__*/(0,jsx_runtime.jsx)(switcher, {
+      selectedLanguage: selectedLanguage
+    }), /*#__PURE__*/(0,jsx_runtime.jsx)(duplicate_button, {
+      postType: currentPostType
+    }), machineTranslation?.isActive && /*#__PURE__*/(0,jsx_runtime.jsx)(machine_translation_button, {
+      postType: currentPostType,
+      slug: machineTranslation.slug,
+      name: machineTranslation.name,
+      icon: machineTranslation.icon
+    }), /*#__PURE__*/(0,jsx_runtime.jsx)(translations_table_wrapper, {
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)(post_editor_translation_table, {
+        translationsTable: translationsTable,
+        selectedLanguage: selectedLanguage
+      })
+    })]
+  });
 };
 /* harmony default export */ const post_editor_metabox = (PostEditorMetabox);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/components/metaboxes/index.js
+;// ./modules/block-editor/js/sidebar/components/metaboxes/index.js
 /**
  * Metabox components.
  *
@@ -3816,7 +3963,7 @@ const PostEditorMetabox = () => {
 
 
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/store/index.js
+;// ./modules/block-editor/js/sidebar/store/index.js
 /**
  * WordPress Dependencies
  *
@@ -3838,8 +3985,7 @@ const actions = {
       languages
     };
   },
-  setCurrentUser(currentUser) {
-    let save = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  setCurrentUser(currentUser, save = false) {
     return {
       type: 'SET_CURRENT_USER',
       currentUser,
@@ -3860,9 +4006,7 @@ const actions = {
   }
 };
 const store = (0,external_this_wp_data_.createReduxStore)(settings_MODULE_KEY, {
-  reducer() {
-    let state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT_STATE;
-    let action = arguments.length > 1 ? arguments[1] : undefined;
+  reducer(state = DEFAULT_STATE, action) {
     switch (action.type) {
       case 'SET_LANGUAGES':
         return {
@@ -3952,8 +4096,7 @@ function updateCurrentUser(currentUser) {
     method: 'POST'
   }));
 }
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/index.js
-
+;// ./modules/block-editor/js/sidebar/index.js
 /**
  * Import styles
  *
@@ -3981,6 +4124,7 @@ function updateCurrentUser(currentUser) {
 
 
 
+
 const _root = document.createElement('div');
 _root.id = 'pll-root';
 const root = document.body.appendChild(_root);
@@ -3996,38 +4140,46 @@ const renderWithLegacy = (reactNode, rootNode) => {
 };
 if (isSiteBlockEditor()) {
   const PolylangSidebar = () => {
-    return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(sidebar, {
-      PluginSidebarSlot: external_this_wp_editSite_.PluginSidebar,
-      sidebarName: sidebarName
-    }, (0,external_this_wp_element_.createElement)(site_editor_metabox, null)), (0,external_this_wp_element_.createElement)(menu_item, {
-      PluginSidebarMoreMenuItemSlot: external_this_wp_editSite_.PluginSidebarMoreMenuItem,
-      sidebarName: sidebarName
-    }));
+    return /*#__PURE__*/(0,jsx_runtime.jsxs)(jsx_runtime.Fragment, {
+      children: [/*#__PURE__*/(0,jsx_runtime.jsx)(sidebar, {
+        PluginSidebarSlot: external_this_wp_editSite_.PluginSidebar,
+        sidebarName: sidebarName,
+        children: /*#__PURE__*/(0,jsx_runtime.jsx)(site_editor_metabox, {})
+      }), /*#__PURE__*/(0,jsx_runtime.jsx)(menu_item, {
+        PluginSidebarMoreMenuItemSlot: external_this_wp_editSite_.PluginSidebarMoreMenuItem,
+        sidebarName: sidebarName
+      })]
+    });
   };
-  renderWithLegacy((0,external_this_wp_element_.createElement)(app, {
+  renderWithLegacy(/*#__PURE__*/(0,jsx_runtime.jsx)(app, {
     sidebar: PolylangSidebar,
     sidebarName: sidebarName,
-    onPromise: isSiteEditorContextInitialized
-  }, (0,external_this_wp_element_.createElement)(cache_flush_provider, {
-    onPromise: isSiteEditorContextInitialized
-  })), root);
+    onPromise: isSiteEditorContextInitialized,
+    children: /*#__PURE__*/(0,jsx_runtime.jsx)(cache_flush_provider, {
+      onPromise: isSiteEditorContextInitialized
+    })
+  }), root);
 } else {
   const PolylangSidebar = () => {
-    return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(sidebar, {
-      PluginSidebarSlot: external_this_wp_editPost_.PluginSidebar,
-      sidebarName: sidebarName
-    }, (0,external_this_wp_element_.createElement)(post_editor_metabox, null)), (0,external_this_wp_element_.createElement)(menu_item, {
-      PluginSidebarMoreMenuItemSlot: external_this_wp_editPost_.PluginSidebarMoreMenuItem,
-      sidebarName: sidebarName
-    }));
+    return /*#__PURE__*/(0,jsx_runtime.jsxs)(jsx_runtime.Fragment, {
+      children: [/*#__PURE__*/(0,jsx_runtime.jsx)(sidebar, {
+        PluginSidebarSlot: external_this_wp_editPost_.PluginSidebar,
+        sidebarName: sidebarName,
+        children: /*#__PURE__*/(0,jsx_runtime.jsx)(post_editor_metabox, {})
+      }), /*#__PURE__*/(0,jsx_runtime.jsx)(menu_item, {
+        PluginSidebarMoreMenuItemSlot: external_this_wp_editPost_.PluginSidebarMoreMenuItem,
+        sidebarName: sidebarName
+      })]
+    });
   };
-  renderWithLegacy((0,external_this_wp_element_.createElement)(app, {
+  renderWithLegacy(/*#__PURE__*/(0,jsx_runtime.jsx)(app, {
     sidebar: PolylangSidebar,
     sidebarName: sidebarName,
-    onPromise: isBlockPostEditorContextInitialized
-  }, undefined !== settings_errors && (0,external_this_wp_element_.createElement)(display_notices, {
-    notices: settings_errors
-  })), root);
+    onPromise: isBlockPostEditorContextInitialized,
+    children: undefined !== settings_errors && /*#__PURE__*/(0,jsx_runtime.jsx)(display_notices, {
+      notices: settings_errors
+    })
+  }), root);
 }
 })();
 

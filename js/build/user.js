@@ -1,4 +1,3 @@
-var __webpack_exports__ = {};
 /**
  * Adds one biography input field per language in the user profile.
  *

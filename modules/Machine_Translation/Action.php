@@ -118,9 +118,6 @@ class Action {
 			return $is_block_editor;
 		}
 
-		// Prevent a second translation in the block editor.
-		$this->done = true;
-
 		if ( ! is_string( $_GET['new_lang'] ) || ! is_numeric( $_GET['from_post'] ) ) {
 			// Invalid data.
 			return $is_block_editor;
@@ -132,6 +129,16 @@ class Action {
 			// Invalid post.
 			return $is_block_editor;
 		}
+
+		if ( ! current_user_can( 'read_post', $from_post ) ) {
+			wp_die(
+				esc_html__( 'Sorry, you are not allowed to read this item.', 'polylang-pro' ),
+				403
+			);
+		}
+
+		// Prevent a second translation in the block editor.
+		$this->done = true;
 
 		$target_language = $this->model->get_language( sanitize_key( $_GET['new_lang'] ) );
 

@@ -39,25 +39,35 @@ class PLL_Admin_Advanced_Media {
 		$this->model   = &$polylang->model;
 		$this->posts   = &$polylang->posts;
 
-		if ( isset( $polylang->bulk_translate ) ) {
-			$polylang->bulk_translate->register_options(
-				array(
-					new PLL_Media_Bulk_Option(
-						array(
-							'name'        => 'pll_copy_media',
-							'description' => __( 'Copy original items to selected languages', 'polylang-pro' ),
-						),
-						$polylang->model,
-						$this->posts
-					),
-				)
-			);
-		}
+		add_action( 'pll_bulk_translate_options_init', array( $this, 'add_bulk_translate_options' ) );
 
 		if ( ! empty( $this->options['media']['duplicate'] ) ) {
 			add_filter( 'wp_insert_attachment_data', array( $this, 'attachment_data' ), 10, 2 );
 			add_action( 'add_attachment', array( $this, 'duplicate_media' ), 20 ); // After Polylang.
 		}
+	}
+
+	/**
+	 * Registers options of the Translate bulk action.
+	 *
+	 * @since 3.6.5
+	 *
+	 * @param PLL_Bulk_Translate $bulk_translate Instance of `PLL_Bulk_Translate`.
+	 * @return void
+	 */
+	public function add_bulk_translate_options( $bulk_translate ): void {
+		$bulk_translate->register_options(
+			array(
+				new PLL_Media_Bulk_Option(
+					array(
+						'name'        => 'pll_copy_media',
+						'description' => __( 'Copy original items to selected languages', 'polylang-pro' ),
+					),
+					$this->model,
+					$this->posts
+				),
+			)
+		);
 	}
 
 	/**

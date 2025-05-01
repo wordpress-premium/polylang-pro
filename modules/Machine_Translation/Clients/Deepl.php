@@ -160,10 +160,11 @@ class Deepl implements Client_Interface {
 		}
 
 		$body = array(
-			'target_lang'  => $target_code,
-			'tag_handling' => 'html',
-			'formality'    => $this->get_formality( $target_language ),
-			'text'         => $batch,
+			'target_lang'     => $target_code,
+			'tag_handling'    => 'html',
+			'split_sentences' => '1',
+			'formality'       => $this->get_formality( $target_language ),
+			'text'            => $batch,
 		);
 
 		if ( ! empty( $source_language ) ) {
@@ -357,6 +358,11 @@ class Deepl implements Client_Interface {
 			),
 			(array) json_decode( $response['body'], true )
 		);
+
+		if ( $usage['character_limit'] >= pow( 10, 12 ) ) {
+			// Usage limit for the "unlimited" plan returns 10^12.
+			$usage['character_limit'] = 0;
+		}
 
 		return array(
 			'character_count' => max( 0, (int) $usage['character_count'] ),

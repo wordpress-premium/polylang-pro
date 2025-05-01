@@ -67,20 +67,27 @@ class PLL_Duplicate_Action {
 	 */
 	public function new_post_translation( $is_block_editor ) {
 		global $post;
-		static $done = false;
+		static $done = array();
 
-		if ( ! empty( $post ) && ! $done && 'post-new.php' === $GLOBALS['pagenow'] && isset( $_GET['from_post'], $_GET['new_lang'] ) ) {
+		if ( ! empty( $post ) && ! in_array( $post->ID, $done, true ) && 'post-new.php' === $GLOBALS['pagenow'] && isset( $_GET['from_post'], $_GET['new_lang'] ) ) {
 			check_admin_referer( 'new-post-translation' );
 
 			if ( $this->user_meta->is_active() ) {
-				$done = true; // Avoid a second duplication in the block editor.
-
 				// Capability check already done in post-new.php.
 				$from_post = get_post( (int) $_GET['from_post'] );
 
 				if ( empty( $from_post ) ) {
 					return $is_block_editor;
 				}
+
+				if ( ! current_user_can( 'read_post', $from_post ) ) {
+					wp_die(
+						esc_html__( 'Sorry, you are not allowed to read this item.', 'polylang-pro' ),
+						403
+					);
+				}
+
+				$done[] = $post->ID; // Avoid a second duplication in the block editor.
 
 				$this->sync_content->copy_content( $from_post, $post, sanitize_key( $_GET['new_lang'] ) );
 

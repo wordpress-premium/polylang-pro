@@ -42,7 +42,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	}
 
 	/**
-	 * Filters the query per language according to the 'lang' parameter.
+	 * Filters the query per language according to the 'lang' parameter from the REST request.
 	 *
 	 * @since 2.6.9
 	 *
@@ -58,19 +58,20 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	}
 
 	/**
-	 * Whether or not the given query is filterable by language.
+	 * Tells whether or not the given query is filterable by language.
 	 *
 	 * @since 3.2
 	 *
 	 * @param WP_Query $query The query to check.
-	 * @return boolean
+	 * @return bool True if filterable by language. False if the query is already filtered,
+	 *                   no language has been passed in the request or the post type is not supported.
 	 */
 	protected function can_filter_query( $query ) {
 		$query_post_types           = ! empty( $query->query['post_type'] ) ? (array) $query->query['post_type'] : array( 'post' );
 		$allowed_post_types         = array_keys( $this->content_types );
 		$allowed_queried_post_types = array_intersect( $query_post_types, $allowed_post_types );
 
-		return isset( $this->request['lang'] ) && ! empty( $allowed_queried_post_types );
+		return empty( $query->get( 'lang' ) ) && ! empty( $this->request['lang'] ) && ! empty( $allowed_queried_post_types );
 	}
 
 	/**

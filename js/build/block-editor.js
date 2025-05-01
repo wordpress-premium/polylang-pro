@@ -1,7 +1,6 @@
 /******/ "use strict";
-var __webpack_exports__ = {};
 
-;// CONCATENATED MODULE: ./vendor/wpsyntex/polylang/js/src/lib/confirmation-modal.js
+;// ./vendor/wpsyntex/polylang/js/src/lib/confirmation-modal.js
 /**
  * @package Polylang
  */
@@ -102,7 +101,7 @@ const initializeLanguageOldValue = () => {
 	languagesList.attr( 'data-old-value', languagesList.children( ':selected' ).first().val() );
 };
 
-;// CONCATENATED MODULE: ./vendor/wpsyntex/polylang/js/src/lib/metabox-autocomplete.js
+;// ./vendor/wpsyntex/polylang/js/src/lib/metabox-autocomplete.js
 /**
  * @package Polylang
  */
@@ -145,7 +144,7 @@ function initMetaboxAutoComplete() {
 	);
 }
 
-;// CONCATENATED MODULE: ./vendor/wpsyntex/polylang/js/src/lib/filter-path-middleware.js
+;// ./vendor/wpsyntex/polylang/js/src/lib/filter-path-middleware.js
 /**
  * @package Polylang
  */
@@ -169,7 +168,7 @@ const filterPathMiddleware = ( options, filteredRoutes, filter ) => {
 
 /* harmony default export */ const filter_path_middleware = (filterPathMiddleware);
 
-;// CONCATENATED MODULE: ./vendor/wpsyntex/polylang/js/src/block-editor.js
+;// ./vendor/wpsyntex/polylang/js/src/block-editor.js
 /**
  * @package Polylang
  */

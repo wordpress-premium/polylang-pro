@@ -81,7 +81,11 @@ class PLL_Translate_Slugs_Model {
 		$this->remove_filters();
 
 		if ( pll_is_plugin_active( POLYLANG_BASENAME ) && get_option( 'polylang' ) ) {
-			$this->prepare_rewrite_rules();
+			if ( did_action( 'pll_prepare_rewrite_rules' ) ) {
+				$this->prepare_rewrite_rules();
+			} else {
+				add_action( 'pll_prepare_rewrite_rules', array( $this, 'prepare_rewrite_rules' ), 20 ); // After Polylang.
+			}
 		}
 	}
 

@@ -27,6 +27,7 @@ class PLL_Locale_Fallback {
 
 		add_filter( 'load_textdomain_mofile', array( $this, 'load_file' ) );
 		add_filter( 'load_script_translation_file', array( $this, 'load_file' ) );
+		add_filter( 'lang_dir_for_domain', array( $this, 'get_lang_dir_for_domain' ), 10, 3 );
 
 		add_action( 'pll_language_add_form_fields', array( $this, 'add_language_form_fields' ) );
 		add_action( 'pll_language_edit_form_fields', array( $this, 'edit_language_form_fields' ) );
@@ -65,6 +66,7 @@ class PLL_Locale_Fallback {
 			$new_fallbacks = array();
 		} else {
 			$new_fallbacks = array_unique( array_map( 'trim', explode( ',', $args['fallback'] ) ) );
+			$new_fallbacks = array_diff( $new_fallbacks, array( $args['locale'] ) ); // Prevents including the main locale in the fallbacks.
 		}
 
 		$add_data['fallbacks'] = array();
@@ -90,6 +92,8 @@ class PLL_Locale_Fallback {
 
 	/**
 	 * Attempts to load the translation in the fallback locale if it doesn't exist in the current locale.
+	 *
+	 * This method is used for translations loaded with `load_textdomain()` and `load_script_textdomain()`.
 	 *
 	 * @since 2.9
 	 *
@@ -150,6 +154,55 @@ class PLL_Locale_Fallback {
 		}
 
 		return $file;
+	}
+
+
+	/**
+	 * Returns the languages directory path for a specific domain and locale.
+	 *
+	 * This method is used for translations loaded with `_load_textdomain_just_in_time()`.
+	 *
+	 * @since 3.6.3
+	 *
+	 * @param string|false $path   Languages directory path for the given domain and locale.
+	 * @param string       $domain Text domain.
+	 * @param string       $locale Locale.
+	 *
+	 * @return string|false Languages directory path or false if there is none available.
+	 */
+	public function get_lang_dir_for_domain( $path, $domain, $locale ) {
+		/** @var WP_Textdomain_Registry */
+		global $wp_textdomain_registry;
+
+		static $once = array();
+
+		$once[ "$domain|$locale" ] = true;
+
+		if ( ! empty( $path ) ) {
+			return $path;
+		}
+
+		$language = $this->model->get_language( $locale );
+		if ( empty( $language ) || empty( $language->fallbacks ) ) {
+			return false;
+		}
+
+
+		foreach ( $language->fallbacks as $fallback ) {
+			if ( ! empty( $once[ "$domain|$fallback" ] ) ) { // Prevent an infinite loop if we already attempted to load this translation.
+				continue;
+			}
+
+			$path = $wp_textdomain_registry->get( $domain, $fallback );
+
+			if ( ! empty( $path ) ) {
+				return $path;
+			}
+		}
+
+		unset( $once[ "$domain|$locale" ] );
+
+		return $path;
 	}
 
 	/**

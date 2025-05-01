@@ -1,28 +1,28 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 991:
+/***/ 419:
 /***/ ((module) => {
 
 module.exports = (function() { return this["lodash"]; }());
 
 /***/ }),
 
-/***/ 514:
+/***/ 631:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["apiFetch"]; }());
 
 /***/ }),
 
-/***/ 15:
+/***/ 987:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["data"]; }());
 
 /***/ }),
 
-/***/ 470:
+/***/ 172:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["url"]; }());
@@ -85,35 +85,22 @@ module.exports = (function() { return this["wp"]["url"]; }());
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ 	})();
 /******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: external {"this":["wp","apiFetch"]}
-var external_this_wp_apiFetch_ = __webpack_require__(514);
+var external_this_wp_apiFetch_ = __webpack_require__(631);
 var external_this_wp_apiFetch_default = /*#__PURE__*/__webpack_require__.n(external_this_wp_apiFetch_);
 // EXTERNAL MODULE: external {"this":["wp","data"]}
-var external_this_wp_data_ = __webpack_require__(15);
+var external_this_wp_data_ = __webpack_require__(987);
 // EXTERNAL MODULE: external {"this":["wp","url"]}
-var external_this_wp_url_ = __webpack_require__(470);
+var external_this_wp_url_ = __webpack_require__(172);
 // EXTERNAL MODULE: external "lodash"
-var external_lodash_ = __webpack_require__(991);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/settings.js
+var external_lodash_ = __webpack_require__(419);
+;// ./modules/block-editor/js/sidebar/settings.js
 /**
  * Module Constants
  *
@@ -138,7 +125,7 @@ const settings_TEMPLATE_PART_SLUG_SEPARATOR = '___'; // Its value must be synchr
 const settings_TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN = '[a-z_-]+'; // Its value must be synchronized with it equivalent in PHP @see PLL_FSE_Template_Slug::SEPARATOR
 
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/utils.js
+;// ./modules/block-editor/js/sidebar/utils.js
 /**
  * WordPress Dependencies
  *
@@ -518,7 +505,7 @@ function getLangSlugRegex() {
 	return new RegExp( `${TEMPLATE_PART_SLUG_SEPARATOR}(?:${languageCheckPattern})$` );
 }
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/store/index.js
+;// ./modules/block-editor/js/sidebar/store/index.js
 /**
  * WordPress Dependencies
  *
@@ -654,7 +641,7 @@ function updateCurrentUser( currentUser ) {
 	);
 }
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/middleware/filter-path-middleware.js
+;// ./modules/block-editor/js/middleware/filter-path-middleware.js
 /**
  * @package Polylang Pro
  */
@@ -678,7 +665,7 @@ const filterPathMiddleware = ( options, filteredRoutes, filter ) => {
 
 /* harmony default export */ const filter_path_middleware = (filterPathMiddleware);
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/widget-editor-plugin.js
+;// ./modules/block-editor/js/widget-editor-plugin.js
 /**
  * WordPress dependencies
  *

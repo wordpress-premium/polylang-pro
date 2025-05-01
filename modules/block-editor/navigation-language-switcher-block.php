@@ -88,7 +88,10 @@ class PLL_Navigation_Language_Switcher_Block extends PLL_Abstract_Language_Switc
 		$attributes        = $this->set_attributes_for_block( $attributes );
 		$switcher          = new PLL_Switcher();
 		$switcher_elements = (array) $switcher->the_languages( $this->links, array_merge( $attributes, array( 'raw' => true ) ) );
-		$output            = '';
+
+		if ( empty( $switcher_elements ) ) {
+			return '';
+		}
 
 		if ( $attributes['dropdown'] ) {
 			$inner_nav_link_blocks = array();
@@ -117,6 +120,8 @@ class PLL_Navigation_Language_Switcher_Block extends PLL_Abstract_Language_Switc
 			$submenu_block = new WP_Block( $submenu_block_args, $block->context );
 			$output        = $submenu_block->render();
 		} else {
+			$output = '';
+
 			foreach ( $switcher_elements as $switcher_element ) {
 				$link_attributes               = $this->get_core_block_attributes( $attributes, $switcher_element );
 				$link_attributes['className'] .= ' ' . wp_apply_generated_classname_support( $block->block_type )['class'];

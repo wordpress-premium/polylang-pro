@@ -1,84 +1,124 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 991:
+/***/ 20:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+var __webpack_unused_export__;
+/**
+ * @license React
+ * react-jsx-runtime.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+var f=__webpack_require__(677),k=Symbol.for("react.element"),l=Symbol.for("react.fragment"),m=Object.prototype.hasOwnProperty,n=f.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner,p={key:!0,ref:!0,__self:!0,__source:!0};
+function q(c,a,g){var b,d={},e=null,h=null;void 0!==g&&(e=""+g);void 0!==a.key&&(e=""+a.key);void 0!==a.ref&&(h=a.ref);for(b in a)m.call(a,b)&&!p.hasOwnProperty(b)&&(d[b]=a[b]);if(c&&c.defaultProps)for(b in a=c.defaultProps,a)void 0===d[b]&&(d[b]=a[b]);return{$$typeof:k,type:c,key:e,ref:h,props:d,_owner:n.current}}__webpack_unused_export__=l;exports.jsx=q;exports.jsxs=q;
+
+
+/***/ }),
+
+/***/ 848:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+if (true) {
+  module.exports = __webpack_require__(20);
+} else {}
+
+
+/***/ }),
+
+/***/ 677:
+/***/ ((module) => {
+
+module.exports = (function() { return this["React"]; }());
+
+/***/ }),
+
+/***/ 419:
 /***/ ((module) => {
 
 module.exports = (function() { return this["lodash"]; }());
 
 /***/ }),
 
-/***/ 538:
+/***/ 89:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["blockEditor"]; }());
 
 /***/ }),
 
-/***/ 733:
+/***/ 545:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["blocks"]; }());
 
 /***/ }),
 
-/***/ 893:
+/***/ 959:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["components"]; }());
 
 /***/ }),
 
-/***/ 576:
+/***/ 897:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["compose"]; }());
 
 /***/ }),
 
-/***/ 15:
+/***/ 987:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["data"]; }());
 
 /***/ }),
 
-/***/ 293:
+/***/ 601:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["element"]; }());
 
 /***/ }),
 
-/***/ 761:
+/***/ 873:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["hooks"]; }());
 
 /***/ }),
 
-/***/ 122:
+/***/ 75:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["i18n"]; }());
 
 /***/ }),
 
-/***/ 776:
+/***/ 933:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["primitives"]; }());
 
 /***/ }),
 
-/***/ 169:
+/***/ 567:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["serverSideRender"]; }());
 
 /***/ }),
 
-/***/ 470:
+/***/ 172:
 /***/ ((module) => {
 
 module.exports = (function() { return this["wp"]["url"]; }());
@@ -141,45 +181,33 @@ module.exports = (function() { return this["wp"]["url"]; }());
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ 	})();
 /******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
 
-// EXTERNAL MODULE: external {"this":["wp","element"]}
-var external_this_wp_element_ = __webpack_require__(293);
 // EXTERNAL MODULE: external {"this":["wp","i18n"]}
-var external_this_wp_i18n_ = __webpack_require__(122);
+var external_this_wp_i18n_ = __webpack_require__(75);
 // EXTERNAL MODULE: external "lodash"
-var external_lodash_ = __webpack_require__(991);
+var external_lodash_ = __webpack_require__(419);
 // EXTERNAL MODULE: external {"this":["wp","compose"]}
-var external_this_wp_compose_ = __webpack_require__(576);
+var external_this_wp_compose_ = __webpack_require__(897);
 // EXTERNAL MODULE: external {"this":["wp","hooks"]}
-var external_this_wp_hooks_ = __webpack_require__(761);
+var external_this_wp_hooks_ = __webpack_require__(873);
 // EXTERNAL MODULE: external {"this":["wp","data"]}
-var external_this_wp_data_ = __webpack_require__(15);
+var external_this_wp_data_ = __webpack_require__(987);
+// EXTERNAL MODULE: external {"this":["wp","element"]}
+var external_this_wp_element_ = __webpack_require__(601);
 // EXTERNAL MODULE: external {"this":["wp","blockEditor"]}
-var external_this_wp_blockEditor_ = __webpack_require__(538);
+var external_this_wp_blockEditor_ = __webpack_require__(89);
 // EXTERNAL MODULE: external {"this":["wp","components"]}
-var external_this_wp_components_ = __webpack_require__(893);
+var external_this_wp_components_ = __webpack_require__(959);
 // EXTERNAL MODULE: external {"this":["wp","primitives"]}
-var external_this_wp_primitives_ = __webpack_require__(776);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/duplication.js
-
+var external_this_wp_primitives_ = __webpack_require__(933);
+// EXTERNAL MODULE: ./node_modules/react/jsx-runtime.js
+var jsx_runtime = __webpack_require__(848);
+;// ./modules/block-editor/js/icons/library/duplication.js
 /**
  * Duplication icon - admin-page Dashicon.
  *
@@ -191,18 +219,19 @@ var external_this_wp_primitives_ = __webpack_require__(776);
  */
 
 
+
 const isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const duplication = isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const duplication = isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M6 15v-13h10v13h-10zM5 16h8v2h-10v-13h2v11z"
-})) : 'admin-page';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M6 15v-13h10v13h-10zM5 16h8v2h-10v-13h2v11z"
+  })
+}) : 'admin-page';
 /* harmony default export */ const library_duplication = ((/* unused pure expression or super */ null && (duplication)));
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/pencil.js
-
+;// ./modules/block-editor/js/icons/library/pencil.js
 /**
  * Pencil icon - edit Dashicon.
  *
@@ -214,18 +243,19 @@ const duplication = isPrimitivesComponents ? (0,external_this_wp_element_.create
  */
 
 
+
 const pencil_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const pencil = pencil_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const pencil = pencil_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M13.89 3.39l2.71 2.72c0.46 0.46 0.42 1.24 0.030 1.64l-8.010 8.020-5.56 1.16 1.16-5.58s7.6-7.63 7.99-8.030c0.39-0.39 1.22-0.39 1.68 0.070zM11.16 6.18l-5.59 5.61 1.11 1.11 5.54-5.65zM8.19 14.41l5.58-5.6-1.070-1.080-5.59 5.6z"
-})) : 'edit';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M13.89 3.39l2.71 2.72c0.46 0.46 0.42 1.24 0.030 1.64l-8.010 8.020-5.56 1.16 1.16-5.58s7.6-7.63 7.99-8.030c0.39-0.39 1.22-0.39 1.68 0.070zM11.16 6.18l-5.59 5.61 1.11 1.11 5.54-5.65zM8.19 14.41l5.58-5.6-1.070-1.080-5.59 5.6z"
+  })
+}) : 'edit';
 /* harmony default export */ const library_pencil = ((/* unused pure expression or super */ null && (pencil)));
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/plus.js
-
+;// ./modules/block-editor/js/icons/library/plus.js
 /**
  * Plus icon - plus Dashicon.
  *
@@ -237,18 +267,19 @@ const pencil = pencil_isPrimitivesComponents ? (0,external_this_wp_element_.crea
  */
 
 
+
 const plus_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const plus = plus_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const plus = plus_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M17 7v3h-5v5h-3v-5h-5v-3h5v-5h3v5h5z"
-})) : 'plus';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M17 7v3h-5v5h-3v-5h-5v-3h5v-5h3v5h5z"
+  })
+}) : 'plus';
 /* harmony default export */ const library_plus = ((/* unused pure expression or super */ null && (plus)));
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/synchronization.js
-
+;// ./modules/block-editor/js/icons/library/synchronization.js
 /**
  * Synchronization icon - controls-repeat Dashicon.
  *
@@ -260,18 +291,19 @@ const plus = plus_isPrimitivesComponents ? (0,external_this_wp_element_.createEl
  */
 
 
+
 const synchronization_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const synchronization = synchronization_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const synchronization = synchronization_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M5 7v3l-2 1.5v-6.5h11v-2l4 3.010-4 2.99v-2h-9zM15 13v-3l2-1.5v6.5h-11v2l-4-3.010 4-2.99v2h9z"
-})) : 'controls-repeat';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M5 7v3l-2 1.5v-6.5h11v-2l4 3.010-4 2.99v-2h-9zM15 13v-3l2-1.5v6.5h-11v2l-4-3.010 4-2.99v2h9z"
+  })
+}) : 'controls-repeat';
 /* harmony default export */ const library_synchronization = ((/* unused pure expression or super */ null && (synchronization)));
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/translation.js
-
+;// ./modules/block-editor/js/icons/library/translation.js
 /**
  * Translation icon - translation Dashicon.
  *
@@ -283,18 +315,19 @@ const synchronization = synchronization_isPrimitivesComponents ? (0,external_thi
  */
 
 
+
 const translation_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const translation = translation_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const translation = translation_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M11 7H9.49c-.63 0-1.25.3-1.59.7L7 5H4.13l-2.39 7h1.69l.74-2H7v4H2c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h7c1.1 0 2 .9 2 2v2zM6.51 9H4.49l1-2.93zM10 8h7c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2h-7c-1.1 0-2-.9-2-2v-7c0-1.1.9-2 2-2zm7.25 5v-1.08h-3.17V9.75h-1.16v2.17H9.75V13h1.28c.11.85.56 1.85 1.28 2.62-.87.36-1.89.62-2.31.62-.01.02.22.97.2 1.46.84 0 2.21-.5 3.28-1.15 1.09.65 2.48 1.15 3.34 1.15-.02-.49.2-1.44.2-1.46-.43 0-1.49-.27-2.38-.63.7-.77 1.14-1.77 1.25-2.61h1.36zm-3.81 1.93c-.5-.46-.85-1.13-1.01-1.93h2.09c-.17.8-.51 1.47-1 1.93l-.04.03s-.03-.02-.04-.03z"
-})) : 'translation';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M11 7H9.49c-.63 0-1.25.3-1.59.7L7 5H4.13l-2.39 7h1.69l.74-2H7v4H2c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h7c1.1 0 2 .9 2 2v2zM6.51 9H4.49l1-2.93zM10 8h7c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2h-7c-1.1 0-2-.9-2-2v-7c0-1.1.9-2 2-2zm7.25 5v-1.08h-3.17V9.75h-1.16v2.17H9.75V13h1.28c.11.85.56 1.85 1.28 2.62-.87.36-1.89.62-2.31.62-.01.02.22.97.2 1.46.84 0 2.21-.5 3.28-1.15 1.09.65 2.48 1.15 3.34 1.15-.02-.49.2-1.44.2-1.46-.43 0-1.49-.27-2.38-.63.7-.77 1.14-1.77 1.25-2.61h1.36zm-3.81 1.93c-.5-.46-.85-1.13-1.01-1.93h2.09c-.17.8-.51 1.47-1 1.93l-.04.03s-.03-.02-.04-.03z"
+  })
+}) : 'translation';
 /* harmony default export */ const library_translation = (translation);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/trash.js
-
+;// ./modules/block-editor/js/icons/library/trash.js
 /**
  * Trash icon - trash Dashicon.
  *
@@ -306,18 +339,19 @@ const translation = translation_isPrimitivesComponents ? (0,external_this_wp_ele
  */
 
 
+
 const trash_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const trash = trash_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const trash = trash_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M12 4h3c.6 0 1 .4 1 1v1H3V5c0-.6.5-1 1-1h3c.2-1.1 1.3-2 2.5-2s2.3.9 2.5 2zM8 4h3c-.2-.6-.9-1-1.5-1S8.2 3.4 8 4zM4 7h11l-.9 10.1c0 .5-.5.9-1 .9H5.9c-.5 0-.9-.4-1-.9L4 7z"
-})) : 'trash';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M12 4h3c.6 0 1 .4 1 1v1H3V5c0-.6.5-1 1-1h3c.2-1.1 1.3-2 2.5-2s2.3.9 2.5 2zM8 4h3c-.2-.6-.9-1-1.5-1S8.2 3.4 8 4zM4 7h11l-.9 10.1c0 .5-.5.9-1 .9H5.9c-.5 0-.9-.4-1-.9L4 7z"
+  })
+}) : 'trash';
 /* harmony default export */ const library_trash = ((/* unused pure expression or super */ null && (trash)));
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/star.js
-
+;// ./modules/block-editor/js/icons/library/star.js
 /**
  * Star icon - star-filled Dashicon.
  *
@@ -329,18 +363,19 @@ const trash = trash_isPrimitivesComponents ? (0,external_this_wp_element_.create
  */
 
 
+
 const star_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const star = star_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const star = star_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   width: "20",
   height: "20",
   xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 20 20"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "m10 1 3 6 6 .75-4.12 4.62L16 19l-6-3-6 3 1.13-6.63L1 7.75 7 7z"
-})) : 'star-filled';
+  viewBox: "0 0 20 20",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "m10 1 3 6 6 .75-4.12 4.62L16 19l-6-3-6 3 1.13-6.63L1 7.75 7 7z"
+  })
+}) : 'star-filled';
 /* harmony default export */ const library_star = ((/* unused pure expression or super */ null && (star)));
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/library/submenu.js
-
+;// ./modules/block-editor/js/icons/library/submenu.js
 /**
  * Submenu icon
  *
@@ -355,19 +390,21 @@ const star = star_isPrimitivesComponents ? (0,external_this_wp_element_.createEl
  * External dependencies
  */
 
+
 const submenu_isPrimitivesComponents = !(0,external_lodash_.isUndefined)(wp.primitives);
-const SubmenuIcon = () => submenu_isPrimitivesComponents ? (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.SVG, {
+const SubmenuIcon = () => submenu_isPrimitivesComponents ? /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.SVG, {
   xmlns: "http://www.w3.org/2000/svg",
   width: "12",
   height: "12",
   viewBox: "0 0 12 12",
-  fill: "none"
-}, (0,external_this_wp_element_.createElement)(external_this_wp_primitives_.Path, {
-  d: "M1.50002 4L6.00002 8L10.5 4",
-  strokeWidth: "1.5"
-})) : 'submenu';
+  fill: "none",
+  children: /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_primitives_.Path, {
+    d: "M1.50002 4L6.00002 8L10.5 4",
+    strokeWidth: "1.5"
+  })
+}) : 'submenu';
 /* harmony default export */ const submenu = (SubmenuIcon);
-;// CONCATENATED MODULE: ./modules/block-editor/js/icons/index.js
+;// ./modules/block-editor/js/icons/index.js
 /**
  * Icons library
  *
@@ -382,8 +419,7 @@ const SubmenuIcon = () => submenu_isPrimitivesComponents ? (0,external_this_wp_e
 
 
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/components/language-flag.js
-
+;// ./modules/block-editor/js/components/language-flag.js
 /**
  * @package Polylang-Pro
  */
@@ -408,26 +444,30 @@ const SubmenuIcon = () => submenu_isPrimitivesComponents ? (0,external_this_wp_e
  *
  * @return {Object}
  */
-function LanguageFlag(_ref) {
-  let {
-    language
-  } = _ref;
-  return !(0,external_lodash_.isNil)(language) ? !(0,external_lodash_.isEmpty)(language.flag_url) ? (0,external_this_wp_element_.createElement)("span", {
-    className: "pll-select-flag"
-  }, (0,external_this_wp_element_.createElement)("img", {
-    src: language.flag_url,
-    alt: language.name,
-    title: language.name,
-    className: "flag"
-  })) : (0,external_this_wp_element_.createElement)("abbr", null, language.slug, (0,external_this_wp_element_.createElement)("span", {
-    className: "screen-reader-text"
-  }, language.name)) : (0,external_this_wp_element_.createElement)("span", {
-    className: "pll-translation-icon"
-  }, library_translation);
+
+function LanguageFlag({
+  language
+}) {
+  return !(0,external_lodash_.isNil)(language) ? !(0,external_lodash_.isEmpty)(language.flag_url) ? /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+    className: "pll-select-flag",
+    children: /*#__PURE__*/(0,jsx_runtime.jsx)("img", {
+      src: language.flag_url,
+      alt: language.name,
+      title: language.name,
+      className: "flag"
+    })
+  }) : /*#__PURE__*/(0,jsx_runtime.jsxs)("abbr", {
+    children: [language.slug, /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+      className: "screen-reader-text",
+      children: language.name
+    })]
+  }) : /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+    className: "pll-translation-icon",
+    children: library_translation
+  });
 }
 /* harmony default export */ const language_flag = (LanguageFlag);
-;// CONCATENATED MODULE: ./modules/block-editor/js/components/language-dropdown.js
-
+;// ./modules/block-editor/js/components/language-dropdown.js
 /**
  * @package Polylang-Pro
  */
@@ -447,25 +487,27 @@ function LanguageFlag(_ref) {
  *
  * @return {Object} A dropdown selector for languages.
  */
-function LanguageDropdown(_ref) {
-  let {
-    handleChange,
-    children,
-    selectedLanguage = null,
-    defaultValue = ''
-  } = _ref;
+
+function LanguageDropdown({
+  handleChange,
+  children,
+  selectedLanguage = null,
+  defaultValue = ''
+}) {
   const selectedLanguageSlug = selectedLanguage?.slug ? selectedLanguage.slug : defaultValue;
-  return (0,external_this_wp_element_.createElement)("div", {
-    id: "select-post-language"
-  }, (0,external_this_wp_element_.createElement)(language_flag, {
-    language: selectedLanguage
-  }), children && (0,external_this_wp_element_.createElement)("select", {
-    value: selectedLanguageSlug,
-    onChange: event => handleChange(event),
-    id: "pll_post_lang_choice",
-    name: "pll_post_lang_choice",
-    className: "post_lang_choice"
-  }, children));
+  return /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
+    id: "select-post-language",
+    children: [/*#__PURE__*/(0,jsx_runtime.jsx)(language_flag, {
+      language: selectedLanguage
+    }), children && /*#__PURE__*/(0,jsx_runtime.jsx)("select", {
+      value: selectedLanguageSlug,
+      onChange: event => handleChange(event),
+      id: "pll_post_lang_choice",
+      name: "pll_post_lang_choice",
+      className: "post_lang_choice",
+      children: children
+    })]
+  });
 }
 
 /**
@@ -477,25 +519,21 @@ function LanguageDropdown(_ref) {
  *
  * @return {Object} A list of <option> tags to be used in a <select> tag.
  */
-function LanguagesOptionsList(_ref2) {
-  let {
-    languages
-  } = _ref2;
-  return Array.from(languages.values()).map(_ref3 => {
-    let {
-      slug,
-      name,
-      w3c
-    } = _ref3;
-    return (0,external_this_wp_element_.createElement)("option", {
-      value: slug,
-      lang: w3c,
-      key: slug
-    }, name);
-  });
+function LanguagesOptionsList({
+  languages
+}) {
+  return Array.from(languages.values()).map(({
+    slug,
+    name,
+    w3c
+  }) => /*#__PURE__*/(0,jsx_runtime.jsx)("option", {
+    value: slug,
+    lang: w3c,
+    children: name
+  }, slug));
 }
 
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/settings.js
+;// ./modules/block-editor/js/sidebar/settings.js
 /**
  * Module Constants
  *
@@ -520,8 +558,8 @@ const settings_TEMPLATE_PART_SLUG_SEPARATOR = '___'; // Its value must be synchr
 const settings_TEMPLATE_PART_SLUG_CHECK_LANGUAGE_PATTERN = '[a-z_-]+'; // Its value must be synchronized with it equivalent in PHP @see PLL_FSE_Template_Slug::SEPARATOR
 
 // EXTERNAL MODULE: external {"this":["wp","url"]}
-var external_this_wp_url_ = __webpack_require__(470);
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/utils.js
+var external_this_wp_url_ = __webpack_require__(172);
+;// ./modules/block-editor/js/sidebar/utils.js
 /**
  * WordPress Dependencies
  *
@@ -878,7 +916,7 @@ function getLangSlugRegex() {
   }
   return new RegExp(`${TEMPLATE_PART_SLUG_SEPARATOR}(?:${languageCheckPattern})$`);
 }
-;// CONCATENATED MODULE: ./modules/block-editor/js/sidebar/store/utils.js
+;// ./modules/block-editor/js/sidebar/store/utils.js
 /**
  * WordPress Dependencies
  *
@@ -1024,8 +1062,7 @@ const getCurrentPostFromDataStore = () => {
   const editedContext = getEditedPostContextWithLegacy();
   return null === editedContext ? null : select(MODULE_CORE_KEY).getEntityRecord('postType', editedContext.postType, editedContext.postId);
 };
-;// CONCATENATED MODULE: ./modules/block-editor/js/blocks/attributes.js
-
+;// ./modules/block-editor/js/blocks/attributes.js
 /**
  * Add blocks attributes
  *
@@ -1047,6 +1084,7 @@ const getCurrentPostFromDataStore = () => {
 /**
  * Internal dependencies
  */
+
 
 
 
@@ -1075,22 +1113,33 @@ if (isWidgetsBlockEditor() || isWidgetsCustomizerEditor()) {
       } = props.attributes;
       const isLanguageFilterable = !(0,external_lodash_.isNil)(pll_lang);
       const selectedLanguage = languages.get(pll_lang);
-      return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(BlockEdit, props), isLanguageFilterable && (0,external_this_wp_element_.createElement)(external_this_wp_blockEditor_.InspectorControls, null, (0,external_this_wp_element_.createElement)(external_this_wp_components_.PanelBody, {
-        title: (0,external_this_wp_i18n_.__)('Languages', 'polylang-pro')
-      }, (0,external_this_wp_element_.createElement)("label", null, (0,external_this_wp_i18n_.__)('The block is displayed for:', 'polylang-pro')), (0,external_this_wp_element_.createElement)(LanguageDropdown, {
-        selectedLanguage: selectedLanguage,
-        handleChange: langChoiceEvent => {
-          const langChoice = langChoiceEvent.currentTarget.value;
-          props.setAttributes({
-            pll_lang: langChoice
-          });
-        },
-        defaultValue: LanguageAttribute.default
-      }, (0,external_this_wp_element_.createElement)("option", {
-        value: LanguageAttribute.default
-      }, (0,external_this_wp_i18n_.__)('All languages', 'polylang-pro'), " "), (0,external_this_wp_element_.createElement)(LanguagesOptionsList, {
-        languages: languages
-      })))));
+      return /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_element_.Fragment, {
+        children: [/*#__PURE__*/(0,jsx_runtime.jsx)(BlockEdit, {
+          ...props
+        }), isLanguageFilterable && /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_blockEditor_.InspectorControls, {
+          children: /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_components_.PanelBody, {
+            title: (0,external_this_wp_i18n_.__)('Languages', 'polylang-pro'),
+            children: [/*#__PURE__*/(0,jsx_runtime.jsx)("label", {
+              children: (0,external_this_wp_i18n_.__)('The block is displayed for:', 'polylang-pro')
+            }), /*#__PURE__*/(0,jsx_runtime.jsxs)(LanguageDropdown, {
+              selectedLanguage: selectedLanguage,
+              handleChange: langChoiceEvent => {
+                const langChoice = langChoiceEvent.currentTarget.value;
+                props.setAttributes({
+                  pll_lang: langChoice
+                });
+              },
+              defaultValue: LanguageAttribute.default,
+              children: [/*#__PURE__*/(0,jsx_runtime.jsxs)("option", {
+                value: LanguageAttribute.default,
+                children: [(0,external_this_wp_i18n_.__)('All languages', 'polylang-pro'), " "]
+              }), /*#__PURE__*/(0,jsx_runtime.jsx)(LanguagesOptionsList, {
+                languages: languages
+              })]
+            })]
+          })
+        })]
+      });
     };
   }, "withInspectorControl");
   isLanguagesinitialized().then(function () {
@@ -1098,12 +1147,11 @@ if (isWidgetsBlockEditor() || isWidgetsCustomizerEditor()) {
   });
 }
 // EXTERNAL MODULE: external {"this":["wp","blocks"]}
-var external_this_wp_blocks_ = __webpack_require__(733);
+var external_this_wp_blocks_ = __webpack_require__(545);
 // EXTERNAL MODULE: external {"this":["wp","serverSideRender"]}
-var external_this_wp_serverSideRender_ = __webpack_require__(169);
+var external_this_wp_serverSideRender_ = __webpack_require__(567);
 var external_this_wp_serverSideRender_default = /*#__PURE__*/__webpack_require__.n(external_this_wp_serverSideRender_);
-;// CONCATENATED MODULE: ./modules/block-editor/js/blocks/language-switcher-edit.js
-
+;// ./modules/block-editor/js/blocks/language-switcher-edit.js
 /**
  * @package Polylang-Pro
  */
@@ -1172,42 +1220,42 @@ function createLanguageSwitcherEdit(props) {
     hide_if_no_translation
   } = props.attributes;
   function ToggleControlDropdown() {
-    return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.dropdown,
       checked: dropdown,
       onChange: toggleDropdown
     });
   }
   function ToggleControlShowNames() {
-    return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.show_names,
       checked: show_names,
       onChange: toggleShowNames
     });
   }
   function ToggleControlShowFlags() {
-    return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.show_flags,
       checked: show_flags,
       onChange: toggleShowFlags
     });
   }
   function ToggleControlForceHome() {
-    return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.force_home,
       checked: force_home,
       onChange: toggleForceHome
     });
   }
   function ToggleControlHideCurrent() {
-    return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.hide_current,
       checked: hide_current,
       onChange: toggleHideCurrent
     });
   }
   function ToggleControlHideIfNoTranslations() {
-    return (0,external_this_wp_element_.createElement)(external_this_wp_components_.ToggleControl, {
+    return /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.ToggleControl, {
       label: i18nAttributeStrings.hide_if_no_translation,
       checked: hide_if_no_translation,
       onChange: toggleHideIfNoTranslation
@@ -1222,8 +1270,7 @@ function createLanguageSwitcherEdit(props) {
     ToggleControlHideIfNoTranslations
   };
 }
-;// CONCATENATED MODULE: ./modules/block-editor/js/blocks/block.js
-
+;// ./modules/block-editor/js/blocks/block.js
 /**
  * Register language switcher block.
  *
@@ -1251,6 +1298,7 @@ function createLanguageSwitcherEdit(props) {
  */
 
 
+
 const blocktitle = (0,external_this_wp_i18n_.__)('Language switcher', 'polylang-pro');
 const descriptionTitle = (0,external_this_wp_i18n_.__)('Add a language switcher to allow your visitors to select their preferred language.', 'polylang-pro');
 const panelTitle = (0,external_this_wp_i18n_.__)('Language switcher settings', 'polylang-pro');
@@ -1274,12 +1322,19 @@ const panelTitle = (0,external_this_wp_i18n_.__)('Language switcher settings', '
       ToggleControlHideCurrent,
       ToggleControlHideIfNoTranslations
     } = createLanguageSwitcherEdit(props);
-    return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(external_this_wp_blockEditor_.InspectorControls, null, (0,external_this_wp_element_.createElement)(external_this_wp_components_.PanelBody, {
-      title: panelTitle
-    }, (0,external_this_wp_element_.createElement)(ToggleControlDropdown, null), !dropdown && (0,external_this_wp_element_.createElement)(ToggleControlShowNames, null), !dropdown && (0,external_this_wp_element_.createElement)(ToggleControlShowFlags, null), (0,external_this_wp_element_.createElement)(ToggleControlForceHome, null), !dropdown && (0,external_this_wp_element_.createElement)(ToggleControlHideCurrent, null), (0,external_this_wp_element_.createElement)(ToggleControlHideIfNoTranslations, null))), (0,external_this_wp_element_.createElement)(external_this_wp_components_.Disabled, null, (0,external_this_wp_element_.createElement)((external_this_wp_serverSideRender_default()), {
-      block: "polylang/language-switcher",
-      attributes: props.attributes
-    })));
+    return /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_element_.Fragment, {
+      children: [/*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_blockEditor_.InspectorControls, {
+        children: /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_components_.PanelBody, {
+          title: panelTitle,
+          children: [/*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlDropdown, {}), !dropdown && /*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlShowNames, {}), !dropdown && /*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlShowFlags, {}), /*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlForceHome, {}), !dropdown && /*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlHideCurrent, {}), /*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlHideIfNoTranslations, {})]
+        })
+      }), /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Disabled, {
+        children: /*#__PURE__*/(0,jsx_runtime.jsx)((external_this_wp_serverSideRender_default()), {
+          block: "polylang/language-switcher",
+          attributes: props.attributes
+        })
+      })]
+    });
   }
 });
 
@@ -1342,15 +1397,23 @@ const navigationLanguageSwitcherName = 'polylang/navigation-language-switcher';
       ToggleControlHideCurrent,
       ToggleControlHideIfNoTranslations
     } = createLanguageSwitcherEdit(props);
-    return (0,external_this_wp_element_.createElement)(external_this_wp_element_.Fragment, null, (0,external_this_wp_element_.createElement)(external_this_wp_blockEditor_.InspectorControls, null, (0,external_this_wp_element_.createElement)(external_this_wp_components_.PanelBody, {
-      title: panelTitle
-    }, (0,external_this_wp_element_.createElement)(ToggleControlDropdown, null), (0,external_this_wp_element_.createElement)(ToggleControlShowNames, null), (0,external_this_wp_element_.createElement)(ToggleControlShowFlags, null), (0,external_this_wp_element_.createElement)(ToggleControlForceHome, null), (0,external_this_wp_element_.createElement)(ToggleControlHideCurrent, null), (0,external_this_wp_element_.createElement)(ToggleControlHideIfNoTranslations, null))), (0,external_this_wp_element_.createElement)(external_this_wp_components_.Disabled, null, (0,external_this_wp_element_.createElement)("div", {
-      className: "wp-block-navigation-item"
-    }, (0,external_this_wp_element_.createElement)((external_this_wp_serverSideRender_default()), {
-      block: navigationLanguageSwitcherName,
-      attributes: props.attributes,
-      className: 'wp-block-navigation__container block-editor-block-list__layout'
-    }), submenuIcon(showSubmenuIcon, openSubmenusOnClick, dropdown))));
+    return /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_element_.Fragment, {
+      children: [/*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_blockEditor_.InspectorControls, {
+        children: /*#__PURE__*/(0,jsx_runtime.jsxs)(external_this_wp_components_.PanelBody, {
+          title: panelTitle,
+          children: [/*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlDropdown, {}), /*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlShowNames, {}), /*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlShowFlags, {}), /*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlForceHome, {}), !dropdown && /*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlHideCurrent, {}), /*#__PURE__*/(0,jsx_runtime.jsx)(ToggleControlHideIfNoTranslations, {})]
+        })
+      }), /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Disabled, {
+        children: /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
+          className: "wp-block-navigation-item",
+          children: [/*#__PURE__*/(0,jsx_runtime.jsx)((external_this_wp_serverSideRender_default()), {
+            block: navigationLanguageSwitcherName,
+            attributes: props.attributes,
+            className: 'wp-block-navigation__container block-editor-block-list__layout'
+          }), submenuIcon(showSubmenuIcon, openSubmenusOnClick, dropdown)]
+        })
+      })]
+    });
   }
 });
 
@@ -1422,9 +1485,10 @@ const menuItemsToBlocksFilter = (blocks, menuItems) => ({
  */
 const submenuIcon = (showSubmenuIcon, openSubmenusOnClick, dropdown) => {
   if ((showSubmenuIcon || openSubmenusOnClick) && dropdown) {
-    return (0,external_this_wp_element_.createElement)("span", {
-      className: "wp-block-navigation__submenu-icon"
-    }, (0,external_this_wp_element_.createElement)(submenu, null));
+    return /*#__PURE__*/(0,jsx_runtime.jsx)("span", {
+      className: "wp-block-navigation__submenu-icon",
+      children: /*#__PURE__*/(0,jsx_runtime.jsx)(submenu, {})
+    });
   }
   return null;
 };
@@ -1434,7 +1498,7 @@ const submenuIcon = (showSubmenuIcon, openSubmenusOnClick, dropdown) => {
  * the language switcher menu item to its corresponding block.
  */
 (0,external_this_wp_hooks_.addFilter)('blocks.navigation.__unstableMenuItemsToBlocks', 'polylang/include-language-switcher', menuItemsToBlocksFilter);
-;// CONCATENATED MODULE: ./modules/block-editor/js/blocks/index.js
+;// ./modules/block-editor/js/blocks/index.js
 /**
  * Handles language switcher block and attributes.
  *

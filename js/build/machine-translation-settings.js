@@ -1,4 +1,3 @@
-var __webpack_exports__ = {};
 /**
  * @package Polylang-Pro
  */

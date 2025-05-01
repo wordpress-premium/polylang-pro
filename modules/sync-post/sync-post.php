@@ -15,6 +15,11 @@ class PLL_Sync_Post {
 	public $sync_model;
 
 	/**
+	 * @var PLL_Model
+	 */
+	public $model;
+
+	/**
 	 * Stores all synchronization buttons.
 	 *
 	 * @var PLL_Sync_Post_Button[]
@@ -31,43 +36,65 @@ class PLL_Sync_Post {
 	 */
 	public function __construct( &$polylang ) {
 		$this->sync_model = &$polylang->sync_post_model;
+		$this->model      = &$polylang->model;
 
 		// Create buttons in the language metabox.
-		if ( $polylang instanceof PLL_Admin ) {
-			foreach ( $polylang->model->get_languages_list() as $language ) {
-				$this->buttons[ $language->slug ] = new PLL_Sync_Post_Button( $this->sync_model, $language );
-			}
+		if ( $polylang instanceof PLL_Admin && ! wp_doing_cron() && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+			// Loaded with `PLL_Admin_Loader`: we're on `admin_init` or `use_block_editor_for_post`.
+			$this->add_metabox_buttons();
 		}
 
-		if ( isset( $polylang->bulk_translate ) ) {
-			$polylang->bulk_translate->register_options(
-				array(
-					new PLL_Sync_Post_Bulk_Option(
-						array(
-							'name'           => 'pll_sync_post',
-							'description'    => __( 'Synchronize translations in selected languages with the original items', 'polylang-pro' ),
-							'do_synchronize' => true,
-							'priority'       => 10,
-						),
-						$polylang->model,
-						$this->sync_model
-					),
-					new PLL_Sync_Post_Bulk_Option(
-						array(
-							'name'           => 'pll_copy_post',
-							'description'    => __( 'Copy original items to selected languages', 'polylang-pro' ),
-							'do_synchronize' => false,
-							'priority'       => 5,
-						),
-						$polylang->model,
-						$this->sync_model
-					),
-				)
-			);
-		}
-
+		add_action( 'pll_bulk_translate_options_init', array( $this, 'add_bulk_translate_options' ) );
 		add_filter( 'update_translation_group', array( $this, 'unsync_post' ), 10, 3 );
 		add_action( 'pll_save_post', array( $this, 'sync_posts' ), 5 ); // Before PLL_Admin_Sync, Before PLL_ACF, Before PLLWC.
+	}
+
+	/**
+	 * Registers the buttons.
+	 *
+	 * @since 3.6.5
+	 *
+	 * @return void
+	 */
+	public function add_metabox_buttons(): void {
+		foreach ( $this->model->get_languages_list() as $language ) {
+			$this->buttons[ $language->slug ] = new PLL_Sync_Post_Button( $this->sync_model, $language );
+		}
+	}
+
+	/**
+	 * Registers options of the Translate bulk action.
+	 *
+	 * @since 3.6.5
+	 *
+	 * @param PLL_Bulk_Translate $bulk_translate Instance of `PLL_Bulk_Translate`.
+	 * @return void
+	 */
+	public function add_bulk_translate_options( $bulk_translate ): void {
+		$bulk_translate->register_options(
+			array(
+				new PLL_Sync_Post_Bulk_Option(
+					array(
+						'name'           => 'pll_sync_post',
+						'description'    => __( 'Synchronize translations in selected languages with the original items', 'polylang-pro' ),
+						'do_synchronize' => true,
+						'priority'       => 10,
+					),
+					$this->model,
+					$this->sync_model
+				),
+				new PLL_Sync_Post_Bulk_Option(
+					array(
+						'name'           => 'pll_copy_post',
+						'description'    => __( 'Copy original items to selected languages', 'polylang-pro' ),
+						'do_synchronize' => false,
+						'priority'       => 5,
+					),
+					$this->model,
+					$this->sync_model
+				),
+			)
+		);
 	}
 
 	/**

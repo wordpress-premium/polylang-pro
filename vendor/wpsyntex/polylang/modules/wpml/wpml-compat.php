@@ -68,7 +68,7 @@ class PLL_WPML_Compat {
 	/**
 	 * Defines two WPML constants once the language has been defined
 	 * The compatibility with WPML is not perfect on admin side as the constants are defined
-	 * in 'setup_theme' by Polylang ( based on user info ) and 'plugins_loaded' by WPML ( based on cookie )
+	 * in 'setup_theme' by Polylang (based on user info) and 'plugins_loaded' by WPML (based on cookie).
 	 *
 	 * @since 0.9.5
 	 *
@@ -96,19 +96,29 @@ class PLL_WPML_Compat {
 
 	/**
 	 * Unlike pll_register_string, icl_register_string stores the string in database
-	 * so we need to do the same as some plugins or themes may expect this
-	 * we use a serialized option to do this
+	 * so we need to do the same as some plugins or themes may expect this.
+	 * We use a serialized option to store these strings.
 	 *
 	 * @since 1.0.2
 	 *
-	 * @param string $context The group in which the string is registered.
-	 * @param string $name    A unique name for the string.
-	 * @param string $string  The string to register.
+	 * @param string|string[] $context The group in which the string is registered.
+	 * @param string          $name    A unique name for the string.
+	 * @param string          $string  The string to register.
 	 * @return void
 	 */
 	public function register_string( $context, $name, $string ) {
 		if ( ! $string || ! is_scalar( $string ) ) {
 			return;
+		}
+
+		/*
+		 * WPML accepts arrays as context and internally converts them to strings.
+		 * See WPML_Register_String_Filter::truncate_name_and_context().
+		 * This possibility is used by Types.
+		 */
+		if ( is_array( $context ) ) {
+			$name    = isset( $context['context'] ) ? $name . $context['context'] : $name;
+			$context = $context['domain'] ?? '';
 		}
 
 		// If a string has already been registered with the same name and context, let's replace it.

@@ -125,7 +125,6 @@ class PLL_Bulk_Translate {
 	 * @return void
 	 */
 	public function init( $current_screen ) {
-
 		/**
 		 * Filter the list of post types enabling the bulk translate.
 		 *
@@ -139,6 +138,17 @@ class PLL_Bulk_Translate {
 		if ( ! in_array( $current_screen->post_type, $post_types ) || ( array_key_exists( 'post_status', $_GET ) && 'trash' === $_GET['post_status'] ) ) {
 			return;
 		}
+
+		/**
+		 * Fires before `PLL_Bulk_Translate` init.
+		 * This is the perfect place to register options of the Translate bulk action.
+		 *
+		 * @since 3.6.5
+		 * @see PLL_Bulk_Translate::register_options()
+		 *
+		 * @param PLL_Bulk_Translate $bulk_translate Instance of `PLL_Bulk_Translate`.
+		 */
+		do_action( 'pll_bulk_translate_options_init', $this );
 
 		$this->options = array_filter(
 			$this->options,
@@ -198,6 +208,12 @@ class PLL_Bulk_Translate {
 
 		if ( empty( $args['item_ids'] ) ) {
 			return new WP_Error( 'pll_no_items_selected', __( 'No item has been selected. Please make sure to select at least one item to be translated.', 'polylang-pro' ) );
+		}
+
+		foreach ( $args['item_ids'] as $item_id ) {
+			if ( ! current_user_can( 'read_post', (int) $item_id ) ) {
+				return new WP_Error( 'pll_user_cannot_read_item', __( 'You are not allowed to read a selected item.', 'polylang-pro' ) );
+			}
 		}
 
 		$args['translate'] = sanitize_key( $request['translate'] );

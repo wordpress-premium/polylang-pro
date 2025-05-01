@@ -352,7 +352,7 @@ class PLL_Sync_Content {
 			$img_ids = array();
 			foreach ( $textarr as $i => $text ) {
 				// Translate img class and alternative text
-				if ( 0 === strpos( $text, '<img' ) ) {
+				if ( 0 === strpos( $text, '<img' ) || strpos( $text, 'role="img"' ) !== false || strpos( $text, 'wp-block-cover__image-background' ) !== false ) {
 					$img_ids[] = $this->translate_img( $textarr[ $i ] );
 				}
 			}
@@ -427,6 +427,9 @@ class PLL_Sync_Content {
 				foreach ( $attributes as $k => $attr ) {
 					if ( 0 === strpos( $attr, 'alt' ) ) {
 						$attributes[ $k ] = 'alt="' . esc_attr( $alt ) . '" ';
+					}
+					if ( 0 === strpos( $attr, 'aria-label' ) ) {
+						$attributes[ $k ] = 'aria-label="' . esc_attr( $alt ) . '" ';
 					}
 				}
 			}
@@ -539,8 +542,16 @@ class PLL_Sync_Content {
 				break;
 			case 'core/cover':
 			case 'core/image':
-				if ( array_key_exists( 'id', $block['attrs'] ) ) {
+				if ( ! empty( $block['attrs']['id'] ) ) {
 					$block['attrs']['id'] = $this->translate_media( $block['attrs']['id'] );
+
+					if ( ! empty( $block['attrs']['alt'] ) ) {
+						$alt = get_post_meta( $block['attrs']['id'], '_wp_attachment_image_alt', true );
+
+						if ( ! empty( $alt ) ) {
+							$block['attrs']['alt'] = $alt;
+						}
+					}
 				}
 				$block = $this->translate_block_content( $block );
 				break;
@@ -577,7 +588,19 @@ class PLL_Sync_Content {
 
 			case 'core/media-text':
 				$block['attrs']['mediaId'] = $this->translate_media( $block['attrs']['mediaId'] );
-				$block['innerContent'][0] = $this->translate_html( $block['innerContent'][0] );
+
+				if ( isset( $block['attrs']['mediaLink'] ) ) {
+					$block['attrs']['mediaLink'] = preg_replace(
+						'#attachment_id=([0-9]+)#',
+						'attachment_id=' . $block['attrs']['mediaId'],
+						$block['attrs']['mediaLink']
+					);
+				}
+				foreach ( $block['innerContent'] as $key => $content ) {
+					if ( ! empty( $content ) ) {
+						$block['innerContent'][ $key ] = $this->translate_html( $block['innerContent'][ $key ] );
+					}
+				}
 				break;
 
 			case 'core/shortcode':

@@ -105,12 +105,6 @@ class Processor {
 					continue;
 				}
 
-				/*
-				 * Reverse entitites order, the last ones being linked to the first ones,
-				 * they should be translated before (e.g. media).
-				 */
-				$entities = array_reverse( $entities, true );
-
 				foreach ( $entities as $id => $data ) {
 					$entry = array(
 						'id'     => $id,

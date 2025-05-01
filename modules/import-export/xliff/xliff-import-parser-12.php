@@ -192,8 +192,17 @@ class PLL_Xliff_Import_Parser_12 extends PLL_Xliff_Import_Parser_Base {
 	 * }
 	 */
 	protected function populate_entry_from_trans_unit( DOMElement $trans_unit ): array {
-		$context = array( Context::FIELD => trim( $trans_unit->getAttribute( 'restype' ), 'x-' ) );
-		if ( $trans_unit->hasAttribute( 'resname' ) ) {
+		$restype = trim( $trans_unit->getAttribute( 'restype' ), 'x-' );
+		$context = array( Context::FIELD => $restype );
+
+		/*
+		 * Backward compatibility with Polylang Pro < 3.6.
+		 *
+		 * The `resname` attribute used to identify blocks in the post content is no longer used.
+		 * So, we need to exclude it from the context when the post content was exported with a version < 3.6
+		 * to be able to match with the source content where blocks are no longer identified.
+		 */
+		if ( $trans_unit->hasAttribute( 'resname' ) && PLL_Import_Export::POST_CONTENT !== $restype ) {
 			$context[ Context::ID ] = $trans_unit->getAttribute( 'resname' );
 		}
 		$entry = array( 'context' => Context::to_string( $context ) );

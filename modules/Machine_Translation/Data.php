@@ -6,7 +6,6 @@
 namespace WP_Syntex\Polylang_Pro\Modules\Machine_Translation;
 
 use PLL_Export_Data;
-use InvalidArgumentException;
 use Translations;
 use WP_Syntex\Polylang_Pro\Modules\Import_Export\Services\Context;
 
@@ -28,8 +27,9 @@ class Data extends PLL_Export_Data {
 
 	/**
 	 * Adds a source string to exported data and optionally a pre-existing translated one.
-	 *
-	 * @todo What should we do for encoding?
+	 * New types or objects are prepended to data arrays, assuming they are linked to previously added ones.
+	 * Once translated, this allows to import linked objects before the objects they are linked to.
+	 * For example, a category is imported before the post it is linked to.
 	 *
 	 * @since 3.6
 	 *
@@ -55,11 +55,11 @@ class Data extends PLL_Export_Data {
 		}
 
 		if ( ! isset( $this->translations[ $ref['object_type'] ] ) ) {
-			$this->translations[ $ref['object_type'] ] = array();
+			$this->translations = array( $ref['object_type'] => array() ) + $this->translations;
 		}
 
 		if ( ! isset( $this->translations[ $ref['object_type'] ][ $ref['object_id'] ] ) ) {
-			$this->translations[ $ref['object_type'] ][ $ref['object_id'] ] = new Translations();
+			$this->translations[ $ref['object_type'] ] = array( $ref['object_id'] => new Translations() ) + $this->translations[ $ref['object_type'] ];
 		}
 
 		$context = Context::to_string(

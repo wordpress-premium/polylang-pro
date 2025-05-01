@@ -1,4 +1,3 @@
-var __webpack_exports__ = {};
 /**
  * Handle the response to a click on a Languages metabox button.
  *
