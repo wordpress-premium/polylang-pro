@@ -55,7 +55,7 @@ class PLL_Frontend_Translate_Slugs extends PLL_Translate_Slugs {
 	 *
 	 * @since 1.9
 	 *
-	 * @param string       $url      The archive url in which want to translat a slug.
+	 * @param string       $url      The archive url in which we want to translate a slug.
 	 * @param PLL_Language $language The language.
 	 * @return string Modified url.
 	 */

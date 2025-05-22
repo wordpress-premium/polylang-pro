@@ -314,7 +314,7 @@ class PLL_Language extends PLL_Language_Deprecated {
 	 * @phpstan-return int<0, max>
 	 */
 	public function get_tax_prop( $taxonomy_name, $prop_name ) {
-		return isset( $this->term_props[ $taxonomy_name ][ $prop_name ] ) ? $this->term_props[ $taxonomy_name ][ $prop_name ] : 0;
+		return $this->term_props[ $taxonomy_name ][ $prop_name ] ?? 0;
 	}
 
 	/**
@@ -372,7 +372,7 @@ class PLL_Language extends PLL_Language_Deprecated {
 	 *     height?: positive-int
 	 * }
 	 */
-	public static function get_flag_informations( $code ) {
+	public static function get_flag_information( $code ) {
 		$default_flag = array(
 			'url' => '',
 			'src' => '',
@@ -410,7 +410,7 @@ class PLL_Language extends PLL_Language_Deprecated {
 		 */
 		$flag = apply_filters( 'pll_flag', $default_flag, $code );
 
-		$flag['url'] = esc_url_raw( $flag['url'] );
+		$flag['url'] = sanitize_url( $flag['url'] );
 
 		if ( empty( $flag['src'] ) || ( $flag['src'] === $default_flag['src'] && $flag['url'] !== $default_flag['url'] ) ) {
 			$flag['src'] = esc_url( set_url_scheme( $flag['url'], 'relative' ) );
@@ -583,7 +583,7 @@ class PLL_Language extends PLL_Language_Deprecated {
 	 * @return string HTML code for the flag.
 	 */
 	public static function get_predefined_flag( $flag_code ) {
-		$flag = self::get_flag_informations( $flag_code );
+		$flag = self::get_flag_information( $flag_code );
 
 		return self::get_flag_html( $flag );
 	}
@@ -665,11 +665,6 @@ class PLL_Language extends PLL_Language_Deprecated {
 			return $this->get_tax_prop( $matches['tax'], $matches['field'] );
 		}
 
-		// Any other public property.
-		if ( isset( $this->$property ) ) {
-			return $this->$property;
-		}
-
-		return false;
+		return $this->$property ?? false;
 	}
 }

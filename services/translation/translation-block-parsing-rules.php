@@ -35,22 +35,66 @@ class PLL_Translation_Block_Parsing_Rules {
 	 * @phpstan-var AttributesParsingRules
 	 */
 	private $parsing_rules_attributes = array(
-		'core/more'                 => array(
-			'customText' => true,
-		),
-		'core/navigation-link'      => array(
-			'description' => true,
-		),
-		'core/post-navigation-link' => array(
+		'core/comments-pagination-next'     => array(
 			'label' => true,
 		),
-		'core/read-more'            => array(
+		'core/comments-pagination-previous' => array(
+			'label' => true,
+		),
+		'core/home-link'                    => array(
+			'label' => true,
+		),
+		'core/more'                         => array(
+			'customText' => true,
+		),
+		'core/navigation-link'              => array(
+			'label'       => true,
+			'title'       => true,
+			'description' => true,
+		),
+		'core/navigation-submenu'           => array(
+			'label'       => true,
+			'title'       => true,
+			'description' => true,
+		),
+		'core/page-list-item'               => array(
+			'label' => true,
+			'title' => true,
+		),
+		'core/post-excerpt'                 => array(
+			'moreText' => true,
+		),
+		'core/post-navigation-link'         => array(
+			'label' => true,
+		),
+		'core/post-terms'                   => array(
+			'prefix' => true,
+			'suffix' => true,
+		),
+		'core/query'                        => array(
+			'query' => array(
+				'search' => true,
+			),
+		),
+		'core/query-pagination-next'        => array(
+			'label' => true,
+		),
+		'core/query-pagination-previous'    => array(
+			'label' => true,
+		),
+		'core/read-more'                    => array(
 			'content' => true,
 		),
-		'core/search'               => array(
+		'core/search'                       => array(
 			'label'       => true,
 			'placeholder' => true,
 			'buttonText'  => true,
+		),
+		'core/social-link'                  => array(
+			'label' => true,
+		),
+		'core/widget-group'                 => array(
+			'title' => true,
 		),
 	);
 
@@ -74,6 +118,9 @@ class PLL_Translation_Block_Parsing_Rules {
 		),
 		'core/cover-image'  => array(
 			'//div/p',
+		),
+		'core/details'      => array(
+			'//details/summary',
 		),
 		'core/embed'        => array(
 			'//figure/figcaption',

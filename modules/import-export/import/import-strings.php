@@ -9,20 +9,30 @@
  * @since 3.3
  */
 class PLL_Import_Strings implements PLL_Import_Object_Interface {
+	/**
+	 * Handles the translation of strings.
+	 *
+	 * @var PLL_Translation_Strings_Model
+	 */
+	private $translation_model;
 
 	/**
-	 * The success counter.
+	 * Imported strings, `null` if no process has been done.
 	 *
-	 * @var int
+	 * @var string[]|null
 	 */
-	protected $success;
+	private $imported_strings;
 
 	/**
-	 * The imported source string.
+	 * Constructor.
 	 *
-	 * @var string[]
+	 * @since 3.7
+	 *
+	 * @param PLL_Translation_Strings_Model $translation_model The object to handle strings translations.
 	 */
-	protected $imported_strings = array();
+	public function __construct( PLL_Translation_Strings_Model $translation_model ) {
+		$this->translation_model = $translation_model;
+	}
 
 	/**
 	 * Handles the import of strings translations.
@@ -38,76 +48,35 @@ class PLL_Import_Strings implements PLL_Import_Object_Interface {
 	 * @param PLL_Language $target_language The targeted language for import.
 	 */
 	public function translate( $entry, $target_language ) {
-		$pll_mo = new PLL_MO();
-		$pll_mo->import_from_db( $target_language );
-		$registered_strings = PLL_Admin_Strings::get_strings();
-
-		$translations = $entry['data'];
-
-		// Clone the $pll_mo element to avoid modifying the original one since we will then update it.
-		$pll_mo_clone = clone $pll_mo;
-
-		// Remove the context for the translation entries to generate the same key between the translation strings
-		// and the database strings.
-		$translations->entries = $this->remove_context_from_translations( $translations->entries );
-
-		foreach ( $translations->entries as $entry ) {
-			if ( empty( $entry->translations ) ) {
-				$entry->translations = array( '' );
-			}
-
-			/** This filter is documented in /polylang/settings/table-string.php */
-			$sanitized_translation = apply_filters( 'pll_sanitize_string_translation', $entry->translations[0], $entry->extracted_comments, $entry->context );
-			$sanitized_translation = wp_kses_post( $sanitized_translation );
-
-			// Set a unique key for each entry to compare the original and translated strings.
-			$key = $entry->key();
-
-			if ( empty( $key ) ) {
-				continue;
-			}
-			if ( isset( $pll_mo_clone->entries[ $key ]->translations[0] ) || isset( $registered_strings[ md5( $key ) ] ) ) {
-				// Checks that the string did not exist or has been edited before updating.
-				if ( ! isset( $pll_mo_clone->entries[ $key ]->translations[0] ) || $pll_mo_clone->entries[ $key ]->translations[0] !== $sanitized_translation ) {
-					$pll_mo->add_entry( $pll_mo->make_entry( $entry->singular, $sanitized_translation ) );
-					++$this->success;
-
-					// Store the source strings as ids during the import process.
-					$this->imported_strings[] = $entry->singular;
-				}
-			}
-		}
-
-		if ( $this->success ) {
-			$pll_mo->export_to_db( $target_language );
+		$this->imported_strings = array();
+		$result = $this->translation_model->translate( $entry, $target_language );
+		if ( ! is_wp_error( $result ) ) {
+			$this->imported_strings = $result;
 		}
 	}
 
 	/**
-	 * Removes the context for the translation entries.
+	 * Performs actions after an import process.
 	 *
-	 * @since 3.2
-	 * @since 3.3 Moved from PLL_Import_Action to PLL_Import_Strings.
+	 * @since 3.7
 	 *
-	 * @param  Translation_Entry[] $translations An array with all the entries.
-	 * @return Translation_Entry[]               An array with the same entries with an empty context.
+	 * @param string[]     $ids             The entity ids to process after import.
+	 * @param PLL_Language $target_language The target language.
+	 * @return void
 	 */
-	private function remove_context_from_translations( $translations ) {
-		foreach ( $translations as $translation_entry ) {
-			$translation_entry->context = '';
-		}
-		return $translations;
+	public function do_after_import_process( array $ids, PLL_Language $target_language ) {
+		$this->translation_model->do_after_process( $ids, $target_language );
 	}
 
 	/**
-	 * Gets update notices to display.
+	 * Returns update notices to display.
 	 *
 	 * @since 3.3
 	 *
 	 * @return WP_Error
 	 */
 	public function get_updated_notice() {
-		if ( ! $this->success ) {
+		if ( ! isset( $this->imported_strings ) || 0 === count( $this->imported_strings ) ) {
 			return new WP_Error();
 		}
 
@@ -115,21 +84,29 @@ class PLL_Import_Strings implements PLL_Import_Object_Interface {
 			'pll_import_strings_success',
 			sprintf(
 				/* translators: %d is a number of strings translations */
-				_n( '%d string translation updated.', '%d string translations updated.', $this->success, 'polylang-pro' ),
-				$this->success
+				_n( '%d string translation updated.', '%d string translations updated.', count( $this->imported_strings ), 'polylang-pro' ),
+				count( $this->imported_strings )
 			),
 			'success'
 		);
 	}
 
 	/**
-	 * Gets warnings notices to display.
+	 * Returns warning notices to display.
 	 *
 	 * @since 3.3
 	 *
 	 * @return WP_Error
 	 */
 	public function get_warning_notice() {
+		if ( isset( $this->imported_strings ) && 0 === count( $this->imported_strings ) ) {
+			return new WP_Error(
+				'pll_import_strings_nothing_imported',
+				__( 'No string translations updated. Please check that the original strings in your file match those on the site.', 'polylang-pro' ),
+				'warning'
+			);
+		}
+
 		return new WP_Error();
 	}
 
@@ -151,7 +128,7 @@ class PLL_Import_Strings implements PLL_Import_Object_Interface {
 	 *
 	 * @return string[]
 	 */
-	public function get_imported_object_ids() {
-		return $this->imported_strings;
+	public function get_imported_object_ids(): array {
+		return (array) $this->imported_strings;
 	}
 }

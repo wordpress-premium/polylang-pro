@@ -145,7 +145,7 @@ abstract class PLL_Xdata_Base {
 	 * Stores data to transfer in a user session
 	 *
 	 * @param string $redirect Url to redirect to.
-	 * @param bool   $nologin  True if we shoul not attempt to login.
+	 * @param bool   $nologin  True if we should not attempt to login.
 	 * @return string Session key.
 	 */
 	protected function create_data_session( $redirect, $nologin ) {
@@ -214,8 +214,8 @@ abstract class PLL_Xdata_Base {
 					}
 				}
 				xhr.send();',
-				esc_url_raw( $this->ajax_url( sanitize_key( $_COOKIE[ PLL_COOKIE ] ), $args ) ),
-				esc_url_raw( $this->ajax_url( $lang, array( 'action' => 'pll_xdata_set' ) ) )
+				esc_js( sanitize_url( $this->ajax_url( sanitize_key( $_COOKIE[ PLL_COOKIE ] ), $args ) ) ),
+				esc_js( sanitize_url( $this->ajax_url( $lang, array( 'action' => 'pll_xdata_set' ) ) ) )
 			);
 		}
 		return '';
@@ -239,7 +239,7 @@ abstract class PLL_Xdata_Base {
 		send_origin_headers();
 
 		// Response.
-		$key = $this->create_data_session( esc_url_raw( wp_unslash( $_GET['redirect'] ) ), ! empty( $_GET['nologin'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
+		$key = $this->create_data_session( sanitize_url( wp_unslash( $_GET['redirect'] ) ), ! empty( $_GET['nologin'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		wp_die( empty( $key ) ? '-1' : esc_html( $key ) );
 	}
 

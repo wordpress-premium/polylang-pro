@@ -33,8 +33,8 @@ class PLL_FSE_Tools {
 	 * @param string $post_type A post type name.
 	 * @return bool
 	 */
-	public static function is_template_post_type( $post_type ) {
-		return is_string( $post_type ) && in_array( $post_type, self::get_template_post_types(), true );
+	public static function is_template_post_type( string $post_type ) {
+		return in_array( $post_type, self::get_template_post_types(), true );
 	}
 
 	/**
@@ -54,7 +54,7 @@ class PLL_FSE_Tools {
 		if ( is_string( $query->query_vars['post_type'] ) ) {
 			$post_type = $query->query_vars['post_type'];
 		} elseif ( is_array( $query->query_vars['post_type'] ) && 1 === count( $query->query_vars['post_type'] ) ) {
-			$post_type = reset( $query->query_vars['post_type'] );
+			$post_type = (string) reset( $query->query_vars['post_type'] );
 		} else {
 			// Multiple post types.
 			return false;

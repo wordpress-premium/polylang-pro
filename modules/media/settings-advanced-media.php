@@ -52,15 +52,15 @@ class PLL_Settings_Advanced_Media extends PLL_Settings_Module {
 	}
 
 	/**
-	 * Sanitizes the settings before saving
+	 * Prepare the received data before saving.
 	 *
-	 * @since 1.9
+	 * @since 3.7
 	 *
-	 * @param array $options Raw options to save.
-	 * @return array Sanitized options.
+	 * @param array $options Raw values to save.
+	 * @return array
 	 */
-	protected function update( $options ) {
-		$newoptions = array( 'media' => array( 'duplicate' => isset( $options['media']['duplicate'] ) ? 1 : 0 ) );
+	protected function prepare_raw_data( array $options ): array {
+		$newoptions = array( 'media' => array( 'duplicate' => ! empty( $options['media']['duplicate'] ) ? 1 : 0 ) );
 		return $newoptions; // Take care to return only validated options.
 	}
 

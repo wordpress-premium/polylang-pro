@@ -3,11 +3,11 @@
  * Displays the languages tab in Polylang settings
  *
  * @package Polylang
+ *
+ * @var PLL_Table_Languages $list_table An object representing the languages list table.
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Don't access directly
-}
+defined( 'ABSPATH' ) || exit;
 ?>
 <div id="col-container">
 	<div id="col-right">
@@ -130,7 +130,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 								printf(
 									'<option value="%s" data-flag-html="%s"%s>%s</option>' . "\n",
 									esc_attr( $code ),
-									esc_html( PLL_Language::get_flag_html( PLL_Language::get_flag_informations( $code ) ) ),
+									esc_html( PLL_Language::get_flag_html( PLL_Language::get_flag_information( $code ) ) ),
 									selected( isset( $edit_lang->flag_code ) && $edit_lang->flag_code === $code, true, false ),
 									esc_html( $label )
 								);

@@ -49,7 +49,7 @@ class PLL_File_Format_Factory {
 					},
 					$this->base_formats
 				),
-				function ( $format ) use( $context ) {
+				function ( $format ) use ( $context ) {
 					return true === $format->is_supported() && ! ( 'posts' === $context && 'po' === $format->extension );
 				}
 			);
@@ -109,12 +109,12 @@ class PLL_File_Format_Factory {
 	}
 
 	/**
-	 * Gets the file format formated label to be displayed.
+	 * Gets the file format formatted label to be displayed.
 	 *
 	 * @since 3.6
 	 *
 	 * @param string $label The file format label.
-	 * @return string The label formated to be displayed.
+	 * @return string The label formatted to be displayed.
 	 */
 	public static function get_format_label( $label ) {
 		return strtoupper( str_replace( '_', ' ', $label ) );

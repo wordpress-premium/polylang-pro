@@ -4,15 +4,15 @@
  *
  * @package Polylang-Pro
  * @since 2.7
+ *
+ * @var PLL_Model $model `PLL_Model` instance.
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Don't access directly.
-}
+defined( 'ABSPATH' ) || exit; // Don't access directly.
 
 $url = admin_url( 'admin.php?page=mlang_strings&translate=export&noheader=true' );
-$languages = $this->model->get_languages_list();
-$default_language = $this->model->get_default_language();
+$languages = $model->get_languages_list();
+$default_language = $model->get_default_language();
 $strings = PLL_Admin_Strings::get_strings();
 $groups = array_unique( wp_list_pluck( $strings, 'context' ) );
 $supported_formats = ( new PLL_File_Format_Factory() )->get_supported_formats( 'strings' ); // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable

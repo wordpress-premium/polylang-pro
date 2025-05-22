@@ -113,11 +113,8 @@ class PLL_FSE_Recreate_Language extends PLL_FSE_Abstract_Module implements PLL_M
 
 			// Update translation groups and/or create new ones.
 			$post_ids_by_post_names = array_flip( $post_names_by_post_ids ); // Prevents multiple uses of `array_search()`.
+			$case                   = array(); // Used to update the existing translation groups.
 			$tt_ids                 = array(); // Used to update the existing translation groups.
-			$query                  = array( // Used to build the query that will update the existing translation groups.
-				"UPDATE {$wpdb->term_taxonomy} SET description = (",
-				'CASE term_taxonomy_id',
-			);
 
 			foreach ( $results as $result ) {
 				$new_lang_post_id        = $post_ids_by_post_names[ $result['post_name'] ];
@@ -139,17 +136,22 @@ class PLL_FSE_Recreate_Language extends PLL_FSE_Abstract_Module implements PLL_M
 
 				$clean_cache_post_ids = array_merge( $clean_cache_post_ids, array_values( $result['translations'] ) );
 
+				$case[]              = array( $result['tt_id'], maybe_serialize( $result['translations'] ) );
 				$tt_ids[]            = $result['tt_id'];
-				$all_relationships[] = $wpdb->prepare( '(%d,%d)', $new_lang_post_id, $result['tt_id'] );
-				$query[]             = $wpdb->prepare( 'WHEN %d THEN %s', $result['tt_id'], maybe_serialize( $result['translations'] ) );
+				$all_relationships[] = array( $new_lang_post_id, $result['tt_id'] );
 			}
 
 			if ( ! empty( $tt_ids ) ) {
-				$query[] = 'END';
-				$query[] = ')';
-				$query[] = 'WHERE term_taxonomy_id IN (' . PLL_Db_Tools::prepare_values_list( $tt_ids ) . ')';
-
-				$wpdb->query( implode( "\n", $query ) ); // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->query(
+					$wpdb->prepare(
+						sprintf(
+							"UPDATE {$wpdb->term_taxonomy} SET description = ( CASE term_taxonomy_id %s END ) WHERE term_taxonomy_id IN (%s)",
+							implode( ' ', array_fill( 0, count( $case ), 'WHEN %d THEN %s' ) ),
+							implode( ',', array_fill( 0, count( $tt_ids ), '%d' ) )
+						),
+						array_merge( array_merge( ...$case ), $tt_ids )
+					)
+				);
 
 				$clean_cache_term_ids = array_merge( $clean_cache_term_ids, $tt_ids );
 			}
@@ -162,7 +164,15 @@ class PLL_FSE_Recreate_Language extends PLL_FSE_Abstract_Module implements PLL_M
 
 		if ( ! empty( $all_relationships ) ) {
 			// Assign the translation groups.
-			$wpdb->query( "INSERT INTO {$wpdb->term_relationships} (object_id, term_taxonomy_id) VALUES " . implode( ',', $all_relationships ) );
+			$wpdb->query(
+				$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+					sprintf(
+						"INSERT INTO {$wpdb->term_relationships} (object_id, term_taxonomy_id) VALUES %s",
+						implode( ',', array_fill( 0, count( $all_relationships ), '(%d,%d)' ) )
+					),
+					array_merge( ...$all_relationships )
+				)
+			);
 		}
 
 		if ( ! empty( $create_groups_post_ids ) ) {
@@ -204,30 +214,30 @@ class PLL_FSE_Recreate_Language extends PLL_FSE_Abstract_Module implements PLL_M
 	private function get_posts_with_lang_suffix( PLL_Language $language ) {
 		global $wpdb;
 
-		$post_types = PLL_Db_Tools::prepare_values_list( PLL_FSE_Tools::get_template_post_types() );
+		$post_types = PLL_FSE_Tools::get_template_post_types();
 
 		// 'dummy' => 'dummy___fr' => 'dummy\_\_\_fr' => '%\_\_\_fr' - No it's not commented code damnit.
 		$post_slug = ( new PLL_FSE_Template_Slug( 'dummy' ) )->update_language( $language->slug );
 		$post_slug = str_replace( 'dummy', '%', $wpdb->esc_like( $post_slug ) );
 
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				"
-				SELECT p.ID as post_id, p.post_name, tt.term_taxonomy_id as theme_id
-					FROM {$wpdb->posts} AS p
-				INNER JOIN {$wpdb->term_relationships} AS tr
-					ON tr.object_id = p.ID
-				INNER JOIN {$wpdb->term_taxonomy} AS tt
-					ON tt.term_taxonomy_id = tr.term_taxonomy_id
-					AND tt.taxonomy = 'wp_theme'
-				WHERE p.post_type IN ($post_types)
-					AND post_name LIKE %s",
-				$post_slug
+				sprintf(
+					"SELECT p.ID as post_id, p.post_name, tt.term_taxonomy_id as theme_id
+						FROM {$wpdb->posts} AS p
+					INNER JOIN {$wpdb->term_relationships} AS tr
+						ON tr.object_id = p.ID
+					INNER JOIN {$wpdb->term_taxonomy} AS tt
+						ON tt.term_taxonomy_id = tr.term_taxonomy_id
+						AND tt.taxonomy = 'wp_theme'
+					WHERE p.post_type IN (%s)
+					AND post_name LIKE %%s",
+					implode( ',', array_fill( 0, count( $post_types ), '%s' ) )
+				),
+				array_merge( $post_types, array( $post_slug ) )
 			),
 			ARRAY_A
 		);
-		// phpcs:enable
 
 		if ( empty( $results ) ) {
 			return array();
@@ -271,36 +281,36 @@ class PLL_FSE_Recreate_Language extends PLL_FSE_Abstract_Module implements PLL_M
 	private function get_translation_groups( array $post_names, $theme_id ) {
 		global $wpdb;
 
-		$post_types = PLL_Db_Tools::prepare_values_list( PLL_FSE_Tools::get_template_post_types() );
-		$post_names = PLL_Db_Tools::prepare_values_list( $post_names );
+		$post_types = PLL_FSE_Tools::get_template_post_types();
 
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				"
-				SELECT p.ID as post_id, p.post_name, tt.term_taxonomy_id as tt_id, tt.description as translations
-					FROM {$wpdb->posts} AS p
+				sprintf(
+					"SELECT p.ID as post_id, p.post_name, tt.term_taxonomy_id as tt_id, tt.description as translations
+						FROM {$wpdb->posts} AS p
 
-				LEFT JOIN (
-					SELECT tr1.object_id, tt1.term_taxonomy_id, tt1.description
-						FROM {$wpdb->term_relationships} AS tr1
-					INNER JOIN {$wpdb->term_taxonomy} AS tt1
-						ON tt1.term_taxonomy_id = tr1.term_taxonomy_id
-						AND tt1.taxonomy = 'post_translations'
-				) AS tt
-					ON tt.object_id = p.ID
+					LEFT JOIN (
+						SELECT tr1.object_id, tt1.term_taxonomy_id, tt1.description
+							FROM {$wpdb->term_relationships} AS tr1
+						INNER JOIN {$wpdb->term_taxonomy} AS tt1
+							ON tt1.term_taxonomy_id = tr1.term_taxonomy_id
+							AND tt1.taxonomy = 'post_translations'
+					) AS tt
+						ON tt.object_id = p.ID
 
-				INNER JOIN {$wpdb->term_relationships} AS tr
-					ON tr.object_id = p.ID
-					AND tr.term_taxonomy_id = %d
+					INNER JOIN {$wpdb->term_relationships} AS tr
+						ON tr.object_id = p.ID
+						AND tr.term_taxonomy_id = %%d
 
-				WHERE p.post_type IN ($post_types)
-					AND post_name IN ($post_names)",
-				$theme_id
+					WHERE p.post_type IN (%s)
+						AND post_name IN (%s)",
+					implode( ',', array_fill( 0, count( $post_types ), '%s' ) ),
+					implode( ',', array_fill( 0, count( $post_names ), '%s' ) )
+				),
+				array_merge( array( $theme_id ), $post_types, $post_names )
 			),
 			ARRAY_A
 		);
-		// phpcs:enable
 
 		return array_map(
 			function ( $result ) {

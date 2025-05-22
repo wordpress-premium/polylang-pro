@@ -45,7 +45,7 @@ class PLL_FSE_Filter_Block_Types extends PLL_FSE_Abstract_Module implements PLL_
 	/**
 	 * Filters out template part instances from block `core/template-part` variations.
 	 * This avoids to display all translations of templates parts in the block selection list,
-	 * otherwhise the confusing UI could allow a user to insert a template part in a wrong language.
+	 * otherwise the confusing UI could allow a user to insert a template part in a wrong language.
 	 *
 	 * @since 3.2.2
 	 * @since 3.6 Renamed from `remove_template_part_instance_variations()`.
@@ -71,7 +71,7 @@ class PLL_FSE_Filter_Block_Types extends PLL_FSE_Abstract_Module implements PLL_
 	/**
 	 * Filters out template part instances from block `core/template-part` variations.
 	 * This avoids to display all translations of templates parts in the block selection list,
-	 * otherwhise the confusing UI could allow a user to insert a template part in a wrong language.
+	 * otherwise the confusing UI could allow a user to insert a template part in a wrong language.
 	 *
 	 * @since 3.6
 	 *

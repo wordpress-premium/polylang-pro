@@ -22,11 +22,6 @@ class PLL_Admin_Advanced_Media {
 	public $model;
 
 	/**
-	 * @var PLL_CRUD_Posts
-	 */
-	public $posts;
-
-	/**
 	 * Constructor: setups filters and actions
 	 *
 	 * @since 1.9
@@ -37,7 +32,6 @@ class PLL_Admin_Advanced_Media {
 	public function __construct( &$polylang ) {
 		$this->options = &$polylang->options;
 		$this->model   = &$polylang->model;
-		$this->posts   = &$polylang->posts;
 
 		add_action( 'pll_bulk_translate_options_init', array( $this, 'add_bulk_translate_options' ) );
 
@@ -63,8 +57,7 @@ class PLL_Admin_Advanced_Media {
 						'name'        => 'pll_copy_media',
 						'description' => __( 'Copy original items to selected languages', 'polylang-pro' ),
 					),
-					$this->model,
-					$this->posts
+					$this->model
 				),
 			)
 		);
@@ -124,7 +117,7 @@ class PLL_Admin_Advanced_Media {
 			$languages = array_diff( $this->model->get_languages_list( array( 'fields' => 'slug' ) ), array_keys( $this->model->post->get_translations( $post_id ) ) );
 
 			foreach ( $languages as $lang ) {
-				$tr_id = $this->posts->create_media_translation( $post_id, $lang );
+				$tr_id = $this->model->post->create_media_translation( $post_id, $lang );
 
 				if ( ! empty( $tr_id ) ) {
 					$post = get_post( $tr_id );

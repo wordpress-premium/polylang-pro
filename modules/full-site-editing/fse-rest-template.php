@@ -52,7 +52,7 @@ class PLL_FSE_REST_Template extends PLL_REST_Post {
 	 *
 	 * @since 3.2
 	 *
-	 * @param int          $id       The id of the existing post to get datas for the translations table element.
+	 * @param int          $id       The id of the existing post to get data for the translations table element.
 	 * @param int          $tr_id    The id of the translated post for the given language if exists.
 	 * @param PLL_Language $language The given language object.
 	 * @return array The translation data of the given language.
@@ -61,7 +61,7 @@ class PLL_FSE_REST_Template extends PLL_REST_Post {
 		$translation_data = parent::get_translation_table_data( $id, $tr_id, $language );
 
 		// Gets the template id in the `theme // post name` format to be able to delete it from the UI.
-		if ( ! empty( $this->post_type ) && ! empty( $tr_id ) ) {
+		if ( PLL_FSE_Tools::is_template_post_type( $this->post_type ) && ! empty( $tr_id ) ) {
 			$templates = get_block_templates( array( 'wp_id' => $tr_id ), $this->post_type );
 			if ( ! empty( $templates ) ) {
 				$template = reset( $templates );
@@ -164,12 +164,12 @@ class PLL_FSE_REST_Template extends PLL_REST_Post {
 
 		$params = $request->get_params();
 
-		if ( ! empty( $params['postType'] ) && is_string( $params['postType'] ) && PLL_FSE_Tools::is_template_post_type( $params['postType'] ) ) {
+		if ( isset( $params['postType'] ) && PLL_FSE_Tools::is_template_post_type( (string) $params['postType'] ) ) {
 			$this->post_type = $params['postType'];
 		} else {
 			$post_type = $route->get_post_type();
 
-			if ( ! empty( $post_type ) ) {
+			if ( PLL_FSE_Tools::is_template_post_type( $post_type ) ) {
 				$this->post_type = $post_type;
 			}
 		}

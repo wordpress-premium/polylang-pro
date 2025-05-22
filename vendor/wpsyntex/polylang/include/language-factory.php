@@ -232,7 +232,7 @@ class PLL_Language_Factory {
 	 */
 	private function get_flag( $flag_code, $name, $slug, $locale ) {
 		$flags = array(
-			'flag' => PLL_Language::get_flag_informations( $flag_code ),
+			'flag' => PLL_Language::get_flag_information( $flag_code ),
 		);
 
 		// Custom flags?
@@ -273,7 +273,7 @@ class PLL_Language_Factory {
 				$flags['custom_flag']['src'] = esc_url( set_url_scheme( $flags['custom_flag']['url'], 'relative' ) );
 			}
 
-			$flags['custom_flag']['url'] = esc_url_raw( $flags['custom_flag']['url'] );
+			$flags['custom_flag']['url'] = sanitize_url( $flags['custom_flag']['url'] );
 		} else {
 			unset( $flags['custom_flag'] );
 		}

@@ -13,7 +13,7 @@ class PLL_Sync_Navigation {
 	/**
 	 * @var PLL_Model
 	 */
-	public $model;
+	private $model;
 
 	/**
 	 *
@@ -21,7 +21,7 @@ class PLL_Sync_Navigation {
 	 *
 	 * @var PLL_Sync_Content
 	 */
-	public $sync_content;
+	private $sync_content;
 
 	/**
 	 * Constructor.
@@ -35,7 +35,7 @@ class PLL_Sync_Navigation {
 		$this->model = &$polylang->model;
 		$this->sync_content = &$polylang->sync_content;
 
-		add_filter( 'pll_translate_blocks', array( $this, 'translate_blocks' ), 10, 3 );
+		add_filter( 'pll_translate_blocks', array( $this, 'translate_blocks' ), 10, 2 );
 		add_filter( 'pll_get_post_types', array( $this, 'add_post_type' ), 10, 2 );
 	}
 
@@ -62,18 +62,18 @@ class PLL_Sync_Navigation {
 	 * Recursively translate navigation blocks.
 	 *
 	 * @since 3.2
+	 * @since 3.7 `$from_language` parameter removed.
 	 *
 	 * @param array[] $blocks        An array of block arrays.
 	 * @param string  $language      Slug language of the target post.
-	 * @param string  $from_language Slug language of the source post.
 	 * @return array Array of translated blocks.
 	 */
-	public function translate_blocks( $blocks, $language, $from_language ) {
+	public function translate_blocks( $blocks, $language ) {
 		foreach ( $blocks as $k => $block ) {
 			switch ( $block['blockName'] ) {
 				case 'core/navigation':
 					if ( array_key_exists( 'ref', $blocks[ $k ]['attrs'] ) ) {
-						$blocks[ $k ]['attrs']['ref'] = $this->translate_navigation_block( $block['attrs']['ref'], $language, $from_language );
+						$blocks[ $k ]['attrs']['ref'] = $this->translate_navigation_block( $block['attrs']['ref'], $language );
 					}
 
 					break;
@@ -89,7 +89,7 @@ class PLL_Sync_Navigation {
 					}
 
 					if ( ! empty( $block['innerBlocks'] ) ) {
-						$blocks[ $k ]['innerBlocks'] = $this->translate_blocks( $block['innerBlocks'], $language, $from_language );
+						$blocks[ $k ]['innerBlocks'] = $this->translate_blocks( $block['innerBlocks'], $language );
 					}
 					break;
 			}
@@ -101,6 +101,7 @@ class PLL_Sync_Navigation {
 	 * Get the navigation link id.
 	 *
 	 * @since 3.2
+	 * @since 3.7 Visibility changed to private.
 	 *
 	 * @param int    $id       Navigation link id.
 	 * @param string $kind     Link type (post-type or taxonomy).
@@ -108,7 +109,7 @@ class PLL_Sync_Navigation {
 	 * @return array An array with the untranslated id if the navigation link post type isn't translated, or an array
 	 *               with the translated id, label and url.
 	 */
-	public function translate_navigation_link( $id, $kind, $language ) {
+	private function translate_navigation_link( $id, $kind, $language ) {
 		if ( 'post-type' === $kind ) {
 			$tr_post_id = $this->model->post->get( $id, $language );
 			if ( $tr_post_id ) {
@@ -140,18 +141,18 @@ class PLL_Sync_Navigation {
 	 * Create the translation if it does not exist.
 	 *
 	 * @since 3.2
+	 * @since 3.7 Visibility changed to private and `$from_language` parameter removed.
 	 *
 	 * @param int    $id            Navigation block id.
 	 * @param string $language      Slug language of the target post.
-	 * @param string $from_language Slug language of the source post.
-	 * @return false|int|WP_Error   Id of the translated navigation block.
+	 * @return int   Id of the translated navigation block. 0 on failure.
 	 */
-	public function translate_navigation_block( $id, $language, $from_language ) {
+	private function translate_navigation_block( $id, $language ) {
 		$tr_id = $this->model->post->get( $id, $language );
 
 		// If we don't have a translation, then we create it.
 		if ( ! $tr_id ) {
-			$tr_id = $this->create_navigation_block_translation( $id, $language, $from_language );
+			$tr_id = $this->create_navigation_block_translation( $id, $language );
 		}
 
 		// Check the content of the navigation block post to see if there is any block to translate.
@@ -162,15 +163,14 @@ class PLL_Sync_Navigation {
 			return $id;
 		}
 
-		$from_language   = $this->model->get_language( $from_language );
 		$target_language = $this->model->get_language( $language );
 
-		if ( ! $from_language instanceof PLL_Language || ! $target_language instanceof PLL_Language ) {
+		if ( ! $target_language instanceof PLL_Language ) {
 			// Something went wrong!
 			return $tr_id;
 		}
 
-		$tr_content = $this->sync_content->translate_content( $tr_post->post_content, $tr_post, $from_language, $target_language );
+		$tr_content = $this->sync_content->translate_content( $tr_post->post_content, $tr_post, $target_language );
 		if ( $tr_content !== $tr_post->post_content ) {
 			$tr_post->post_content = $tr_content;
 			wp_update_post( $tr_post );
@@ -183,13 +183,13 @@ class PLL_Sync_Navigation {
 	 * Creates a navigation block translation.
 	 *
 	 * @since 3.2
+	 * @since 3.7 Visibility changed to private and `$from_language` parameter removed.
 	 *
 	 * @param int    $id            The source navigation block ID.
 	 * @param string $lang          New translation language slug.
-	 * @param string $from_language Slug language of the source post.
-	 * @return int|WP_Error ID of the translated navigation block.
+	 * @return int ID of the translated navigation block. 0 on failure.
 	 */
-	public function create_navigation_block_translation( $id, $lang, $from_language ) {
+	private function create_navigation_block_translation( $id, $lang ) {
 		$tr_post = get_post( $id );
 
 		if ( empty( $tr_post ) ) {
@@ -199,9 +199,7 @@ class PLL_Sync_Navigation {
 		$tr_post->ID = 0;
 		$tr_id       = wp_insert_post( wp_slash( $tr_post->to_array() ) );
 
-		$this->model->post->set_language( $id, $from_language );
 		$this->model->post->set_language( $tr_id, $lang );
-
 		$translations = $this->model->post->get_translations( $id );
 		$translations[ $lang ] = $tr_id;
 		$this->model->post->save_translations( $id, $translations );

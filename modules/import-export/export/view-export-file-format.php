@@ -3,6 +3,8 @@
  * Outputs the export file format dropdown in the bulk translate form.
  *
  * @package Polylang-Pro
+ *
+ * @var PLL_File_Format[] $supported_formats List of supported formats to export.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

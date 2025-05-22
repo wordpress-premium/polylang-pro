@@ -29,6 +29,39 @@ class PLL_Collect_Linked_Terms {
 	 * @return WP_Term[]             An array of linked term objects.
 	 */
 	public function get_linked_terms( array $posts, array $taxonomies = array() ) {
+		$terms = $this->get_terms_assigned_to_posts( $posts, $taxonomies );
+
+		$terms = array_merge( $terms, $this->get_terms_from_posts( $posts, $taxonomies ) );
+
+		return array_merge( $terms, $this->get_terms_parents( $terms ) );
+	}
+
+	/**
+	 * Gets terms assigned to linked posts.
+	 *
+	 * @since 3.7
+	 *
+	 * @param  WP_Post[] $posts      An array of post objects.
+	 * @param  string[]  $taxonomies Terms will be limited to the given taxonomies.
+	 * @return WP_Term[]             An array of assigned term objects.
+	 */
+	protected function get_terms_assigned_to_posts( array $posts, array $taxonomies ): array {
+		$post_ids   = wp_list_pluck( $posts, 'ID' );
+		$post_terms = wp_get_object_terms( $post_ids, $taxonomies );
+
+		return is_array( $post_terms ) ? $post_terms : array();
+	}
+
+	/**
+	 * Gets all the term objects from a set of posts content.
+	 *
+	 * @since 3.7
+	 *
+	 * @param  WP_Post[] $posts      An array of post objects.
+	 * @param  string[]  $taxonomies Terms will be limited to the given taxonomies.
+	 * @return WP_Term[]             An array of linked term objects.
+	 */
+	protected function get_terms_from_posts( array $posts, array $taxonomies ): array {
 		$this->processed_posts = array();
 		$linked_ids            = array();
 
@@ -259,5 +292,42 @@ class PLL_Collect_Linked_Terms {
 		 */
 		/** @phpstan-var array<int<0, max>, positive-int> */
 		return array_merge( ...array_values( $block['attrs']['query']['taxQuery'] ) );
+	}
+
+	/**
+	 * Gets the parent terms of all terms linked to posts.
+	 *
+	 * @since 3.7
+	 *
+	 * @param WP_Term[] $terms An array of terms.
+	 * @return array The array of terms parents, if any.
+	 */
+	protected function get_terms_parents( array $terms ): array {
+		$term_parents_ids = array();
+		foreach ( $terms as $term ) {
+			if ( empty( $term->parent ) ) {
+				continue;
+			}
+
+			$term_parents = get_ancestors( $term->term_id, $term->taxonomy );
+			if ( empty( $term_parents ) ) {
+				continue;
+			}
+
+			$term_parents_ids = array_merge( $term_parents_ids, $term_parents );
+		}
+
+		if ( empty( $term_parents_ids ) ) {
+			return array();
+		}
+
+		$terms_parents = get_terms(
+			array(
+				'include'    => $term_parents_ids,
+				'hide_empty' => false,
+			)
+		);
+
+		return is_array( $terms_parents ) ? $terms_parents : array();
 	}
 }

@@ -157,8 +157,18 @@ class PLL_Import_Action {
 		}
 
 		foreach ( $this->imports as $import ) {
-			$import_type = $import->get_type();
+			$error->merge_from( $import->get_warning_notice() );
+			$error->merge_from( $import->get_updated_notice() );
+
 			$imported_objects_ids = $import->get_imported_object_ids();
+
+			if ( empty( $imported_objects_ids ) ) {
+				continue;
+			}
+
+			$import_type = $import->get_type();
+
+			$import->do_after_import_process( $imported_objects_ids, $target_language );
 
 			/**
 			 * Fires after objects have been imported.
@@ -169,9 +179,6 @@ class PLL_Import_Action {
 			 * @param array        $imported_objects_ids The imported object ids of the import.
 			 */
 			do_action( "pll_after_{$import_type}_import", $target_language, $imported_objects_ids );
-
-			$error->merge_from( $import->get_warning_notice() );
-			$error->merge_from( $import->get_updated_notice() );
 		}
 
 		return $error;

@@ -36,6 +36,14 @@ class PLL_Share_Term_Slug {
 	private $pre_term_name = '';
 
 	/**
+	 * Stores the term ID before created a slug if needed.
+	 *
+	 * @var int
+	 */
+	private $pre_term_id = 0;
+
+
+	/**
 	 * Used to trick WordPress by setting
 	 * a transitory unique term slug.
 	 *
@@ -58,6 +66,7 @@ class PLL_Share_Term_Slug {
 		add_action( 'created_term', array( $this, 'save_term' ), 1, 3 );
 		add_action( 'edited_term', array( $this, 'save_term' ), 1, 3 );
 		add_filter( 'pre_term_name', array( $this, 'set_pre_term_name' ) );
+		add_filter( 'pre_term_term_id', array( $this, 'set_pre_term_id' ) );
 		add_filter( 'pre_term_slug', array( $this, 'set_pre_term_slug' ), 10, 2 );
 
 		// Remove Polylang filter to avoid conflicts when filtering slugs.
@@ -174,7 +183,23 @@ class PLL_Share_Term_Slug {
 	 * @return string      Unmodified term name.
 	 */
 	public function set_pre_term_name( $name ) {
-		return $this->pre_term_name = $name;
+		$this->pre_term_name = is_string( $name ) ? $name : '';
+
+		return $name;
+	}
+
+	/**
+	 * Stores the term ID to use in `pre_term_slug`.
+	 *
+	 * @since 3.7
+	 *
+	 * @param int $term_id Term ID.
+	 * @return int Unmodified term ID.
+	 */
+	public function set_pre_term_id( $term_id ) {
+		$this->pre_term_id = is_int( $term_id ) ? $term_id : 0;
+
+		return $term_id;
 	}
 
 	/**
@@ -187,81 +212,12 @@ class PLL_Share_Term_Slug {
 	 * @return string Slug with a language suffix if found.
 	 */
 	public function set_pre_term_slug( $slug, $taxonomy ) {
-		if ( ! $this->model->is_translated_taxonomy( $taxonomy ) ) {
+		if ( ! $this->model->is_translated_taxonomy( $taxonomy ) || ! is_string( $slug ) ) {
 			return $slug;
 		}
 
-		if ( ! $slug ) {
-			$slug = sanitize_title( $this->pre_term_name );
-		}
+		$term_slug = new PLL_Term_Slug( $this->model, $slug, $taxonomy, $this->pre_term_name, $this->pre_term_id );
 
-		if ( ! term_exists( $slug, $taxonomy ) ) {
-			return $slug;
-		}
-
-		/** This filter is documented in polylang/include/crud-terms.php */
-		$lang = apply_filters( 'pll_inserted_term_language', null, $taxonomy, $slug );
-
-		if ( ! $lang instanceof PLL_Language ) {
-			return $slug;
-		}
-
-		$parent = 0;
-
-		if ( is_taxonomy_hierarchical( $taxonomy ) ) {
-			/** This filter is documented in polylang/include/crud-terms.php */
-			$parent = apply_filters( 'pll_inserted_term_parent', 0, $taxonomy, $slug );
-
-			$slug .= $this->maybe_get_parent_suffix( $parent, $taxonomy, $slug );
-		}
-
-		$term_id = (int) $this->model->term_exists_by_slug( $slug, $lang, $taxonomy, $parent );
-
-		/**
-		 * If no term exists in the given language with that slug, it can be created.
-		 * Or if we are editing the existing term, trick WordPress to allow shared slugs.
-		 */
-		if ( ! $term_id || ( ! empty( $_POST['tag_ID'] ) && (int) $_POST['tag_ID'] === $term_id ) || ( ! empty( $_POST['tax_ID'] ) && (int) $_POST['tax_ID'] === $term_id ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			$slug .= self::TERM_SLUG_SEPARATOR . $lang->slug;
-		}
-
-		return $slug;
-	}
-
-	/**
-	 * Returns the parent suffix for the slug only if parent slug is the same as the given one.
-	 * Recursively appends the parents slugs like WordPress does.
-	 *
-	 * @since 3.3
-	 *
-	 * @param int    $parent   Parent term ID.
-	 * @param string $taxonomy Parent taxonomy.
-	 * @param string $slug     Child term slug.
-	 * @return string Parents slugs if they are the same as the child slug, empty string otherwise.
-	 */
-	private function maybe_get_parent_suffix( $parent, $taxonomy, $slug ) {
-		$parent_suffix = '';
-		$the_parent    = get_term( $parent, $taxonomy );
-
-		if ( ! $the_parent instanceof WP_Term || $the_parent->slug !== $slug ) {
-			return $parent_suffix;
-		}
-
-		/**
-		 * Mostly copied from {@see wp_unique_term_slug()}.
-		 */
-		while ( ! empty( $the_parent ) ) {
-			$parent_term = get_term( $the_parent, $taxonomy );
-			if ( ! $parent_term instanceof WP_Term ) {
-				break;
-			}
-			$parent_suffix .= '-' . $parent_term->slug;
-			if ( ! term_exists( $slug . $parent_suffix ) ) {
-				break;
-			}
-			$the_parent = $parent_term->parent;
-		}
-
-		return $parent_suffix;
+		return $term_slug->get_suffixed_slug( self::TERM_SLUG_SEPARATOR );
 	}
 }

@@ -8,9 +8,6 @@ namespace WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Settings;
 use PLL_Language;
 use PLL_Model;
 use WP_Error;
-use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Ajax\Deepl as Ajax;
-use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Clients\Deepl as Client;
-use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Languages;
 use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Services\Deepl as Service;
 
 defined( 'ABSPATH' ) || exit;
@@ -19,11 +16,6 @@ defined( 'ABSPATH' ) || exit;
  * Machine translation settings: DeepL.
  *
  * @since 3.6
- *
- * @phpstan-type DeeplOptions array{
- *    api_key: string,
- *    formality: 'default'|'prefer_more'|'prefer_less'
- * }
  */
 class Deepl implements Settings_Interface {
 	/**
@@ -266,34 +258,6 @@ class Deepl implements Settings_Interface {
 	}
 
 	/**
-	 * Sanitizes and validates the options for this service.
-	 *
-	 * @since 3.6
-	 *
-	 * @param array $options Options for this service.
-	 * @return array Validated options.
-	 *
-	 * @phpstan-return DeeplOptions
-	 */
-	public function sanitize_options( array $options ): array {
-		$new_options = array(
-			'api_key'   => '',
-			'formality' => 'default',
-		);
-
-		if ( $this->has_api_key( $options ) ) {
-			$new_options['api_key'] = (string) sanitize_text_field( $options['api_key'] );
-		}
-
-		if ( isset( $options['formality'] ) && in_array( $options['formality'], array( 'prefer_more', 'prefer_less' ), true ) ) {
-			$new_options['formality'] = $options['formality'];
-		}
-
-		// Return only the validated options.
-		return $new_options;
-	}
-
-	/**
 	 * Prints error notices.
 	 *
 	 * @since 3.6
@@ -390,7 +354,7 @@ class Deepl implements Settings_Interface {
 			$atts['value'] = $this->options[ $atts['option'] ] ?? '';
 		}
 
-		include __DIR__ . "/views/view-{$view}.php";
+		include POLYLANG_PRO_DIR . "/modules/Machine_Translation/Views/{$view}.php";
 	}
 
 	/**

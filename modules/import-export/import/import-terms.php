@@ -10,16 +10,16 @@
  */
 class PLL_Import_Terms implements PLL_Import_Object_Interface {
 	/**
-	 * Handle translation of terms
+	 * Handles the translation of terms.
 	 *
 	 * @var PLL_Translation_Term_Model
 	 */
-	private $translation_term_model;
+	private $translation_model;
 
 	/**
 	 * The success counter.
 	 *
-	 * @var int
+	 * @var int|null
 	 */
 	protected $success;
 
@@ -35,12 +35,10 @@ class PLL_Import_Terms implements PLL_Import_Object_Interface {
 	 *
 	 * @since 3.3
 	 *
-	 * @param PLL_Translation_Term_Model $translation_term_model The PLL_Translation_Term_Model object.
+	 * @param PLL_Translation_Term_Model $translation_model The object to handle translations.
 	 */
-	public function __construct( $translation_term_model ) {
-		$this->translation_term_model = $translation_term_model;
-
-		add_action( 'pll_after_term_import', array( $this, 'process_translated_terms' ), 10, 2 );
+	public function __construct( PLL_Translation_Term_Model $translation_model ) {
+		$this->translation_model = $translation_model;
 	}
 
 	/**
@@ -52,8 +50,11 @@ class PLL_Import_Terms implements PLL_Import_Object_Interface {
 	 * @param PLL_Language $target_language The targeted language for import.
 	 */
 	public function translate( $entry, $target_language ) {
-		$is_success = $this->translation_term_model->translate( $entry, $target_language );
-		if ( $is_success ) {
+		// Make sure `$this->success` is not `null`.
+		$this->success = (int) $this->success;
+
+		$result = $this->translation_model->translate( $entry, $target_language );
+		if ( ! is_wp_error( $result ) ) {
 			++$this->success;
 
 			// Store the term ids during the import process.
@@ -62,24 +63,20 @@ class PLL_Import_Terms implements PLL_Import_Object_Interface {
 	}
 
 	/**
-	 * Performs actions on imported terms.
-	 * Translates terms parent.
+	 * Performs actions after an import process.
 	 *
-	 * @since 3.3
+	 * @since 3.7
 	 *
-	 * @param PLL_Language $target_language The targeted language for import.
-	 * @param int[]        $term_ids        The imported term ids of the import.
+	 * @param int[]        $ids             The entity ids to process after import.
+	 * @param PLL_Language $target_language The target language.
 	 * @return void
 	 */
-	public function process_translated_terms( $target_language, $term_ids ) {
-		$term_ids = array_filter( array_map( 'absint', (array) $term_ids ) );
-		if ( ! empty( $term_ids ) && $target_language instanceof PLL_Language ) {
-			$this->translation_term_model->translate_parents( $term_ids, $target_language );
-		}
+	public function do_after_import_process( array $ids, PLL_Language $target_language ) {
+		$this->translation_model->do_after_process( $ids, $target_language );
 	}
 
 	/**
-	 * Get update notices to display.
+	 * Returns update notices to display.
 	 *
 	 * @since 3.3
 	 *
@@ -102,13 +99,21 @@ class PLL_Import_Terms implements PLL_Import_Object_Interface {
 	}
 
 	/**
-	 * Get warnings notices to display.
+	 * Returns warnings notices to display.
 	 *
 	 * @since 3.3
 	 *
 	 * @return WP_Error
 	 */
 	public function get_warning_notice() {
+		if ( isset( $this->success ) && ! $this->success ) {
+			return new WP_Error(
+				'pll_import_terms_nothing_imported',
+				__( 'No terms were translated. Please check that the original terms in your file match those on the site.', 'polylang-pro' ),
+				'warning'
+			);
+		}
+
 		return new WP_Error();
 	}
 

@@ -6,6 +6,7 @@
 namespace WP_Syntex\Polylang_Pro\Modules\Machine_Translation;
 
 use PLL_Model;
+use WP_Syntex\Polylang\Options\Options;
 use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Services\Deepl;
 use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Services\Service_Interface;
 
@@ -31,14 +32,14 @@ class Factory {
 	 *
 	 * @var Service_Interface[]
 	 *
-	 * @phpstan-var array<non-empty-string, Service_Interface>
+	 * @phpstan-var array<non-falsy-string, Service_Interface>
 	 */
 	private $services = array();
 
 	/**
 	 * Stores the plugin options.
 	 *
-	 * @var array
+	 * @var Options
 	 */
 	private $options;
 
@@ -59,12 +60,6 @@ class Factory {
 	public function __construct( PLL_Model $model ) {
 		$this->options = $model->options;
 		$this->model   = $model;
-
-		$this->options['machine_translation_enabled'] = ! empty( $this->options['machine_translation_enabled'] );
-
-		if ( ! isset( $this->options['machine_translation_services'] ) || ! is_array( $this->options['machine_translation_services'] ) ) {
-			$this->options['machine_translation_services'] = array();
-		}
 	}
 
 	/**
@@ -75,7 +70,7 @@ class Factory {
 	 * @return bool
 	 */
 	public function is_enabled(): bool {
-		return $this->options['machine_translation_enabled'];
+		return (bool) $this->options['machine_translation_enabled'];
 	}
 
 	/**
@@ -86,7 +81,7 @@ class Factory {
 	 * @return Service_Interface|null
 	 */
 	public function get_active_service() {
-		foreach ( self::SERVICES as $service ) {
+		foreach ( static::get_classnames() as $service ) {
 			$service = $this->build_service( $service );
 
 			if ( $service->is_active() ) {
@@ -104,11 +99,23 @@ class Factory {
 	 * @return Service_Interface[]
 	 */
 	public function get_all(): array {
-		foreach ( self::SERVICES as $service ) {
+		foreach ( static::get_classnames() as $service ) {
 			$this->build_service( $service );
 		}
 
 		return $this->services;
+	}
+
+	/**
+	 * Returns all services classnames for static usage.
+	 *
+	 * @since 3.7
+	 *
+	 * @return string[]
+	 * @phpstan-return non-empty-list<class-string<Service_Interface>>
+	 */
+	public static function get_classnames(): array {
+		return self::SERVICES;
 	}
 
 	/**
@@ -123,12 +130,9 @@ class Factory {
 	 */
 	private function build_service( string $class_name ): Service_Interface {
 		$slug = $class_name::get_slug();
+
 		if ( ! empty( $this->services[ $slug ] ) ) {
 			return $this->services[ $slug ];
-		}
-
-		if ( ! isset( $this->options['machine_translation_services'][ $slug ] ) || ! is_array( $this->options['machine_translation_services'][ $slug ] ) ) {
-			$this->options['machine_translation_services'][ $slug ] = array();
 		}
 
 		$this->services[ $slug ] = new $class_name( $this->options['machine_translation_services'][ $slug ], $this->model );

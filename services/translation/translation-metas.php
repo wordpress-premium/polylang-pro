@@ -14,20 +14,6 @@ use WP_Syntex\Polylang_Pro\Modules\Import_Export\Services\Context;
  */
 abstract class PLL_Translation_Metas {
 	/**
-	 * Meta type. Typically 'post' or 'term' and must be filled by the child class.
-	 *
-	 * @var string
-	 */
-	protected $meta_type;
-
-	/**
-	 * The context to translate entry.
-	 *
-	 * @var string
-	 */
-	protected $context;
-
-	/**
 	 * Translations set where to look for the post metas translations.
 	 *
 	 * @var Translations
@@ -60,12 +46,33 @@ abstract class PLL_Translation_Metas {
 	 * Constructor.
 	 *
 	 * @since 3.3
+	 * @since 3.7 $translations parameter added.
 	 *
-	 * @param PLL_Sync_Metas $sync_metas Object to manage copied metas during import.
+	 * @param PLL_Sync_Metas $sync_metas    Object to manage copied metas during import.
+	 * @param Translations   $translations  Translations set where to look for the metas translations.
 	 */
-	public function __construct( PLL_Sync_Metas $sync_metas ) {
-		$this->sync_metas = $sync_metas;
+	public function __construct( PLL_Sync_Metas $sync_metas, Translations $translations ) {
+		$this->sync_metas   = $sync_metas;
+		$this->translations = $this->sanitize_translations( $translations );
 	}
+
+	/**
+	 * Returns the meta type.
+	 *
+	 * @since 3.7
+	 *
+	 * @return string Meta type. Typically 'post' or 'term'.
+	 */
+	abstract protected function get_type(): string;
+
+	/**
+	 * Returns the context to translate entry.
+	 *
+	 * @since 3.7
+	 *
+	 * @return string The context.
+	 */
+	abstract protected function get_context(): string;
 
 	/**
 	 * Translates the metas from a given object, whether it's a copy or a real translation.
@@ -86,39 +93,12 @@ abstract class PLL_Translation_Metas {
 		 * This avoids to copy source meta value and add another translated value to it...
 		 */
 		if ( $copy ) {
-			add_filter( "pll_copy_{$this->meta_type}_metas", array( $this, 'remove_metas_to_translate' ) );
+			add_filter( "pll_copy_{$this->get_type()}_metas", array( $this, 'remove_metas_to_translate' ) );
 			$this->sync_metas->copy( $src_object_id, $tr_object_id, $target_language->slug, false );
-			remove_filter( "pll_copy_{$this->meta_type}_metas", array( $this, 'remove_metas_to_translate' ) );
+			remove_filter( "pll_copy_{$this->get_type()}_metas", array( $this, 'remove_metas_to_translate' ) );
 		}
 
 		$this->translate_metas_values( $src_object_id, $tr_object_id );
-	}
-
-	/**
-	 * Setter for translations.
-	 * Translations of the matching context are sanitized.
-	 *
-	 * @since 3.3
-	 *
-	 * @param Translations $translations A set of translations to search the metas translations in.
-	 * @return void
-	 */
-	public function set_translations( Translations $translations ) {
-		$this->translations = $translations;
-
-		foreach ( $this->translations->entries as $key => $entry ) {
-			if ( Context::get_field( $entry ) !== $this->context ) {
-				continue;
-			}
-
-			foreach ( $entry->translations as $i => $translation ) {
-				if ( $entry->singular === $translation || '' === $translation ) {
-					continue;
-				}
-
-				$this->translations->entries[ $key ]->translations[ $i ] = wp_kses_post( $translation );
-			}
-		}
 	}
 
 	/**
@@ -143,7 +123,7 @@ abstract class PLL_Translation_Metas {
 	 * @return void
 	 */
 	private function translate_metas_values( $src_object_id, $tr_object_id ) {
-		$src_metas = get_metadata( $this->meta_type, $src_object_id );
+		$src_metas = get_metadata( $this->get_type(), $src_object_id );
 
 		if ( ! is_array( $src_metas ) || empty( $src_metas ) ) {
 				return;
@@ -235,13 +215,13 @@ abstract class PLL_Translation_Metas {
 			// $values is an indexed array, so it contains one or more values?
 			if ( 1 < count( $values ) ) {
 				// To update multiple meta values, it's easier to delete and add rather than attempting to update them individually.
-				delete_metadata( $this->meta_type, $tr_object_id, $slashed_key );
+				delete_metadata( $this->get_type(), $tr_object_id, $slashed_key );
 				foreach ( $values as $value ) {
-					add_metadata( $this->meta_type, $tr_object_id, $slashed_key, wp_slash( $value ) ); // Multiple meta values must be added one by one.
+					add_metadata( $this->get_type(), $tr_object_id, $slashed_key, wp_slash( $value ) ); // Multiple meta values must be added one by one.
 				}
 			} else {
 				// $values contains a single meta value, let's take it.
-				update_metadata( $this->meta_type, $tr_object_id, $slashed_key, wp_slash( reset( $values ) ) );
+				update_metadata( $this->get_type(), $tr_object_id, $slashed_key, wp_slash( reset( $values ) ) );
 			}
 		}
 		$this->sync_metas->add_all_meta_actions();
@@ -262,7 +242,7 @@ abstract class PLL_Translation_Metas {
 	 *     @type string[] $meta_sub_keys  The meta subfields to translate.
 	 *     @type int      $value_position The position of the value in case of multiple values.
 	 *     @type string   $encoding       Encoding format of the meta value.
-	 *     @type string   $Context::ID     Id key from entry context, useful to translate back.
+	 *     @type string   $context_id     ID key from entry context, useful to translate back.
 	 * }
 	 *
 	 * @phpstan-return array<int, array{meta_key: string, meta_sub_keys: array<int, string>, value_position: int, encoding: string}>
@@ -271,7 +251,7 @@ abstract class PLL_Translation_Metas {
 		$metas = array();
 
 		foreach ( $this->translations->entries as $entry ) {
-			if ( Context::get_field( $entry ) !== $this->context ) {
+			if ( Context::get_field( $entry ) !== $this->get_context() ) {
 				continue;
 			}
 
@@ -280,14 +260,18 @@ abstract class PLL_Translation_Metas {
 				continue;
 			}
 
-			preg_match( '/^(?<subkeys>.+)(?::(?<position>\d+))?$/U', $meta_identifier, $matches ); // Extract position (i.e. index) of the meta string.
-			$position = isset( $matches['position'] ) ? absint( $matches['position'] ) : 0;
-			$sub_keys = preg_split( '/(?<!\\\)[|]/', $matches['subkeys'] ); // Extract all subkeys from meta string.
-			if ( ! $sub_keys ) {
-				$sub_keys = array();
+			$position = 0;
+			$sub_keys = array();
+
+			if ( preg_match( '/^(?<subkeys>.+)(?::(?<position>\d+))?$/U', $meta_identifier, $matches ) ) { // Extract position (i.e. index) of the meta string.
+				$position = isset( $matches['position'] ) ? absint( $matches['position'] ) : 0;
+				$sub_keys = preg_split( '/(?<!\\\)[|]/', $matches['subkeys'] ); // Extract all subkeys from meta string.
+				if ( ! $sub_keys ) {
+					$sub_keys = array();
+				}
+				$sub_keys = array_map( 'stripcslashes', $sub_keys ); // Remove backslashes from escaped pipes.
+				$meta_key = array_shift( $sub_keys );
 			}
-			$sub_keys = array_map( 'stripcslashes', $sub_keys ); // Remove backslashes from escaped pipes.
-			$meta_key = array_shift( $sub_keys );
 
 			$metas[] = array(
 				'meta_key'       => ! empty( $meta_key ) ? $meta_key : '', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
@@ -313,68 +297,88 @@ abstract class PLL_Translation_Metas {
 	 *     @type array  $meta_sub_keys  The meta sub keys.
 	 *     @type int    $value_position The value position.
 	 *     @type string $encoding       Meta encoding.
-	 *     @type string $Context::ID     Id key from entry context, useful to translate back.
+	 *     @type string $context_id     ID key from entry context, useful to translate back.
 	 * }
 	 * @return mixed Translated meta value(s).
 	 */
 	private function maybe_translate_metas_sub_fields( $meta_value, array $meta ) {
-		$value_position  = $meta['value_position'];
-		$sub_keys        = $meta['meta_sub_keys'];
-
-		if ( ! is_array( $meta_value ) && ! is_scalar( $meta_value ) ) { // We're not able to translate something else for now.
+		if ( ! is_array( $meta_value ) && ! is_object( $meta_value ) && ! is_scalar( $meta_value ) ) {
+			// We're not able to translate something else for now.
 			return $meta_value;
 		}
 
-		if ( empty( $sub_keys ) ) { // No sub key to translate, let's process the current value.
-			if ( is_scalar( $meta_value ) ) {
-				$meta_value = $this->translations->translate(
-					(string) $meta_value,
-					Context::to_string(
-						array(
-							Context::FIELD    => $this->context,
-							Context::ID       => $meta['context_id'],
-							Context::ENCODING => $meta['encoding'],
-						)
-					)
-				);
-			}
-
-			return $meta_value;
+		if ( empty( $meta['meta_sub_keys'] ) ) {
+			// No sub key to translate, let's process the current value.
+			return $this->maybe_translate_field( $meta_value, $meta );
 		}
 
-		$first_key = array_shift( $sub_keys ); // Let's get the first subfield key to process.
-		if ( ! is_array( $meta_value ) || ! isset( $meta_value[ $first_key ] ) ) { // Meta sub key doesn't match?!
-			return $meta_value;
+		$first_key = array_shift( $meta['meta_sub_keys'] ); // Let's get the first subfield key to process.
+
+		if ( is_array( $meta_value ) && isset( $meta_value[ $first_key ] ) ) {
+			$meta_value[ $first_key ] = $this->maybe_translate_sub_fields( $meta_value[ $first_key ], $meta );
+		} elseif ( is_object( $meta_value ) && isset( $meta_value->$first_key ) ) {
+			$meta_value->$first_key = $this->maybe_translate_sub_fields( $meta_value->$first_key, $meta );
 		}
-
-		if ( empty( $sub_keys ) ) { // No more sub keys to translate.
-			if ( is_scalar( $meta_value[ $first_key ] ) ) {
-				$meta_value[ $first_key ] = $this->translations->translate(
-					(string) $meta_value[ $first_key ],
-					Context::to_string(
-						array(
-							Context::FIELD    => $this->context,
-							Context::ID       => $meta['context_id'],
-							Context::ENCODING => $meta['encoding'],
-						)
-					)
-				);
-			}
-
-			return $meta_value;
-		}
-
-		$meta_value[ $first_key ] = $this->maybe_translate_metas_sub_fields(
-			$meta_value[ $first_key ],
-			array(
-				'meta_sub_keys'  => $sub_keys,
-				'value_position' => $value_position,
-				'encoding'       => $meta['encoding'],
-				'context_id'     => $meta['context_id'],
-			)
-		);
 
 		return $meta_value;
+	}
+
+	/**
+	 * Translates meta subfields recursively.
+	 *
+	 * @since 3.7
+	 *
+	 * @param array|object $meta_value Meta value(s) to translate.
+	 * @param array        $meta {
+	 *     An array with the meta_key, subfields to translate (ordered by dimension) and value position.
+	 *
+	 *     @type array  $meta_sub_keys  The meta sub keys.
+	 *     @type int    $value_position The value position.
+	 *     @type string $encoding       Meta encoding.
+	 *     @type string $context_id     ID key from entry context, useful to translate back.
+	 * }
+	 * @return mixed Translated meta value(s).
+	 */
+	private function maybe_translate_sub_fields( $meta_value, array $meta ) {
+		if ( empty( $meta['meta_sub_keys'] ) ) {
+			// No more sub keys to translate.
+			return $this->maybe_translate_field( $meta_value, $meta );
+		}
+
+		return $this->maybe_translate_metas_sub_fields( $meta_value, $meta );
+	}
+
+	/**
+	 * Translates meta field.
+	 *
+	 * @since 3.7
+	 *
+	 * @param mixed $meta_value Meta value to translate.
+	 * @param array $meta {
+	 *     An array with the meta_key, subfields to translate (ordered by dimension) and value position.
+	 *
+	 *     @type array  $meta_sub_keys  The meta sub keys.
+	 *     @type int    $value_position The value position.
+	 *     @type string $encoding       Meta encoding.
+	 *     @type string $context_id     ID key from entry context, useful to translate back.
+	 * }
+	 * @return mixed Translated meta value.
+	 */
+	private function maybe_translate_field( $meta_value, array $meta ) {
+		if ( ! is_scalar( $meta_value ) ) {
+			return $meta_value;
+		}
+
+		return $this->translations->translate(
+			(string) $meta_value,
+			Context::to_string(
+				array(
+					Context::FIELD    => $this->get_context(),
+					Context::ID       => $meta['context_id'],
+					Context::ENCODING => $meta['encoding'],
+				)
+			)
+		);
 	}
 
 	/**
@@ -396,5 +400,31 @@ abstract class PLL_Translation_Metas {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Sanitizes translation entries.
+	 *
+	 * @since 3.7
+	 *
+	 * @param Translations $translations Translations to sanitize.
+	 * @return Translations Sanitized translations.
+	 */
+	private function sanitize_translations( Translations $translations ): Translations {
+		foreach ( $translations->entries as $key => $entry ) {
+			if ( Context::get_field( $entry ) !== $this->get_context() ) {
+				continue;
+			}
+
+			foreach ( $entry->translations as $i => $translation ) {
+				if ( $entry->singular === $translation || '' === $translation ) {
+					continue;
+				}
+
+				$translations->entries[ $key ]->translations[ $i ] = wp_kses_post( $translation );
+			}
+		}
+
+		return $translations;
 	}
 }

@@ -3,11 +3,11 @@
  * Display the locale fallbacks field in the language page.
  *
  * @package Polylang-Pro
+ *
+ * @var string $fallbacks_list List of language locales separated by a comma.
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Don't access directly.
-}
+defined( 'ABSPATH' ) || exit; // Don't access directly.
 ?>
 <div class="form-field">
 	<label for="lang_fallback"><?php esc_html_e( 'Locale fallback', 'polylang-pro' ); ?></label>

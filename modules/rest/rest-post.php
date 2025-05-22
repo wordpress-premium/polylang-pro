@@ -287,7 +287,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 			 *
 			 * @since 2.6
 			 *
-			 * @param array        $row      Datas in a translations table row
+			 * @param array        $row      Data in a translations table row
 			 * @param int          $id       Source post id.
 			 * @param PLL_Language $language Translation language
 			 */
@@ -302,7 +302,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	 *
 	 * @since 3.2
 	 *
-	 * @param int          $id       The id of the existing post to get datas for the translations table element.
+	 * @param int          $id       The id of the existing post to get data for the translations table element.
 	 * @param int          $tr_id    The id of the translated post for the given language if exists.
 	 * @param PLL_Language $language The given language object.
 	 * @return array The translation data of the given language.

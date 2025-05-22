@@ -8,12 +8,14 @@ namespace WP_Syntex\Polylang_Pro\Modules\Machine_Translation;
 use PLL_Base;
 use WP_Error;
 use PLL_Admin;
+use PLL_Language;
 use PLL_Settings;
 use PLL_Import_Export;
 use PLL_Export_Container;
 use PLL_Translation_Post_Model;
 use PLL_Translation_Term_Model;
-use PLL_Translation_Object_Model_Interface;
+use PLL_Translation_Strings_Model;
+use PLL_Translation_Data_Model_Interface;
 use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Data;
 use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Clients\Client_Interface;
 
@@ -24,7 +26,7 @@ class Processor {
 	/**
 	 * Manages entities translation.
 	 *
-	 * @var PLL_Translation_Object_Model_Interface[]
+	 * @var PLL_Translation_Data_Model_Interface[]
 	 */
 	private $translation_models;
 
@@ -46,8 +48,12 @@ class Processor {
 	 * @return void
 	 */
 	public function __construct( PLL_Base &$polylang, Client_Interface $client ) {
-		$this->translation_models[ PLL_Import_Export::TYPE_POST ] = new PLL_Translation_Post_Model( $polylang );
-		$this->translation_models[ PLL_Import_Export::TYPE_TERM ] = new PLL_Translation_Term_Model( $polylang );
+		$this->translation_models = array(
+			PLL_Import_Export::TYPE_POST            => new PLL_Translation_Post_Model( $polylang ),
+			PLL_Import_Export::TYPE_TERM            => new PLL_Translation_Term_Model( $polylang ),
+			PLL_Import_Export::STRINGS_TRANSLATIONS => new PLL_Translation_Strings_Model(),
+		);
+
 		$this->client = $client;
 	}
 
@@ -72,7 +78,7 @@ class Processor {
 					$result = $this->client->translate( $translations, $data->get_target_language(), $data->get_source_language() );
 
 					if ( \is_wp_error( $result ) ) {
-						// Abort if an error occured.
+						// Abort if an error occurred.
 						return $result;
 					}
 
@@ -100,11 +106,14 @@ class Processor {
 				continue;
 			}
 
+			$target_language = $translations->get_target_language();
+
 			foreach ( $translations->get() as $type => $entities ) {
 				if ( ! isset( $this->translation_models[ $type ] ) ) {
 					continue;
 				}
 
+				$ids = array();
 				foreach ( $entities as $id => $data ) {
 					$entry = array(
 						'id'     => $id,
@@ -114,20 +123,26 @@ class Processor {
 						),
 					);
 
-					$tr_id = $this->translation_models[ $type ]->translate( $entry, $translations->get_target_language() );
-
-					if ( 0 === $tr_id ) {
-						$error->add(
-							'pll_machine_translation_no_translate',
-							sprintf(
-								/* translators: %1$s is a type of content, post or term, %2$s is a numeric ID. */
-								__( '%1$s with ID %2$d could not be translated.', 'polylang-pro' ),
-								$type,
-								$id
-							)
-						);
+					$result = $this->translation_models[ $type ]->translate( $entry, $target_language );
+					if ( is_wp_error( $result ) ) {
+						$error->merge_from( $result );
+						continue;
 					}
+
+					$ids[] = $id;
 				}
+
+				$this->translation_models[ $type ]->do_after_process( $ids, $target_language );
+
+				/**
+				 * Fires after objects have been saved with machine translated data.
+				 *
+				 * @since 3.7
+				 *
+				 * @param PLL_Language   $target_language The targeted language for import.
+				 * @param int[]|string[] $ids             The imported object ids of the import.
+				 */
+				do_action( "pll_after_{$type}_machine_translation", $target_language, $ids );
 			}
 		}
 

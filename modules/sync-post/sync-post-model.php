@@ -32,11 +32,39 @@ class PLL_Sync_Post_Model {
 	public $sync_content;
 
 	/**
-	 * Stores temporary a synchronization information.
+	 * Stores a copy information.
 	 *
 	 * @var array
 	 */
-	protected $temp_synchronized;
+	protected $doing_copy;
+
+	/**
+	 * Stores a synchronization information.
+	 *
+	 * @var array
+	 */
+	protected $doing_sync;
+
+	/**
+	 * Used to tell if we're doing synchro.
+	 *
+	 * @var string
+	 */
+	const SYNC = 'sync';
+
+	/**
+	 * Used to tell if we're doing copy.
+	 *
+	 * @var string
+	 */
+	const COPY = 'copy';
+
+	/**
+	 * The current language.
+	 *
+	 * @var PLL_Language|null
+	 */
+	private $curlang;
 
 	/**
 	 * Constructor
@@ -50,6 +78,7 @@ class PLL_Sync_Post_Model {
 		$this->model        = &$polylang->model;
 		$this->sync         = &$polylang->sync;
 		$this->sync_content = &$polylang->sync_content;
+		$this->curlang      = &$polylang->curlang;
 
 		add_filter( 'pll_copy_taxonomies', array( $this, 'copy_taxonomies' ), 5, 4 );
 		add_filter( 'pll_copy_post_metas', array( $this, 'copy_post_metas' ), 5, 4 );
@@ -67,7 +96,7 @@ class PLL_Sync_Post_Model {
 	 * @return string[]
 	 */
 	public function copy_taxonomies( $taxonomies, $sync, $from, $to ) {
-		if ( ! empty( $from ) && ! empty( $to ) && $this->are_synchronized( $from, $to ) ) {
+		if ( ! empty( $from ) && ! empty( $to ) && $this->can_copy( $from, $to ) ) {
 			$taxonomies = array_diff( get_post_taxonomies( $from ), get_taxonomies( array( '_pll' => true ) ) );
 		}
 		return $taxonomies;
@@ -85,7 +114,7 @@ class PLL_Sync_Post_Model {
 	 * @return string[]
 	 */
 	public function copy_post_metas( $keys, $sync, $from, $to ) {
-		if ( ! empty( $from ) && ! empty( $to ) && $this->are_synchronized( $from, $to ) ) {
+		if ( ! empty( $from ) && ! empty( $to ) && $this->can_copy( $from, $to ) ) {
 			$from_keys = array_keys( get_post_custom( $from ) ); // *All* custom fields.
 			$to_keys   = array_keys( get_post_custom( $to ) ); // Adding custom fields of the destination allow to synchronize deleted custom fields.
 			$keys      = array_merge( $from_keys, $to_keys );
@@ -113,31 +142,48 @@ class PLL_Sync_Post_Model {
 	}
 
 	/**
-	 * Duplicates the post to one language and optionally saves the synchronization group
+	 * Duplicates or synchronizes the post to one language and optionally saves the synchronization group.
 	 *
-	 * @since 2.2
+	 * @since 3.7
 	 *
-	 * @param int    $post_id    Post id of the source post.
+	 * @param int    $post_id    Post ID of the source post.
 	 * @param string $lang       Target language slug.
+	 * @param string $strategy   `sync` if doing synchro, `copy` otherwise.
 	 * @param bool   $save_group True to update the synchronization group, false otherwise.
-	 * @return int Id of the target post, 0 on failure.
+	 * @return int ID of the target post, 0 on failure.
+	 *
+	 * @phpstan-param 'sync'|'copy' $strategy
 	 */
-	public function copy_post( $post_id, $lang, $save_group = true ) {
+	public function copy( $post_id, $lang, $strategy = self::COPY, $save_group = false ) {
 		global $wpdb;
 
-		$tr_id     = $this->model->post->get( $post_id, $this->model->get_language( $lang ) );
-		$tr_post   = $post = get_post( $post_id );
-		$languages = array_keys( $this->get( $post_id ) );
-
-		if ( ! $tr_post instanceof WP_Post ) {
-			// Something went wrong!
+		$post = get_post( $post_id );
+		if ( ! $post instanceof WP_Post ) {
+			// The source post doesn't exist.
 			return 0;
 		}
+
+		$tr_post   = clone $post;
+		$tr_id     = $this->model->post->get( $post_id, $this->model->get_language( $lang ) );
+		$languages = array_keys( $this->get( $post_id ) );
+
+		// Loads the strings translations with the post's target language.
+		PLL()->load_strings_translations( $lang );
 
 		// If it does not exist, create it.
 		if ( ! $tr_id ) {
 			$tr_post->ID = 0;
 			$tr_id       = wp_insert_post( wp_slash( $tr_post->to_array() ) );
+			if ( empty( $tr_id ) ) {
+				return 0;
+			}
+
+			if ( self::SYNC === $strategy ) {
+				$this->doing_sync[ $post_id ][ $tr_id ] = true;
+			} else {
+				$this->doing_copy[ $post_id ][ $tr_id ] = true;
+			}
+
 			$this->model->post->set_language( $tr_id, $lang ); // Necessary to do it now to share slug.
 
 			$translations = $this->model->post->get_translations( $post_id );
@@ -145,9 +191,6 @@ class PLL_Sync_Post_Model {
 			$this->model->post->save_translations( $post_id, $translations ); // Saves translations in case we created a post.
 
 			$languages[] = $lang;
-
-			// Temporarily sync group, even if false === $save_group as we need synchronized posts to copy *all* taxonomies and post metas.
-			$this->temp_synchronized[ $post_id ][ $tr_id ] = true;
 
 			// Maybe duplicates the featured image.
 			if ( $this->options['media_support'] ) {
@@ -166,16 +209,24 @@ class PLL_Sync_Post_Model {
 			 *
 			 * @since 2.3.11
 			 *
-			 * @param int    $post_id Id of the source post.
-			 * @param int    $tr_id   Id of the newly created post.
+			 * @param int    $post_id ID of the source post.
+			 * @param int    $tr_id   ID of the newly created post.
 			 * @param string $lang    Language of the newly created post.
+			 * @param string  $strategy `sync` if doing synchro, `copy` otherwise.
 			 */
-			do_action( 'pll_created_sync_post', $post_id, $tr_id, $lang );
+			do_action( 'pll_created_sync_post', $post_id, $tr_id, $lang, $strategy );
 
 			/** This action is documented in /polylang/include/crud-posts.php */
 			do_action( 'pll_save_post', $post_id, $post, $translations ); // Fire again as we just updated $translations.
 
-			unset( $this->temp_synchronized[ $post_id ][ $tr_id ] );
+			unset( $this->doing_copy[ $post_id ][ $tr_id ] );
+		}
+
+		$previous = get_post( $tr_id ); // Remember the previous post to handle the status transition.
+
+		if ( ! $previous instanceof WP_Post ) {
+			// Something went wrong!
+			return 0;
 		}
 
 		if ( $save_group ) {
@@ -223,22 +274,52 @@ class PLL_Sync_Post_Model {
 		 */
 		$columns = apply_filters( 'pll_sync_post_fields', array_combine( $columns, $columns ), $post_id, $lang, $save_group );
 
-		$tr_post = array_intersect_key( (array) $tr_post, $columns );
-		$wpdb->update( $wpdb->posts, $tr_post, array( 'ID' => $tr_id ) ); // Don't use wp_update_post to avoid conflict (reverse sync).
+		$wpdb->update( $wpdb->posts, array_intersect_key( $tr_post->to_array(), $columns ), array( 'ID' => $tr_id ) ); // Don't use wp_update_post to avoid conflict (reverse sync).
 		clean_post_cache( $tr_id );
+
+		wp_transition_post_status( $tr_post->post_status, $previous->post_status, $tr_post );
 
 		/**
 		 * Fires after a post has been synchronized.
 		 *
 		 * @since 2.6.3
 		 *
-		 * @param int    $post_id Id of the source post.
-		 * @param int    $tr_id   Id of the target post.
+		 * @param int    $post_id ID of the source post.
+		 * @param int    $tr_id   ID of the target post.
 		 * @param string $lang    Language of the target post.
+		 * @param string  $strategy `sync` if doing synchro, `copy` otherwise.
 		 */
-		do_action( 'pll_post_synchronized', $post_id, $tr_id, $lang );
+		do_action( 'pll_post_synchronized', $post_id, $tr_id, $lang, $strategy );
+
+		// Restores the strings translations with the current language.
+		if ( $this->curlang instanceof PLL_Language ) {
+			PLL()->load_strings_translations( $this->curlang->slug );
+		}
+
+		unset( $this->doing_sync[ $post_id ][ $tr_id ] );
 
 		return $tr_id;
+	}
+
+	/**
+	 * Duplicates the post to one language and optionally saves the synchronization group.
+	 * Backward compatibility with Polylang Pro < 3.7.
+	 *
+	 * @since 2.2
+	 * @since 3.7 Deprecated, replaced by `PLL_Sync_Post_Model::copy()`.
+	 * @deprecated
+	 *
+	 * @param int    $from       Post ID of the source post.
+	 * @param string $lang       Target language slug.
+	 * @param bool   $save_group True to update the synchronization group, false otherwise.
+	 * @return int ID of the target post, 0 on failure.
+	 */
+	public function copy_post( $from, $lang, $save_group = true ) {
+		_deprecated_function( __METHOD__, '3.7', 'PLL_Sync_Post_Model::copy()' );
+
+		$strategy = $save_group ? self::SYNC : self::COPY;
+
+		return $this->copy( $from, $lang, $strategy, $save_group );
 	}
 
 	/**
@@ -308,16 +389,29 @@ class PLL_Sync_Post_Model {
 	}
 
 	/**
-	 * Checks whether two posts are synchronized
+	 * Checks whether two posts are synchronized.
 	 *
 	 * @since 2.1
 	 *
-	 * @param int $post_id  The id of a first post to compare.
-	 * @param int $other_id The id of the other post to compare.
+	 * @param int $post_id  The ID of a first post to compare.
+	 * @param int $other_id The ID of the other post to compare.
 	 * @return bool
 	 */
 	public function are_synchronized( $post_id, $other_id ) {
-		return isset( $this->temp_synchronized[ $post_id ][ $other_id ] ) || in_array( $other_id, $this->get( $post_id ) );
+		return isset( $this->doing_sync[ $post_id ][ $other_id ] ) || in_array( $other_id, $this->get( $post_id ) );
+	}
+
+	/**
+	 * Checks whether two posts can be copied.
+	 *
+	 * @since 3.7
+	 *
+	 * @param int $from The ID of a first post to compare.
+	 * @param int $to   The ID of the other post to compare.
+	 * @return bool
+	 */
+	protected function can_copy( $from, $to ) {
+		return isset( $this->doing_copy[ $from ][ $to ] ) || $this->are_synchronized( $from, $to );
 	}
 
 	/**

@@ -3,6 +3,8 @@
  * @package Polylang-Pro
  */
 
+use WP_Syntex\Polylang\Model\Languages;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -24,7 +26,7 @@ class PLL_FSE_Template_Slug {
 	 *
 	 * @var string
 	 */
-	private $lang_pattern = '[a-z_-]+';
+	private $lang_pattern = Languages::INNER_SLUG_PATTERN;
 
 	/**
 	 * The raw template slug.
@@ -61,7 +63,7 @@ class PLL_FSE_Template_Slug {
 		$lang_slugs = array_filter(
 			$lang_slugs,
 			function ( $slug ) {
-				return is_string( $slug ) && preg_match( "@^{$this->lang_pattern}$@", $slug );
+				return is_string( $slug ) && preg_match( '#' . Languages::SLUG_PATTERN . '#', $slug );
 			}
 		);
 

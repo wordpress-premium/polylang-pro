@@ -18,7 +18,7 @@ abstract class PLL_FSE_Abstract_Bulk_Edit_Template_Slugs_Module extends PLL_FSE_
 	 * @since 3.2
 	 *
 	 * @param PLL_Language $lang          The language to use to find the templates to suffix.
-	 * @param string|null  $new_lang_slug Optionnal. The new lang slug to use. Default is `$lang`'s slug.
+	 * @param string|null  $new_lang_slug Optional. The new lang slug to use. Default is `$lang`'s slug.
 	 * @return int Number of posts updated.
 	 */
 	protected function update_language_suffix_in_post_names( PLL_Language $lang, $new_lang_slug = null ) {
@@ -91,7 +91,7 @@ abstract class PLL_FSE_Abstract_Bulk_Edit_Template_Slugs_Module extends PLL_FSE_
 		/** @var WP_Post[] */
 		$results = ( new WP_Query() )->query(
 			array(
-				'post_type'              => PLL_Db_Tools::prepare_values_list( PLL_FSE_Tools::get_template_post_types() ),
+				'post_type'              => PLL_FSE_Tools::get_template_post_types(),
 				'post_status'            => array( 'publish', 'draft' ),
 				'tax_query'              => array(
 					array(
@@ -141,21 +141,23 @@ abstract class PLL_FSE_Abstract_Bulk_Edit_Template_Slugs_Module extends PLL_FSE_
 			return 0;
 		}
 
+		$case     = array();
 		$post_ids = array();
-		$query    = array(
-			"UPDATE {$wpdb->posts} SET post_name = (",
-			'CASE ID',
-		);
 
 		foreach ( $posts as $post ) {
-			$query[]    = $wpdb->prepare( 'WHEN %d THEN %s', $post->ID, $post->post_name );
+			$case[]     = array( $post->ID, $post->post_name );
 			$post_ids[] = $post->ID;
 		}
 
-		$query[] = 'END';
-		$query[] = ')';
-		$query[] = 'WHERE ID IN (' . PLL_Db_Tools::prepare_values_list( $post_ids ) . ')';
-
-		return $wpdb->query( implode( "\n", $query ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return $wpdb->query(
+			$wpdb->prepare(
+				sprintf(
+					"UPDATE {$wpdb->posts} SET post_name = ( CASE ID %s END ) WHERE ID IN (%s)",
+					implode( ' ', array_fill( 0, count( $case ), 'WHEN %d THEN %s' ) ),
+					implode( ',', array_fill( 0, count( $post_ids ), '%d' ) )
+				),
+				array_merge( array_merge( ...$case ), $post_ids )
+			)
+		);
 	}
 }

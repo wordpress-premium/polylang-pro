@@ -132,21 +132,28 @@ class PLL_FSE_Template_Model extends PLL_FSE_Abstract_Module implements PLL_Modu
 	 * Translates the content of the given template.
 	 *
 	 * @since 3.2
+	 * @since 3.7 Deprecate `$from_template_id` argument and move `$target_language` to second position.
 	 *
-	 * @param  WP_Post      $target_template  The template to translate.
-	 * @param  int          $from_template_id The source template post ID.
-	 * @param  PLL_Language $target_language  The target language object.
-	 * @return int          The post ID on success. The value 0 on failure.
+	 * @param  WP_Post           $target_template The template to translate.
+	 * @param  PLL_Language      $target_language The target language object.
+	 * @param  PLL_Language|null $deprecated      Deprecated target language object for backward compatibility.
+	 * @return int The post ID on success. The value 0 on failure.
 	 */
-	public function translate_template_content( WP_Post $target_template, $from_template_id, PLL_Language $target_language ) {
-		$from_language = $this->model->post->get_language( $from_template_id );
+	public function translate_template_content( WP_Post $target_template, $target_language, ?PLL_Language $deprecated = null ) {
+		if ( ! $target_language instanceof PLL_Language || null !== $deprecated ) {
+			/**
+			 * @phpstan-var PLL_Language $deprecated
+			 */
+			$target_language = $deprecated;
 
-		if ( ! $from_language instanceof PLL_Language ) {
-			// The source template has no language defined.
-			return 0;
+			_deprecated_argument(
+				__METHOD__,
+				'3.7',
+				'You must use only 2 arguments, `$target_language` as second.'
+			);
 		}
 
-		$target_template->post_content = $this->sync_content->translate_content( $target_template->post_content, $target_template, $from_language, $target_language );
+		$target_template->post_content = $this->sync_content->translate_content( $target_template->post_content, $target_template, $target_language );
 
 		return wp_update_post( $target_template );
 	}

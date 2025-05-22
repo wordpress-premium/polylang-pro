@@ -3,6 +3,9 @@
  * Outputs the bulk translate form
  *
  * @package Polylang-Pro
+ *
+ * @var PLL_Bulk_Translate_Option[] $bulk_translate_options List of bulk translate options.
+ * @var PLL_Model                   $model                  `PLL_Model` instance.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<div class="inline-edit-col">
 						<span class="title"><?php esc_html_e( 'Target languages', 'polylang-pro' ); ?></span>
 						<?php
-						foreach ( $this->model->get_languages_list() as $language ) {
+						foreach ( $model->get_languages_list() as $language ) {
 							printf(
 								'<label><span class="option"><input name="pll-translate-lang[]" type="checkbox" value="%1$s" /></span><span class="pll-translation-flag">%3$s</span>%2$s</label>',
 								esc_attr( $language->slug ),
@@ -35,8 +38,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<div class="inline-edit-col">
 							<span class="title"><?php esc_html_e( 'Action', 'polylang-pro' ); ?></span>
 							<?php
-							if ( isset( $bulk_translate_options ) ) {
+							if ( ! empty( $bulk_translate_options ) ) {
 								$selected = reset( $bulk_translate_options );
+
 								foreach ( $bulk_translate_options as $bulk_translate_option ) {
 									$bulk_translate_option->display( $selected->get_name() );
 								}

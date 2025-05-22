@@ -3,6 +3,8 @@
  * @package Polylang-Pro
  */
 
+use WP_Syntex\Polylang\Options\Options;
+
 /**
  * A Service to collect linked post ids.
  *
@@ -13,7 +15,7 @@ class PLL_Collect_Linked_Posts {
 	/**
 	 * Stores the plugin options.
 	 *
-	 * @var array
+	 * @var Options
 	 */
 	protected $options;
 
@@ -22,7 +24,7 @@ class PLL_Collect_Linked_Posts {
 	 *
 	 * @since 3.3
 	 *
-	 * @param array $options The plugin options.
+	 * @param Options $options The plugin options.
 	 */
 	public function __construct( $options ) {
 		$this->options = $options;
@@ -66,7 +68,7 @@ class PLL_Collect_Linked_Posts {
 	}
 
 	/**
-	 * Gets the post ids from a post, wether it's classic or block edited.
+	 * Gets the post ids from a post, whether it's classic or block edited.
 	 *
 	 * @since 3.3
 	 *
@@ -92,11 +94,12 @@ class PLL_Collect_Linked_Posts {
 		 * Filters the medias linked to a post.
 		 *
 		 * @since 3.3
+		 * @since 3.7 `post_id` has been replaced by `post`, we now send the `WP_Post` object instead of the ID.
 		 *
-		 * @param int[] $linked_ids Post ids attached to a post (could be in content or in post metas).
-		 * @param int   $post_id    The post id the post we get other post from.
+		 * @param int[]   $linked_ids Post ids attached to a post (could be in content or in post metas).
+		 * @param WP_Post $post       The post we get other post from.
 		 */
-		$linked_ids = apply_filters( 'pll_collect_post_ids', $linked_ids, $post->ID );
+		$linked_ids = apply_filters( 'pll_collect_post_ids', $linked_ids, $post );
 
 		return array_unique( $linked_ids );
 	}
@@ -207,8 +210,7 @@ class PLL_Collect_Linked_Posts {
 
 				switch ( $shortcode[2] ) { // $shortcode[2] returns the shortcode name.
 					case 'caption':
-						if ( isset( $attributes['id'] ) ) {
-							preg_match( '/attachment_([0-9]+)/', $attributes['id'], $attr );
+						if ( isset( $attributes['id'] ) && preg_match( '/attachment_([0-9]+)/', $attributes['id'], $attr ) ) {
 							$media_ids[] = (int) $attr[1];
 						}
 						break;

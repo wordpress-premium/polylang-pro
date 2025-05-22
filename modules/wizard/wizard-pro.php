@@ -36,7 +36,7 @@ class PLL_Wizard_Pro {
 	}
 
 	/**
-	 * Replace function to apply to process the home page transations creation.
+	 * Replace function to apply to process the home page translations creation.
 	 *
 	 * @since 2.7
 	 *
@@ -62,7 +62,7 @@ class PLL_Wizard_Pro {
 		global $wpdb;
 
 		foreach ( $untranslated_languages as $language ) {
-			$translated_post_id = $this->sync_model->copy_post( $home_page, $language, false );
+			$translated_post_id = $this->sync_model->copy( $home_page, $language );
 			$language_properties = $this->model->get_language( $language );
 			$wpdb->update(
 				$wpdb->posts,

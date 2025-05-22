@@ -28,15 +28,12 @@ abstract class PLL_Export_File extends PLL_Export_Data {
 
 	/**
 	 * Returns exported data.
-	 * Backward compatibility with PHP < 7.2 where abstract parent method cannot be overloaded by an abstract child method.
 	 *
 	 * @since 3.6
 	 *
 	 * @return string
 	 */
-	public function get(): string {
-		return '';
-	}
+	abstract public function get(): string;
 
 	/**
 	 * Returns the current file extension.

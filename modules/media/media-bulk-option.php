@@ -10,32 +10,6 @@
  */
 class PLL_Media_Bulk_Option extends PLL_Bulk_Translate_Option {
 	/**
-	 * The post CRUD to create translations.
-	 *
-	 * @since 2.7
-	 *
-	 * @var PLL_CRUD_Posts
-	 */
-	private $posts;
-
-	/**
-	 * PLL_Media_Bulk_Action constructor.
-	 *
-	 * @since 2.7
-	 *
-	 * @param array          $args {
-	 *     string $name
-	 *     string $description
-	 * }.
-	 * @param PLL_Model      $model An instance to the current PLL_Model.
-	 * @param PLL_CRUD_Posts $posts Used to create translations.
-	 */
-	public function __construct( $args, $model, $posts ) {
-		parent::__construct( $args, $model );
-		$this->posts = $posts;
-	}
-
-	/**
 	 * Checks whether the option should be selectable by the user.
 	 *
 	 * @since 2.7
@@ -58,6 +32,6 @@ class PLL_Media_Bulk_Option extends PLL_Bulk_Translate_Option {
 	 * @return void
 	 */
 	public function translate( $object_id, $lang ) {
-		$this->posts->create_media_translation( $object_id, $lang );
+		$this->model->post->create_media_translation( $object_id, $lang );
 	}
 }

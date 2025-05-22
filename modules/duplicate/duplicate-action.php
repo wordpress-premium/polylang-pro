@@ -32,6 +32,11 @@ class PLL_Duplicate_Action {
 	protected $sync_content;
 
 	/**
+	 * @var PLL_Admin_Links|null
+	 */
+	protected $links;
+
+	/**
 	 * Used to manage user meta.
 	 *
 	 * @var PLL_Toggle_User_Meta
@@ -43,15 +48,16 @@ class PLL_Duplicate_Action {
 	 *
 	 * @since 3.6
 	 *
-	 * @param object $polylang Polylang object.
+	 * @param PLL_Admin $polylang Polylang object.
 	 */
-	public function __construct( &$polylang ) {
+	public function __construct( PLL_Admin &$polylang ) {
 		$this->options      = &$polylang->options;
 		$this->sync_content = &$polylang->sync_content;
+		$this->links        = &$polylang->links;
 		$this->user_meta    = new PLL_Toggle_User_Meta( static::META_NAME );
 
 		/*
-		 * After class instanciation and before terms and post metas are copied in Polylang.
+		 * After class instantiation and before terms and post metas are copied in Polylang.
 		 */
 		add_filter( 'use_block_editor_for_post', array( $this, 'new_post_translation' ), 2000 );
 	}
@@ -69,37 +75,35 @@ class PLL_Duplicate_Action {
 		global $post;
 		static $done = array();
 
-		if ( ! empty( $post ) && ! in_array( $post->ID, $done, true ) && 'post-new.php' === $GLOBALS['pagenow'] && isset( $_GET['from_post'], $_GET['new_lang'] ) ) {
-			check_admin_referer( 'new-post-translation' );
-
-			if ( $this->user_meta->is_active() ) {
-				// Capability check already done in post-new.php.
-				$from_post = get_post( (int) $_GET['from_post'] );
-
-				if ( empty( $from_post ) ) {
-					return $is_block_editor;
-				}
-
-				if ( ! current_user_can( 'read_post', $from_post ) ) {
-					wp_die(
-						esc_html__( 'Sorry, you are not allowed to read this item.', 'polylang-pro' ),
-						403
-					);
-				}
-
-				$done[] = $post->ID; // Avoid a second duplication in the block editor.
-
-				$this->sync_content->copy_content( $from_post, $post, sanitize_key( $_GET['new_lang'] ) );
-
-				// Maybe duplicates the featured image.
-				if ( $this->options['media_support'] ) {
-					add_filter( 'pll_translate_post_meta', array( $this->sync_content, 'duplicate_thumbnail' ), 10, 3 );
-				}
-
-				// Maybe duplicate terms.
-				add_filter( 'pll_maybe_translate_term', array( $this->sync_content, 'duplicate_term' ), 10, 3 );
-			}
+		if ( empty( $post ) || in_array( $post->ID, $done, true ) || empty( $this->links ) ) {
+			return $is_block_editor;
 		}
+
+		// Capability check already done in post-new.php.
+		$data = $this->links->get_data_from_new_post_translation_request( $post->post_type );
+
+		if ( empty( $data['from_post'] ) || empty( $data['new_lang'] ) || ! $this->user_meta->is_active() ) {
+			return $is_block_editor;
+		}
+
+		if ( ! current_user_can( 'read_post', $data['from_post'] ) ) {
+			wp_die(
+				esc_html__( 'Sorry, you are not allowed to read this item.', 'polylang-pro' ),
+				403
+			);
+		}
+
+		$done[] = $post->ID; // Avoid a second duplication in the block editor.
+
+		$this->sync_content->copy_content( $data['from_post'], $post, $data['new_lang'] );
+
+		// Maybe duplicates the featured image.
+		if ( $this->options['media_support'] ) {
+			add_filter( 'pll_translate_post_meta', array( $this->sync_content, 'duplicate_thumbnail' ), 10, 3 );
+		}
+
+		// Maybe duplicate terms.
+		add_filter( 'pll_maybe_translate_term', array( $this->sync_content, 'duplicate_term' ), 10, 3 );
 
 		return $is_block_editor;
 	}

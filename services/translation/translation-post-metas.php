@@ -11,18 +11,25 @@
  * Translate post metas from a set of translation entries.
  */
 class PLL_Translation_Post_Metas extends PLL_Translation_Metas {
+	/**
+	 * Returns the meta type.
+	 *
+	 * @since 3.7
+	 *
+	 * @return string Meta type. Typically 'post' or 'term'.
+	 */
+	protected function get_type(): string {
+		return 'post';
+	}
 
 	/**
-	 * The PLL_Translation_Post_Metas constructor that allows to define the meta type.
+	 * Returns the context to translate entry.
 	 *
-	 * @since 3.3
+	 * @since 3.7
 	 *
-	 * @param PLL_Sync_Post_Metas $sync_metas Object to manage copied post metas during import.
+	 * @return string The context.
 	 */
-	public function __construct( PLL_Sync_Post_Metas $sync_metas ) {
-		parent::__construct( $sync_metas );
-
-		$this->meta_type = 'post';
-		$this->context   = PLL_Import_Export::POST_META;
+	protected function get_context(): string {
+		return PLL_Import_Export::POST_META;
 	}
 }

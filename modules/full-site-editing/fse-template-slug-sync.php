@@ -161,7 +161,7 @@ class PLL_FSE_Template_Slug_Sync extends PLL_FSE_Abstract_Module implements PLL_
 	 * @return string The original or desired slug.
 	 */
 	public function unique_template_slug( $override_slug, $desired_slug, $post_ID, $post_status, $post_type ) {
-		if ( empty( $post_ID ) || ! PLL_FSE_Tools::is_template_post_type( $post_type ) ) {
+		if ( empty( $post_ID ) || ! PLL_FSE_Tools::is_template_post_type( (string) $post_type ) ) {
 			// If the post doesn't exist yet, it doesn't have any language assigned to it yet.
 			return $override_slug;
 		}

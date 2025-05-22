@@ -51,7 +51,7 @@ class PLL_FSE_Language_Slug_Change extends PLL_FSE_Abstract_Bulk_Edit_Template_S
 	 *     @type string $no_default_cat Optional, if set, no default category has been created for this language.
 	 *     @type string $flag           Optional, country code, @see flags.php.
 	 * }
-	 * @param PLL_Language $lang Previous value of the language beeing edited.
+	 * @param PLL_Language $lang Previous value of the language being edited.
 	 * @return void
 	 */
 	public function change_template_slugs( $args, $lang ) {

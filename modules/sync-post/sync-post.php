@@ -134,7 +134,7 @@ class PLL_Sync_Post {
 		foreach ( $languages as $k => $lang ) {
 			if ( $this->sync_model->current_user_can_synchronize( $post_id, $lang ) ) {
 				add_filter( 'is_sticky', array( $this, 'handle_sticky_post' ) );
-				$this->sync_model->copy_post( $post_id, $lang, false ); // Don't save the group inside the loop.
+				$this->sync_model->copy( $post_id, $lang, PLL_Sync_Post_Model::SYNC ); // Don't save the group inside the loop.
 				remove_filter( 'is_sticky', array( $this, 'handle_sticky_post' ) );
 			} else {
 				unset( $languages[ $k ] );

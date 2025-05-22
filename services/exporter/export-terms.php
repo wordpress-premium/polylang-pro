@@ -69,6 +69,17 @@ class PLL_Export_Terms extends PLL_Export_Translated_Objects {
 		}
 
 		$this->term_metas->export( $export, $item->term_id, $tr_item instanceof WP_Term ? $tr_item->term_id : 0 );
+
+		/**
+		 * Fires after exporting a term.
+		 *
+		 * @since 3.7
+		 *
+		 * @param PLL_Export_Data $export  The export object.
+		 * @param WP_Term         $item    The term to export.
+		 * @param WP_Term|null    $tr_item The translated term if it exists, `null` otherwise.
+		 */
+		do_action( 'pll_after_term_export', $export, $item, $tr_item instanceof WP_Term ? $tr_item : null );
 	}
 
 	/**

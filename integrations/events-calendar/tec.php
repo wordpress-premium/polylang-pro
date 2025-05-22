@@ -37,6 +37,11 @@ class PLL_TEC {
 	protected $slugs_model;
 
 	/**
+	 * @var PLL_Admin_Links|null
+	 */
+	protected $links;
+
+	/**
 	 * Cache for the method `is_tec_rest_request()`.
 	 *
 	 * @var mixed[]
@@ -76,6 +81,10 @@ class PLL_TEC {
 		$this->is_tec_rest_request   = array();
 		$this->translatable_slug_ids = array();
 
+		if ( $polylang->links instanceof PLL_Admin_Links ) {
+			$this->links = $polylang->links;
+		}
+
 		add_filter( 'pll_get_taxonomies', array( $this, 'translate_taxonomies' ), 10, 2 );
 		add_filter( 'pll_get_post_types', array( $this, 'translate_types' ), 10, 2 );
 
@@ -90,16 +99,18 @@ class PLL_TEC {
 
 		self::$metas = array_merge( $tec->metaTags, $tec->venueTags, $tec->organizerTags, array( '_VenueShowMap', '_VenueShowMapLink' ) );
 
-		if ( isset( $GLOBALS['pagenow'], $_GET['from_post'], $_GET['new_lang'] ) && 'post-new.php' === $GLOBALS['pagenow'] ) {
-			check_admin_referer( 'new-post-translation' );
+		if ( ! empty( $this->links ) && ! empty( $GLOBALS['post'] ) ) {
+			$data = $this->links->get_data_from_new_post_translation_request( $GLOBALS['post']->post_type );
 
-			// Defaults values for events
-			foreach ( self::$metas as $meta ) {
-				$filter = str_replace( array( '_Event', '_Organizer', '_Venue' ), array( '', 'Organizer', 'Venue' ), $meta );
-				add_filter( 'tribe_get_meta_default_value_' . $filter, array( $this, 'copy_event_meta' ), 10, 4 ); // Since TEC 4.0.7.
+			if ( ! empty( $data ) ) {
+				// Default values for events.
+				foreach ( self::$metas as $meta ) {
+					$filter = str_replace( array( '_Event', '_Organizer', '_Venue' ), array( '', 'Organizer', 'Venue' ), $meta );
+					add_filter( 'tribe_get_meta_default_value_' . $filter, array( $this, 'copy_event_meta' ), 10, 4 ); // Since TEC 4.0.7.
+				}
+
+				add_filter( 'tribe_display_event_linked_post_dropdown_id', array( $this, 'translate_linked_post' ) );
 			}
-
-			add_filter( 'tribe_display_event_linked_post_dropdown_id', array( $this, 'translate_linked_post' ) );
 		}
 
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ), 60 ); // After `Tribe__Events__Query->pre_get_posts()`.
@@ -272,19 +283,17 @@ class PLL_TEC {
 	 * @return array
 	 */
 	public function translate_linked_post( $posts ) {
-		if ( empty( $posts ) || ! isset( $_GET['new_lang'] ) ) {
+		if ( empty( $posts ) || empty( $GLOBALS['post'] ) || empty( $this->links ) ) {
 			return $posts;
 		}
 
-		check_admin_referer( 'new-post-translation' );
+		$data = $this->links->get_data_from_new_post_translation_request( $GLOBALS['post']->post_type );
 
-		$lang = $this->polylang->model->get_language( sanitize_key( $_GET['new_lang'] ) ); // Make sure this is a valid language.
-
-		if ( empty( $lang ) ) {
+		if ( empty( $data ) ) {
 			return $posts;
 		}
 
-		$lang       = $lang->slug;
+		$lang       = $data['new_lang']->slug;
 		$post_metas = ! empty( $this->polylang->sync ) && ! empty( $this->polylang->sync->post_metas ) ? $this->polylang->sync->post_metas : false;
 
 		foreach ( $posts as $key => $post_id ) {
@@ -633,7 +642,7 @@ class PLL_TEC {
 
 	/**
 	 * Adds the lang to TEC's REST URL.
-	 * This provides a way to identify in whish language PLL should work in the REST request.
+	 * This provides a way to identify in which language PLL should work in the REST request.
 	 *
 	 * @since 3.1
 	 *
@@ -857,7 +866,7 @@ class PLL_TEC {
 	/**
 	 * Filters TEC's canonical URL to fix the language slug in it.
 	 * Because of TEC's method to build URLs, using the rewrite rules array, the language slug is not replaced and is
-	 * outputed like the rewrite rule pattern: `/(en|fr|de)/`. This filter replaces the pattern by the language
+	 * outputted like the rewrite rule pattern: `/(en|fr|de)/`. This filter replaces the pattern by the language
 	 * contained in the original URL. If not found in the original URL, falls back to the current language or the default
 	 * one.
 	 *
@@ -917,7 +926,7 @@ class PLL_TEC {
 
 	/**
 	 * Filters TEC's canonical URL to translate all slugs in it.
-	 * This is possible because a `lang` arg is available in the "uggly" URL.
+	 * This is possible because a `lang` arg is available in the "ugly" URL.
 	 *
 	 * @since 3.1
 	 * @see   Tribe__Events__Rewrite->get_dynamic_matchers()
@@ -1241,7 +1250,7 @@ class PLL_TEC {
 	 * @since 3.1
 	 *
 	 * @param  bool $enable_rest True to get the REST URL. False to get the admin ajax URL.
-	 * @return string|null       The REST URL. Null if too soon to be determinated: this may happen when requesting the
+	 * @return string|null       The REST URL. Null if too soon to be determined: this may happen when requesting the
 	 *                           the real REST URL (`$enable_rest` is true) but `$wp_rewrite` is not ready.
 	 */
 	protected function get_tec_rest_url( $enable_rest ) {
@@ -1249,7 +1258,7 @@ class PLL_TEC {
 
 		if ( $enable_rest ) {
 			// In this case, `Rest_Endpoint->get_url()` will use `get_rest_url()`.
-			if ( is_multisite() && get_blog_option( 0, 'permalink_structure' ) || get_option( 'permalink_structure' ) ) { // See the same test done in `get_rest_url()`.
+			if ( ( is_multisite() && get_blog_option( 0, 'permalink_structure' ) ) || get_option( 'permalink_structure' ) ) { // See the same test done in `get_rest_url()`.
 				// We test `$wp_rewrite` to prevent `get_rest_url()` to explode.
 				if ( ! $wp_rewrite instanceof WP_Rewrite ) {
 					return null;

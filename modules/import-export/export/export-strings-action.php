@@ -9,6 +9,8 @@
  * @since 3.6
  */
 class PLL_Export_Strings_Action {
+	use PLL_Strings_Form_Trait;
+
 	/**
 	 * Used to set the action's name in forms.
 	 *
@@ -109,9 +111,18 @@ class PLL_Export_Strings_Action {
 
 		$export_container = new PLL_Export_Container( $file_format->get_export_class( $filetype['version'] ) );
 		$export           = new PLL_Export_Data_From_Strings( $this->model );
+		$sources          = PLL_Admin_Strings::get_strings();
+		if ( '' !== $group ) {
+			$sources = array_filter(
+				$sources,
+				function ( $source ) use ( $group ) {
+					return $group === $source['context'];
+				}
+			);
+		}
 
 		foreach ( $target_languages as $target_language ) {
-			$errors = $export->send_to_export( $export_container, $target_language, $group );
+			$errors = $export->send_to_export( $export_container, $sources, $target_language );
 
 			if ( $errors->has_errors() ) {
 				return $errors;
@@ -119,46 +130,5 @@ class PLL_Export_Strings_Action {
 		}
 
 		return $this->downloader->create( $export_container );
-	}
-
-	/**
-	 * Sanitizes and validates a list of language slugs, and returns language objects.
-	 *
-	 * @since 3.6
-	 *
-	 * @param array $languages Language slugs.
-	 * @return PLL_Language[]|WP_Error An array of `PLL_Language` objects. A `WP_Error` object on failure.
-	 *
-	 * @phpstan-return non-empty-array<PLL_Language>|WP_Error
-	 */
-	private function get_sanitized_languages( array $languages ) {
-		if ( empty( $languages ) ) {
-			return new WP_Error( 'pll_export_no_target_languages', __( 'Error: Please select a target language.', 'polylang-pro' ) );
-		}
-
-		$languages = array_filter( $languages, 'is_string' );
-		$languages = array_map( 'sanitize_key', $languages );
-		$languages = array_map( array( $this->model, 'get_language' ), $languages );
-		$languages = array_filter( $languages );
-
-		if ( empty( $languages ) ) {
-			return new WP_Error( 'invalid-target-languages', __( 'Error: invalid target languages.', 'polylang-pro' ) );
-		}
-
-		return $languages;
-	}
-
-	/**
-	 * Registers settings errors to be displayed to the user.
-	 *
-	 * @since 3.6
-	 *
-	 * @param WP_Error $error An error object.
-	 * @return never
-	 */
-	private function display_errors( WP_Error $error ) {
-		pll_add_notice( $error );
-
-		PLL_Settings::redirect();
 	}
 }

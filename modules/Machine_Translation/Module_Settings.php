@@ -92,14 +92,14 @@ class Module_Settings extends PLL_Settings_Preview_Machine_Translation {
 	}
 
 	/**
-	 * Sanitizes the settings before saving.
+	 * Prepare the received data before saving.
 	 *
-	 * @since 3.6
+	 * @since 3.7
 	 *
-	 * @param array $options Raw options to save.
-	 * @return array Sanitized options.
+	 * @param array $options Raw values to save.
+	 * @return array
 	 */
-	protected function update( $options ) {
+	protected function prepare_raw_data( array $options ): array {
 		$new_options = array(
 			'machine_translation_services' => array(),
 		);
@@ -110,8 +110,7 @@ class Module_Settings extends PLL_Settings_Preview_Machine_Translation {
 			// Is the API key provided?
 			$has_api_key = $service_settings->has_api_key( $service_options );
 
-			// Sanitize options.
-			$new_options['machine_translation_services'][ $slug ] = $service_settings->sanitize_options( $service_options );
+			$new_options['machine_translation_services'][ $slug ] = $service_options;
 
 			if ( ! $has_api_key ) {
 				// The API key field was empty before sanitization: don't display any error messages.
@@ -135,7 +134,7 @@ class Module_Settings extends PLL_Settings_Preview_Machine_Translation {
 				),
 				(array) $error->get_error_data()
 			);
-			
+
 			/*
 			 * Overwrites error extra data because `pll_add_notice()` expects a string instead of an array.
 			 * The `pll-field-id-` prefix is used to determine which field to highlight.

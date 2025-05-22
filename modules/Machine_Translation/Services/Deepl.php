@@ -10,25 +10,26 @@ defined( 'ABSPATH' ) || exit;
 use PLL_Language;
 use PLL_Model;
 use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Clients\Client_Interface;
+use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Settings\Settings_Interface;
 use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Clients\Deepl as Client;
 use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Settings\Deepl as Settings;
-use WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Settings\Settings_Interface;
 
 /**
  * Machine translation service: DeepL.
  *
  * @phpstan-import-type iconProperties from Service_Interface
+ * @phpstan-type DeeplOptions array{
+ *    api_key: string,
+ *    formality: 'default'|'prefer_more'|'prefer_less'
+ * }
  *
  * @since 3.6
- *
- * @phpstan-import-type DeeplOptions from Settings
  */
 class Deepl implements Service_Interface {
 	/**
 	 * Service's options.
 	 *
 	 * @var array
-	 *
 	 * @phpstan-var DeeplOptions
 	 */
 	private $service_options;
@@ -59,7 +60,10 @@ class Deepl implements Service_Interface {
 	 */
 	public function __construct( array $options, PLL_Model $model ) {
 		/**
-		 * @phpstan-var array{api_key?: string, formality?: 'default'|'prefer_less'|'prefer_more'} $options
+		 * @phpstan-var array{
+		 *    api_key?: string,
+		 *    formality?: 'default'|'prefer_more'|'prefer_less'
+		 * } $options
 		 */
 		$this->service_options = array_merge(
 			array(
@@ -184,6 +188,25 @@ class Deepl implements Service_Interface {
 	}
 
 	/**
+	 * Returns the object that holds information about the service's options.
+	 *
+	 * @since 3.6
+	 *
+	 * @return array
+	 */
+	public static function get_option_schema(): array {
+		return array(
+			'api_key'   => array(
+				'type' => 'string',
+			),
+			'formality' => array(
+				'type' => 'string',
+				'enum' => array( 'default', 'prefer_more', 'prefer_less' ),
+			),
+		);
+	}
+
+	/**
 	 * Returns machine translation service code for target language if available.
 	 *
 	 * @since 3.6
@@ -212,6 +235,6 @@ class Deepl implements Service_Interface {
 	 * @return string Language code, empty if not available.
 	 */
 	public static function get_source_code( PLL_Language $language ): string {
-			return substr( static::get_target_code( $language ), 0, 2 );
+		return substr( static::get_target_code( $language ), 0, 2 );
 	}
 }

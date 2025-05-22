@@ -160,7 +160,7 @@ abstract class PLL_Bulk_Translate_Option {
 	 * @since 3.6 Returns as WP_Error instead of an array.
 	 *
 	 * @param int[]    $object_ids An array of the id of the WordPress objects to translate.
-	 * @param string[] $languages  An array of the locales of the languages in which to translate.
+	 * @param string[] $languages  An array of languages slugs in which to translate.
 	 * @return WP_Error Info notices to be displayed to the user.
 	 */
 	public function do_bulk_action( $object_ids, $languages ): WP_Error {

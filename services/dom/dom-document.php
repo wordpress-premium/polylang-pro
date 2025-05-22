@@ -14,7 +14,7 @@
 class PLL_DOM_Document extends DOMDocument {
 
 	/**
-	 * Store the errors that happenned during the loading process.
+	 * Store the errors that happened during the loading process.
 	 *
 	 * @since 3.1
 	 * @var array

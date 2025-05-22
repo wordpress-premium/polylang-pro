@@ -3,6 +3,9 @@
  * @package Polylang-Pro
  */
 
+use WP_Syntex\Polylang_Pro\Upgrade;
+use WP_Syntex\Polylang\Options\Options;
+
 /**
  * A class to manage the Polylang Pro text domain and license key
  * and load all modules and integrations.
@@ -35,18 +38,25 @@ class PLL_Pro {
 	 *
 	 * @since 2.8
 	 *
-	 * @param object $polylang Polylang object.
+	 * @param PLL_Base $polylang Polylang object.
 	 * @return void
 	 */
 	public function init( &$polylang ) {
+		/** @var Options $options */
+		$options = $polylang->options;
+		add_action( 'pll_upgrade', array( new Upgrade( $options ), 'upgrade' ) );
+
 		if ( $polylang instanceof PLL_Admin_Base ) {
-			//new PLL_License( POLYLANG_PRO_FILE, 'Polylang Pro', POLYLANG_VERSION, 'WP SYNTEX' );
+			
 			new PLL_T15S( 'polylang-pro', 'https://packages.translationspress.com/wp-syntex/polylang-pro/packages.json' );
 
 			// Download Polylang language packs.
 			add_filter( 'http_request_args', array( $this, 'http_request_args' ), 10, 2 ); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.http_request_args
 			add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'pre_set_site_transient_update_plugins' ) );
 		}
+
+		// Prolylang Pro is equivalent to Polylang for plugin dependencies.
+		add_filter( 'wp_plugin_dependencies_slug', array( $this, 'convert_plugin_dependency' ) );
 
 		// Loads the modules.
 		$load_scripts = glob( POLYLANG_PRO_DIR . '/modules/*/load.php', GLOB_NOSORT );
@@ -99,5 +109,19 @@ class PLL_Pro {
 			}
 		}
 		return $value;
+	}
+
+	/**
+	 * Converts the Polylang plugin slug to Polylang Pro for plugin dependencies.
+	 *
+	 * This allows plugins requiring Polylang to work with Polylang Pro too.
+	 *
+	 * @since 3.7
+	 *
+	 * @param string $slug The plugin slug.
+	 * @return string
+	 */
+	public function convert_plugin_dependency( $slug ): string {
+		return 'polylang' === $slug ? dirname( POLYLANG_BASENAME ) : (string) $slug;
 	}
 }

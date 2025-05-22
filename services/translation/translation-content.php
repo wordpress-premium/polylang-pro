@@ -24,14 +24,14 @@ class PLL_Translation_Content {
 	private $translations;
 
 	/**
-	 * Setter
+	 * Constructor
 	 *
-	 * @since 3.3
+	 * @since 3.7
 	 *
 	 * @param Translations $translations Used to translate the content.
 	 * @return void
 	 */
-	public function set_translations( $translations ) {
+	public function __construct( Translations $translations ) {
 		$this->translations = $translations;
 	}
 

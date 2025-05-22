@@ -132,7 +132,7 @@ class PLL_FSE_Query_Filters extends PLL_FSE_Abstract_Module implements PLL_Modul
 	 */
 	private function get_requested_language( WP_Query &$query ) {
 		$sources = array(
-			'tax_query'  => $query->tax_query->queries,
+			'tax_query'  => isset( $query->tax_query ) ? $query->tax_query->queries : array(),
 			'query_vars' => isset( $query->query_vars['tax_query'] ) ? $query->query_vars['tax_query'] : array(),
 		);
 

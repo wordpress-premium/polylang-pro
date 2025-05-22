@@ -132,16 +132,8 @@ class PLL_Export_Data_From_Posts {
 		$include_translated_items = ! empty( $args['include_translated_items'] );
 		$taxonomies               = $this->model->get_translated_taxonomies();
 
-		// Get terms assigned to linked posts.
-		$post_ids   = wp_list_pluck( $posts, 'ID' );
-		$post_terms = wp_get_object_terms( $post_ids, $taxonomies );
-		$post_terms = is_array( $post_terms ) ? $post_terms : array();
-
 		// Collect terms in posts.
-		$collected_terms = array_merge(
-			$post_terms,
-			$this->collect_terms->get_linked_terms( $posts, $taxonomies )
-		);
+		$collected_terms = $this->collect_terms->get_linked_terms( $posts, $taxonomies );
 
 		if ( ! $include_translated_items ) {
 			// Remove items that are already translated in this language.

@@ -3,8 +3,6 @@
  * @package Polylang-Pro
  */
 
-use WP_Syntex\Polylang_Pro\Modules\Machine_Translation;
-
 /**
  * Loads the correct class depending on the context.
  *
@@ -89,7 +87,7 @@ class PLL_Admin_Loader {
 
 		switch ( $prop ) {
 			case 'machine_translation':
-				$classname = Machine_Translation\Button::class;
+				$classname = WP_Syntex\Polylang_Pro\Modules\Machine_Translation\Posts\Button::class;
 				break;
 
 			default:

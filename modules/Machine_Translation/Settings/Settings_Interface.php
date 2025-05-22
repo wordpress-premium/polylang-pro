@@ -16,16 +16,6 @@ defined( 'ABSPATH' ) || exit;
  */
 interface Settings_Interface {
 	/**
-	 * Sanitizes and validates the options for this service.
-	 *
-	 * @since 3.6
-	 *
-	 * @param array $options Options for this service.
-	 * @return array Validated options.
-	 */
-	public function sanitize_options( array $options ): array;
-
-	/**
 	 * Tells if the given service options contain a non-empty authentication key.
 	 *
 	 * @since 3.6

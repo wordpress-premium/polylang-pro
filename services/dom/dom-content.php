@@ -61,6 +61,10 @@ class PLL_DOM_Content {
 	 * @phpstan-return array<string,string>
 	 */
 	public function get_strings( array $rules ) {
+		if ( empty( $rules ) ) {
+			return array();
+		}
+
 		$matched_parts = array();
 		$document      = PLL_DOM_Document::from_html( $this->content );
 		$xpath         = new DOMXPath( $document );

@@ -118,7 +118,7 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 			wp_die();
 		}
 
-		$redirect    = esc_url_raw( wp_unslash( $_GET['redirect'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
+		$redirect    = sanitize_url( wp_unslash( $_GET['redirect'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		$lang        = $this->links_model->get_language_from_url( $redirect );
 		$lang_object = $this->model->get_language( $lang );
 
@@ -138,7 +138,7 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 				$home_page_url = apply_filters( 'pll_redirect_home', $home_page_url );
 				if ( $home_page_url ) {
 					header( 'Content-Type: application/javascript' );
-					printf( 'window.location.replace("%s");', esc_url_raw( $home_page_url ) );
+					printf( 'window.location.replace("%s");', esc_js( sanitize_url( $home_page_url ) ) );
 					wp_die();
 				}
 			}

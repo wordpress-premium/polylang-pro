@@ -84,6 +84,17 @@ class PLL_Export_Posts extends PLL_Export_Translated_Objects {
 		}
 
 		$this->post_metas->export( $export, $item->ID, $tr_item instanceof WP_Post ? $tr_item->ID : 0 );
+
+		/**
+		 * Fires after exporting a post.
+		 *
+		 * @since 3.7
+		 *
+		 * @param PLL_Export_Data $export  The export object.
+		 * @param WP_Post         $item    The post to export.
+		 * @param WP_Post|null    $tr_item The translated post if it exists, `null` otherwise.
+		 */
+		do_action( 'pll_after_post_export', $export, $item, $tr_item instanceof WP_Post ? $tr_item : null );
 	}
 
 	/**

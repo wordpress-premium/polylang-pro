@@ -102,13 +102,13 @@ class PLL_Xliff_Export_12 extends PLL_Xliff_Export_Base {
 			$unit_tag->setAttribute( 'resname', $ref['field_id'] );
 		}
 
+		$this->add_source_and_target( $unit_tag, $source, $target );
+
 		if ( ! empty( $ref['field_comment'] ) ) {
 			$note_tag = $this->document->createElement( 'note' );
 			$note_tag->appendChild( $this->document->createCDATASection( $ref['field_comment'] ) );
 			$unit_tag->appendChild( $note_tag );
 		}
-
-		$this->add_source_and_target( $unit_tag, $source, $target );
 	}
 
 	/**

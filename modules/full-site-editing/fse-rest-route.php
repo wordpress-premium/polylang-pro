@@ -23,16 +23,16 @@ class PLL_FSE_REST_Route {
 	 * The route after regex matching.
 	 *
 	 * @var array {
-	 *     @type int|null    $post_id   The post ID.
-	 *     @type string|null $post_type The post type.
-	 *     @type string|null $rest_base The REST base matching the supported template types.
+	 *     @type int    $post_id   The post ID.
+	 *     @type string $post_type The post type.
+	 *     @type string $rest_base The REST base matching the supported template types.
 	 * }
-	 * @phpstan-var array{post_id:?int,post_type:?string,rest_base:?string}
+	 * @phpstan-var array{post_id :int,post_type :string,rest_base :string}
 	 */
 	private $route_arr = array(
-		'post_id'   => null,
-		'post_type' => null,
-		'rest_base' => null,
+		'post_id'   => 0,
+		'post_type' => '',
+		'rest_base' => '',
 	);
 
 	/**
@@ -75,7 +75,7 @@ class PLL_FSE_REST_Route {
 	 *
 	 * @return string
 	 */
-	public function get() {
+	public function get(): string {
 		return $this->route;
 	}
 
@@ -97,9 +97,9 @@ class PLL_FSE_REST_Route {
 	 *
 	 * @since 3.2
 	 *
-	 * @return int|null The template post ID, null if not found in the route.
+	 * @return int The template post ID, `0` if not found in the route.
 	 */
-	public function get_post_id() {
+	public function get_post_id(): int {
 		$this->match();
 
 		return $this->route_arr['post_id'];
@@ -110,9 +110,9 @@ class PLL_FSE_REST_Route {
 	 *
 	 * @since 3.2
 	 *
-	 * @return string|null The template post type, null if the route doesn't match a template route.
+	 * @return string The template post type, empty if the route doesn't match a template route.
 	 */
-	public function get_post_type() {
+	public function get_post_type(): string {
 		$this->match();
 
 		return $this->route_arr['post_type'];
@@ -123,9 +123,9 @@ class PLL_FSE_REST_Route {
 	 *
 	 * @since 3.2
 	 *
-	 * @return string|null The REST base, null if the route doesn't match a template route.
+	 * @return string The REST base, empty if the route doesn't match a template route.
 	 */
-	public function get_rest_base() {
+	public function get_rest_base(): string {
 		$this->match();
 
 		return $this->route_arr['rest_base'];
@@ -164,9 +164,9 @@ class PLL_FSE_REST_Route {
 
 		$post_types      = array_flip( $bases_arr );
 		$this->route_arr = array(
-			'post_id'   => isset( $matches['post_id'] ) ? (int) $matches['post_id'] : null,
-			'post_type' => $post_types[ $matches['rest_base'] ],
-			'rest_base' => $matches['rest_base'],
+			'post_id'   => isset( $matches['post_id'] ) ? (int) $matches['post_id'] : 0,
+			'post_type' => $post_types[ $matches['rest_base'] ] ?? '',
+			'rest_base' => $matches['rest_base'] ?? '',
 		);
 	}
 
@@ -180,7 +180,7 @@ class PLL_FSE_REST_Route {
 	 *
 	 * @phpstan-return array<string,string>
 	 */
-	private function get_template_rest_bases() {
+	private function get_template_rest_bases(): array {
 		if ( ! empty( $this->rest_bases ) ) {
 			return $this->rest_bases;
 		}

@@ -82,7 +82,7 @@ class PLL_FSE_REST_Duplicate_Template extends PLL_FSE_Abstract_Module implements
 			return;
 		}
 
-		$this->template_model->translate_template_content( $template, $from_post, $lang );
+		$this->template_model->translate_template_content( $template, $lang );
 	}
 
 	/**
@@ -138,16 +138,21 @@ class PLL_FSE_REST_Duplicate_Template extends PLL_FSE_Abstract_Module implements
 			return $attrs['slug'];
 		}
 
+		$language = $this->model->get_language( $language );
+		if ( empty( $language ) ) {
+			return $attrs['slug'];
+		}
+
 		$tr_id = $this->model->post->get( $post->ID, $language );
 
 		// If we don't have a translation, then we create it.
 		if ( ! $tr_id ) {
-			$tr_id = $this->template_model->create_template_translation( $post, $this->model->get_language( $language ) );
+			$tr_id = $this->template_model->create_template_translation( $post, $language );
 		}
 
 		// Check the content of the template part to see if there is any block to translate.
 		$tr_post = get_post( $tr_id );
-		$this->template_model->translate_template_content( $tr_post, $post->ID, $this->model->get_language( $language ) );
+		$this->template_model->translate_template_content( $tr_post, $language );
 
 		return $tr_post->post_name;
 	}

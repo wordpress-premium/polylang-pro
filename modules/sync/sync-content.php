@@ -3,6 +3,8 @@
  * @package Polylang-Pro
  */
 
+use WP_Syntex\Polylang\Options\Options;
+
 /**
  * Smart copy of post content
  *
@@ -12,7 +14,7 @@ class PLL_Sync_Content {
 	/**
 	 * Stores the plugin options.
 	 *
-	 * @var array
+	 * @var Options
 	 */
 	protected $options;
 
@@ -29,30 +31,18 @@ class PLL_Sync_Content {
 	protected $links_model;
 
 	/**
-	 * @var PLL_CRUD_Posts
+	 * Shortcodes translator.
+	 *
+	 * @var PLL_Sync_Shortcodes
 	 */
-	protected $posts;
+	protected $shortcodes;
 
 	/**
-	 * The post object to fill with translated data.
+	 * HTML translator.
 	 *
-	 * @var WP_Post
+	 * @var PLL_Sync_HTML
 	 */
-	protected $target_post;
-
-	/**
-	 * Language of the target post.
-	 *
-	 * @var PLL_Language
-	 */
-	protected $target_language;
-
-	/**
-	 * Language of the source post.
-	 *
-	 * @var PLL_Language
-	 */
-	protected $from_language;
+	protected $html;
 
 	/**
 	 * Constructor
@@ -62,9 +52,11 @@ class PLL_Sync_Content {
 	 * @param PLL_Frontend|PLL_Admin|PLL_Settings|PLL_REST_Request $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
-		$this->options = &$polylang->options;
-		$this->model   = &$polylang->model;
-		$this->posts   = &$polylang->posts;
+		$this->options    = &$polylang->model->options;
+		$this->model      = &$polylang->model;
+		$sync_ids         = new PLL_Sync_Ids( $this->model );
+		$this->shortcodes = new PLL_Sync_Shortcodes( $sync_ids );
+		$this->html       = new PLL_Sync_HTML( $sync_ids );
 	}
 
 	/**
@@ -75,14 +67,14 @@ class PLL_Sync_Content {
 	 * @param WP_Post             $from_post       The post to copy from.
 	 * @param WP_Post             $target_post     The post to copy to.
 	 * @param PLL_Language|string $target_language The language of the post to copy to.
-	 * @return WP_Post|void
+	 * @return WP_Post
 	 */
 	public function copy_content( $from_post, $target_post, $target_language ) {
 		$from_language   = $this->model->post->get_language( $from_post->ID );
 		$target_language = $this->model->get_language( $target_language );
 
 		if ( ! $from_language || ! $target_language ) {
-			return;
+			return $target_post;
 		}
 
 		$target_post->post_title = $from_post->post_title;
@@ -93,67 +85,47 @@ class PLL_Sync_Content {
 			$target_post->post_type,
 			$target_post->post_parent
 		);
-		$target_post->post_excerpt = $this->translate_content(
+		$target_post->post_excerpt = $this->translate(
 			$from_post->post_excerpt,
+			$target_language,
 			$target_post,
-			$from_language,
-			$target_language
+			$from_post
 		);
-		$target_post->post_content = $this->translate_content(
+		$target_post->post_content = $this->translate(
 			$from_post->post_content,
+			$target_language,
 			$target_post,
-			$from_language,
-			$target_language
+			$from_post
 		);
 
 		return $target_post;
 	}
 
 	/**
-	 * Translate shortcodes and <img> attributes in a given text
+	 * Translates shortcodes, HTML and blocks in text.
 	 *
 	 * @since 1.9
 	 * @since 3.3 Requires $target_post, $from_language and $target_language parameters.
-	 * @global array $shortcode_tags
+	 * @since 3.7 Deprecate `$from_language` argument and move `$target_language` to third position.
 	 *
 	 * @param string       $content         Text to translate.
-	 * @param WP_Post      $target_post     The post object to populate with translated content.
-	 * @param PLL_Language $from_language   The source language .
+	 * @param ?WP_Post     $target_post     The post object to translate to, pass `null` if the content is not post related.
 	 * @param PLL_Language $target_language The language to translate to.
+	 * @param PLL_Language $deprecated      Deprecated target language object for backward compatibility.
 	 * @return string Translated text
 	 */
-	public function translate_content( $content, $target_post, PLL_Language $from_language, PLL_Language $target_language ) {
-		global $shortcode_tags;
+	public function translate_content( $content, ?WP_Post $target_post, PLL_Language $target_language, ?PLL_Language $deprecated = null ) {
+		if ( $deprecated instanceof PLL_Language ) {
+			$target_language = $deprecated;
 
-		$this->target_post     = $target_post;
-		$this->from_language   = $from_language;
-		$this->target_language = $target_language;
-
-		// Hack shortcodes.
-		$backup = $shortcode_tags;
-		$shortcode_tags = array(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-
-		// Add our own shorcode actions.
-		if ( $this->options['media_support'] ) {
-			add_shortcode( 'gallery', array( $this, 'ids_list_shortcode' ) );
-			add_shortcode( 'playlist', array( $this, 'ids_list_shortcode' ) );
-			add_shortcode( 'caption', array( $this, 'caption_shortcode' ) );
-			add_shortcode( 'wp_caption', array( $this, 'caption_shortcode' ) );
+			_deprecated_argument(
+				__METHOD__,
+				'3.7',
+				'You must use only 3 arguments, `$target_language` as third.'
+			);
 		}
 
-		if ( has_blocks( $content ) ) {
-			$blocks  = parse_blocks( $content );
-			$blocks  = $this->translate_blocks( $blocks );
-			$content = serialize_blocks( $blocks );
-		} else {
-			$content = do_shortcode( $content ); // Translate shortcodes.
-			$content = $this->translate_html( $content );
-		}
-
-		// Get the shorcodes back.
-		$shortcode_tags = $backup; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-
-		return $content;
+		return $this->translate( $content, $target_language, $target_post );
 	}
 
 	/**
@@ -168,7 +140,7 @@ class PLL_Sync_Content {
 	 */
 	public function duplicate_thumbnail( $id, $key, $lang ) {
 		if ( '_thumbnail_id' === $key && ! $tr_id = $this->model->post->get( $id, $lang ) ) {
-			$tr_id = $this->posts->create_media_translation( $id, $lang );
+			$tr_id = $this->model->post->create_media_translation( $id, $lang );
 		}
 		return empty( $tr_id ) ? $id : $tr_id;
 	}
@@ -241,404 +213,27 @@ class PLL_Sync_Content {
 	}
 
 	/**
-	 * Get the media translation id
-	 * Create the translation if it does not exist
-	 * Attach the media to the parent post
+	 * Translates a piece of content, using source post context if available.
 	 *
-	 * @since 1.9
+	 * @since 3.7
 	 *
-	 * @param int $id Media ID.
-	 * @return int Translated media ID.
+	 * @param string       $content         Content to translate.
+	 * @param PLL_Language $target_language The language to translate to.
+	 * @param WP_Post|null $target_post     The target post object, pass `null` if the content is not post related. Default to `null`.
+	 * @param WP_Post|null $source_post     The source post object, pass `null` if the content doesn't need this context. Default to `null`.
+	 * @return string Translated content.
 	 */
-	protected function translate_media( $id ) {
-		global $wpdb;
-
-		if ( ! $tr_id = $this->model->post->get( $id, $this->target_language ) ) {
-			$tr_id = $this->posts->create_media_translation( $id, $this->target_language );
-		}
-
-		// If we don't have a translation and did not success to create one, return current media
-		if ( empty( $tr_id ) ) {
-			return $id;
-		}
-
-		// Attach to the translated post
-		if ( ! wp_get_post_parent_id( $tr_id ) && 0 < $this->target_post->ID ) {
-			// Query inspired by wp_media_attach_action()
-			$wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET post_parent = %d WHERE post_type = 'attachment' AND ID = %d", $this->target_post->ID, $tr_id ) );
-			clean_attachment_cache( $tr_id );
-		}
-
-		return $tr_id;
-	}
-
-	/**
-	 * Translates the 'gallery' and 'playlist' shortcodes
-	 *
-	 * @since 1.9
-	 *
-	 * @param array  $attr Shortcode attributes.
-	 * @param null   $null Shortcode content, not used.
-	 * @param string $tag  Shortcode tag (either 'gallery' or 'playlist').
-	 * @return string Translated shortcode.
-	 */
-	public function ids_list_shortcode( $attr, $null, $tag ) {
-		$out = array();
-
-		foreach ( $attr as $k => $v ) {
-			if ( 'ids' === $k ) {
-				$ids    = explode( ',', $v );
-				$tr_ids = array();
-				foreach ( $ids as $id ) {
-					$tr_ids[] = $this->translate_media( (int) $id );
-				}
-				$v = implode( ',', $tr_ids );
-			}
-			$out[] = $k . '="' . $v . '"';
-		}
-
-		return '[' . $tag . ' ' . implode( ' ', $out ) . ']';
-	}
-
-	/**
-	 * Translates the caption shortcode
-	 * Compatible only with the new style introduced in WP 3.4
-	 *
-	 * @since 1.9
-	 *
-	 * @param array  $attr    Shortcode attrbute.
-	 * @param string $content Shortcode content.
-	 * @param string $tag     Shortcode tag (either 'caption' or 'wp-caption').
-	 * @return string Translated shortcode.
-	 */
-	public function caption_shortcode( $attr, $content, $tag ) {
-		// Translate the caption id
-		$out = array();
-
-		foreach ( $attr as $k => $v ) {
-			if ( 'id' === $k ) {
-				$idarr = explode( '_', $v );
-				$id    = $idarr[1]; // Remember this
-				$tr_id = $idarr[1] = $this->translate_media( (int) $id );
-				$v     = implode( '_', $idarr );
-			}
-			$out[] = $k . '="' . $v . '"';
-		}
-
-		// Translate the caption content
-		if ( ! empty( $id ) && ! empty( $tr_id ) ) {
-			$p    = get_post( (int) $id );
-			$tr_p = get_post( $tr_id );
-			if ( $p && $tr_p ) {
-				$content = str_replace( $p->post_excerpt, $tr_p->post_excerpt, $content );
-			}
-		}
-
-		return '[' . $tag . ' ' . implode( ' ', $out ) . ']' . $content . '[/' . $tag . ']';
-	}
-
-	/**
-	 * Translate images and caption in inner html
-	 *
-	 * Since 2.5
-	 *
-	 * @param string $content HTML string.
-	 * @return string
-	 */
-	protected function translate_html( $content ) {
-		if ( $this->options['media_support'] ) {
-			$textarr = wp_html_split( $content ); // Since 4.2.3
-
-			$img_ids = array();
-			foreach ( $textarr as $i => $text ) {
-				// Translate img class and alternative text
-				if ( 0 === strpos( $text, '<img' ) || strpos( $text, 'role="img"' ) !== false || strpos( $text, 'wp-block-cover__image-background' ) !== false ) {
-					$img_ids[] = $this->translate_img( $textarr[ $i ] );
-				}
-			}
-
-			if ( empty( $img_ids ) ) {
-				return $content;
-			}
-
-			$new_content = implode( $textarr );
-			$key = 0;
-			$new_content = preg_replace_callback(
-				'@(?<before><figcaption.*?>)(.+?)(?<after></figcaption>)@',
-				function ( $matches ) use ( $img_ids, &$key ) {
-					$tr_post = get_post( $img_ids[ $key ] );
-					$key++;
-					if ( ! empty( $tr_post->post_excerpt ) ) {
-						return $matches['before'] . $tr_post->post_excerpt . $matches['after'];
-					} else {
-						return $matches[0];
-					}
-				},
-				$new_content
+	private function translate( $content, PLL_Language $target_language, ?WP_Post $target_post = null, ?WP_Post $source_post = null ) {
+		if ( has_blocks( $content ) ) {
+			$content = ( new PLL_Sync_Blocks( $this->shortcodes, $this->html, $source_post ) )->translate( $content, $target_language, $target_post );
+		} else {
+			$content = $this->html->translate(
+				$this->shortcodes->translate( $content, $target_language, $target_post ),
+				$target_language,
+				$target_post
 			);
-
-			if ( is_string( $new_content ) ) {
-				return $new_content;
-			}
 		}
 
 		return $content;
-	}
-
-	/**
-	 * Translates <img> 'class' and 'alt' attributes.
-	 *
-	 * @since 1.9
-	 * @since 2.5 The html is passed by reference and the return value is the image ID.
-	 *
-	 * @param string $text Reference to <img> html with attributes.
-	 * @return null|int Translated image id if exist.
-	 */
-	protected function translate_img( &$text ) {
-		$attributes = wp_kses_attr_parse( $text ); // since WP 4.2.3
-
-		if ( ! is_array( $attributes ) ) {
-			return null;
-		}
-
-		// Replace class
-		foreach ( $attributes as $k => $attr ) {
-			if ( 0 === strpos( $attr, 'class' ) && preg_match( '#wp\-image\-([0-9]+)#', $attr, $matches ) && ! empty( $matches[1] ) ) {
-				$tr_id            = $this->translate_media( (int) $matches[1] );
-				$attributes[ $k ] = str_replace( 'wp-image-' . $matches[1], 'wp-image-' . $tr_id, $attr );
-
-			}
-
-			if ( preg_match( '#^data\-id="([0-9]+)#', $attr, $matches ) && ! empty( $matches[1] ) ) {
-				$tr_id            = $this->translate_media( (int) $matches[1] );
-				$attributes[ $k ] = str_replace( 'data-id="' . $matches[1], 'data-id="' . $tr_id, $attr );
-			}
-
-			if ( 0 === strpos( $attr, 'data-link' ) && preg_match( '#attachment_id=([0-9]+)#', $attr, $matches ) && ! empty( $matches[1] ) ) {
-				$tr_id            = $this->translate_media( (int) $matches[1] );
-				$attributes[ $k ] = str_replace( 'attachment_id=' . $matches[1], 'attachment_id=' . $tr_id, $attr );
-			}
-		}
-
-		if ( ! empty( $tr_id ) ) {
-			// Got a tr_id, attempt to replace the alt text
-			$alt = get_post_meta( $tr_id, '_wp_attachment_image_alt', true );
-			if ( is_string( $alt ) && ! empty( $alt ) ) {
-				foreach ( $attributes as $k => $attr ) {
-					if ( 0 === strpos( $attr, 'alt' ) ) {
-						$attributes[ $k ] = 'alt="' . esc_attr( $alt ) . '" ';
-					}
-					if ( 0 === strpos( $attr, 'aria-label' ) ) {
-						$attributes[ $k ] = 'aria-label="' . esc_attr( $alt ) . '" ';
-					}
-				}
-			}
-		}
-
-		$text = implode( $attributes );
-
-		return empty( $tr_id ) ? null : $tr_id;
-	}
-
-	/**
-	 * Recursively translate blocks.
-	 *
-	 * @param array[] $blocks An array of arrays representing a block.
-	 * @return array
-	 */
-	protected function translate_blocks( $blocks ) {
-		foreach ( $blocks as $k => $block ) {
-			switch ( $block['blockName'] ) {
-				case 'core/block':
-					if ( ! $this->model->is_translated_post_type( 'wp_block' ) || ! isset( $block['attrs']['ref'] ) ) {
-						break;
-					}
-
-					$tr_id = $this->model->post->get( $block['attrs']['ref'], $this->target_language );
-
-					if ( ! empty( $tr_id ) ) {
-						$blocks[ $k ]['attrs']['ref'] = $tr_id;
-					}
-					break;
-
-				case 'core/latest-posts':
-					if ( isset( $block['attrs']['categories'] ) ) {
-						$tr_ids = array();
-						foreach ( $block['attrs']['categories'] as $term ) {
-							$tr_ids[] = $this->model->term->get( $term['id'], $this->target_language );
-						}
-
-						// Let's remove unfound translation results.
-						$tr_ids = array_filter( $tr_ids );
-
-						// If there is no translation, then the category is unset.
-						if ( empty( $tr_ids ) ) {
-							unset( $blocks[ $k ]['attrs']['categories'] );
-							break;
-						}
-
-						// Query all the translated terms outside the loop to avoid multiple SQL queries with get_term() call.
-						$terms = get_terms( array( 'include' => $tr_ids, 'hide_empty' => false, 'fields' => 'id=>name' ) );
-
-						if ( ! is_array( $terms ) ) {
-							unset( $blocks[ $k ]['attrs']['categories'] );
-							break;
-						}
-
-						$tr_data = array();
-						foreach ( $terms as $id => $term_name ) {
-							$tr_data[] = array(
-								'id'    => $id,
-								'value' => $term_name,
-							);
-						}
-						if ( $tr_data ) {
-							$blocks[ $k ]['attrs']['categories'] = $tr_data;
-						} else {
-							unset( $blocks[ $k ]['attrs']['categories'] );
-						}
-					} else {
-						unset( $blocks[ $k ]['attrs']['categories'] );
-					}
-					break;
-			}
-
-			if ( $this->options['media_support'] ) {
-				$blocks[ $k ] = $this->translate_media_block( $blocks[ $k ] );
-			}
-
-			if ( ! empty( $block['innerBlocks'] ) ) {
-				$blocks[ $k ]['innerBlocks'] = $this->translate_blocks( $block['innerBlocks'] );
-			}
-		}
-
-		/**
-		 * Filters parsed blocks after core blocks have been translated.
-		 *
-		 * @since 2.5.3
-		 *
-		 * @param array[] $blocks    List of blocks.
-		 * @param string  $lang      Language of target.
-		 * @param string  $from_lang Language of the source.
-		 */
-		return apply_filters( 'pll_translate_blocks', $blocks, $this->target_language->slug, $this->from_language->slug );
-	}
-
-	/**
-	 * Translates media ids in blocks.
-	 *
-	 * @since 3.3
-	 *
-	 * @param array $block A representative array of a block.
-	 * @return array The translated block.
-	 */
-	protected function translate_media_block( $block ) {
-		switch ( $block['blockName'] ) {
-			case 'core/audio':
-			case 'core/video':
-				if ( array_key_exists( 'id', $block['attrs'] ) ) {
-					$block['attrs']['id'] = $this->translate_media( $block['attrs']['id'] );
-				}
-				break;
-			case 'core/cover':
-			case 'core/image':
-				if ( ! empty( $block['attrs']['id'] ) ) {
-					$block['attrs']['id'] = $this->translate_media( $block['attrs']['id'] );
-
-					if ( ! empty( $block['attrs']['alt'] ) ) {
-						$alt = get_post_meta( $block['attrs']['id'], '_wp_attachment_image_alt', true );
-
-						if ( ! empty( $alt ) ) {
-							$block['attrs']['alt'] = $alt;
-						}
-					}
-				}
-				$block = $this->translate_block_content( $block );
-				break;
-
-			case 'core/file':
-				$source_id = $block['attrs']['id'];
-				$tr_id = $this->translate_media( $source_id );
-				$block['attrs']['id'] = $tr_id;
-				$textarr = wp_html_split( $block['innerHTML'] );
-				$source_post = get_post( $source_id );
-				if ( ! $source_post instanceof WP_Post ) {
-					break;
-				}
-				$replace_file_link_text = 0 === strpos( $textarr[3], '<a' ) && $textarr[4] === $source_post->post_title;
-				if ( $replace_file_link_text ) {
-					$tr_post = get_post( $tr_id );
-					if ( $tr_post ) {
-						$textarr[4] = $tr_post->post_title;
-						$block['innerContent'][0] = implode( $textarr );
-						$block['innerHTML'] = implode( $textarr );
-					}
-				}
-				break;
-
-			case 'core/gallery':
-				if ( isset( $block['attrs']['ids'] ) && is_array( $block['attrs']['ids'] ) ) {
-					// Backward compatibility with WP < 5.9.
-					foreach ( $block['attrs']['ids'] as $n => $id ) {
-						$block['attrs']['ids'][ $n ] = $this->translate_media( $id );
-					}
-				}
-				$block = $this->translate_block_content( $block );
-				break;
-
-			case 'core/media-text':
-				$block['attrs']['mediaId'] = $this->translate_media( $block['attrs']['mediaId'] );
-
-				if ( isset( $block['attrs']['mediaLink'] ) ) {
-					$block['attrs']['mediaLink'] = preg_replace(
-						'#attachment_id=([0-9]+)#',
-						'attachment_id=' . $block['attrs']['mediaId'],
-						$block['attrs']['mediaLink']
-					);
-				}
-				foreach ( $block['innerContent'] as $key => $content ) {
-					if ( ! empty( $content ) ) {
-						$block['innerContent'][ $key ] = $this->translate_html( $block['innerContent'][ $key ] );
-					}
-				}
-				break;
-
-			case 'core/shortcode':
-				$block['innerContent'][0] = do_shortcode( $block['innerContent'][0] );
-				$block['innerHTML'] = do_shortcode( $block['innerHTML'] );
-				break;
-
-			default:
-				if ( ! empty( $block['innerHTML'] ) ) {
-					$block = $this->translate_block_content( $block );
-				}
-				break;
-		}
-
-		return $block;
-	}
-
-	/**
-	 * Updates the block properties with a translation if it is found.
-	 *
-	 * @since 2.9
-	 *
-	 * @param array $block An array mimicking the structure of {@see https://github.com/WordPress/WordPress/blob/5.5.1/wp-includes/class-wp-block-parser.php WP_Block_Parser_Block}.
-	 * @return array The updated array formatted block.
-	 */
-	protected function translate_block_content( $block ) {
-		$inner_content_nb = count( $block['innerContent'] );
-		for ( $i = 0; $i < $inner_content_nb; $i++ ) {
-			if ( ! empty( $block['innerContent'][ $i ] ) ) {
-				$html = do_shortcode( $block['innerContent'][ $i ] ); // Translate shortcodes.
-				$html = $this->translate_html( $html ); // Translate inline images.
-
-				$block['innerContent'][ $i ] = $html;
-			}
-		}
-		$html = do_shortcode( $block['innerHTML'] ); // Translate shortcodes.
-		$block['innerHTML'] = $this->translate_html( $html );
-
-		return $block;
 	}
 }

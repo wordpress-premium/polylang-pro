@@ -59,7 +59,7 @@ class PLL_Export_Bulk_Option extends PLL_Bulk_Translate_Option {
 	}
 
 	/**
-	 * Defines wether the export Bulk Translate option is available given the admin panel and user logged.
+	 * Defines whether the export Bulk Translate option is available given the admin panel and user logged.
 	 * Do not add the 'pll_export_post' bulk translate option if LIBXML extension is not loaded, no matter the screen.
 	 *
 	 * @since 3.3

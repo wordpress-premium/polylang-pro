@@ -7,22 +7,17 @@
  * Manages posts translations.
  *
  * @since 3.3
+ *
+ * @phpstan-type EntryData array{
+ *    id: int,
+ *    data: Translations,
+ *    fields: array{
+ *        post_status?: string,
+ *    }
+ * }
  */
-class PLL_Translation_Post_Model implements PLL_Translation_Object_Model_Interface {
-	/**
-	 * @var PLL_Translation_Content
-	 */
-	protected $translate_content;
-
-	/**
-	 * @var PLL_Translation_Post_Metas
-	 */
-	protected $translate_post_metas;
-
-	/**
-	 * @var PLL_Sync_Content
-	 */
-	protected $sync_content;
+class PLL_Translation_Post_Model implements PLL_Translation_Data_Model_Interface {
+	use PLL_Translation_Object_Model_Trait;
 
 	/**
 	 * Used to query languages and translations.
@@ -49,6 +44,13 @@ class PLL_Translation_Post_Model implements PLL_Translation_Object_Model_Interfa
 	protected $user_capabilities_manager;
 
 	/**
+	 * Used to sync the post content.
+	 *
+	 * @var PLL_Sync_Content
+	 */
+	protected $sync_content;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 3.3
@@ -56,12 +58,10 @@ class PLL_Translation_Post_Model implements PLL_Translation_Object_Model_Interfa
 	 * @param PLL_Settings|PLL_Admin $polylang Polylang object.
 	 */
 	public function __construct( &$polylang ) {
-		$this->translate_content         = new PLL_Translation_Content();
 		$this->model                     = &$polylang->model;
-		$this->sync_content              = &$polylang->sync_content;
 		$this->sync                      = &$polylang->sync;
 		$this->sync_post_model           = &$polylang->sync_post_model;
-		$this->translate_post_metas      = new PLL_Translation_Post_Metas( $polylang->sync->post_metas );
+		$this->sync_content              = &$polylang->sync_content;
 		$this->user_capabilities_manager = new PLL_Manage_User_Capabilities();
 	}
 
@@ -70,49 +70,84 @@ class PLL_Translation_Post_Model implements PLL_Translation_Object_Model_Interfa
 	 *
 	 * @since 3.3
 	 *
-	 * @param  array        $entry           Properties array of an entry.
+	 * @param  array        $entry           {
+	 *    Import data.
+	 *    int          $id     Source object ID.
+	 *    Translations $data   Object containing translated data.
+	 *    array        $fields {
+	 *        Fields to create the new translation.
+	 *        string $post_status Post status to use during translation creation.
+	 *    }
+	 * }.
 	 * @param  PLL_Language $target_language A language to translate into.
-	 * @return int The translated post ID, 0 on failure.
+	 * @return int|WP_Error The translated post ID, `WP_Error` on failure.
+	 *
+	 * @phpstan-param EntryData $entry
 	 */
-	public function translate( array $entry, PLL_Language $target_language ): int {
+	public function translate( array $entry, PLL_Language $target_language ) {
+		if ( ! $entry['data'] instanceof Translations ) {
+			/* translators: %d is a post ID. */
+			return new WP_Error( 'pll_translate_post_no_translations', sprintf( __( 'The post with ID %d could not be translated.', 'polylang-pro' ), (int) $entry['id'] ) );
+		}
+
 		$source_post = get_post( $entry['id'] );
 		if ( ! $source_post instanceof WP_Post || ! $source_post->ID ) {
-			// The source post doesn't exist.
-			return 0;
+			/* translators: %d is a post ID. */
+			return new WP_Error( 'pll_translate_post_no_source_post', sprintf( __( 'The post with ID %d could not be translated as it doesn\'t exist.', 'polylang-pro' ), (int) $entry['id'] ) );
 		}
 
 		$tr_post_id = $this->model->post->get( $entry['id'], $target_language );
 		$tr_post    = $tr_post_id ? get_post( $tr_post_id ) : null;
 
-		$this->translate_content->set_translations( $entry['data'] );
-		$this->translate_post_metas->set_translations( $entry['data'] );
 		$this->user_capabilities_manager->forbid_unfiltered_html( $source_post );
 
 		$translation_exists = $tr_post instanceof WP_Post;
 
 		if ( $translation_exists ) {
-			$tr_post_id = $this->update_post_translation( $source_post, $tr_post, $target_language );
+			$tr_post = $this->update_post_translation(
+				$entry,
+				$source_post,
+				$target_language,
+				$tr_post
+			);
 		} else {
-			$tr_post_id = $this->create_post_translation( $entry['fields'], $source_post, $target_language );
-			$tr_post    = get_post( $tr_post_id );
+			$tr_post = $this->create_post_translation(
+				$entry,
+				$source_post,
+				$target_language
+			);
 		}
 
-		if ( 0 === $tr_post_id || ! $tr_post instanceof WP_Post ) {
-			// Something wrong happened during post insertion. No need to go further.
-			return $tr_post_id;
+		if ( ! $tr_post instanceof WP_Post ) {
+			/* translators: %d is a post ID. */
+			return new WP_Error( 'pll_translate_post_failed', sprintf( __( 'The post with ID %d could not be translated.', 'polylang-pro' ), (int) $entry['id'] ) );
 		}
 
 		// Fix for `term_exists()`.
 		add_filter( 'term_exists_default_query_args', array( $this, 'term_exists_default_query_args' ), 10, 3 );
 
-		$this->sync->taxonomies->copy( $source_post->ID, $tr_post_id, $target_language->slug );
-		$this->translate_post_metas->translate( $source_post->ID, $tr_post_id, $target_language, ! $translation_exists );
+		$this->sync->taxonomies->copy( $source_post->ID, $tr_post->ID, $target_language->slug );
+		( new PLL_Translation_Post_Metas( $this->sync->post_metas, $entry['data'] ) )
+			->translate( $source_post->ID, $tr_post->ID, $target_language, ! $translation_exists );
+
+		/**
+		 * Fires once a post has been translated.
+		 *
+		 * @since 3.7
+		 *
+		 * @param WP_Post      $source_post     The source post.
+		 * @param WP_Post      $tr_post         The target post.
+		 * @param PLL_Language $target_language The language to translate into.
+		 * @param Translations $translations    The set of translations for the entry.
+		 */
+		do_action( 'pll_after_post_translation', $source_post, $tr_post, $target_language, $entry['data'] );
+
 		$this->user_capabilities_manager->allow_unfiltered_html();
 
 		/** This action is documented in include/crud-posts.php. */
-		do_action( 'pll_save_post', $tr_post_id, $tr_post, $this->model->post->get_translations( $tr_post_id ) ); // Triggers the the post metas synchronization.
+		do_action( 'pll_save_post', $tr_post->ID, $tr_post, $this->model->post->get_translations( $tr_post->ID ) ); // Triggers the the post metas synchronization.
 
-		return $tr_post_id;
+		return $tr_post->ID;
 	}
 
 	/**
@@ -120,47 +155,40 @@ class PLL_Translation_Post_Model implements PLL_Translation_Object_Model_Interfa
 	 *
 	 * @since 3.3
 	 *
-	 * @param array        $data_import {
-	 *    Import options.
-	 *    string $post_status The post status of the imported posts.
-	 * }.
+	 * @param array        $data_import     Import data, @see {self::translate()}.
 	 * @param WP_Post      $source_post     The source post object.
 	 * @param PLL_Language $target_language The language to translate into.
-	 * @return int The translated post ID, 0 on failure.
+	 * @return WP_Post|null The translated post object, `null` on failure.
+	 *
+	 * @phpstan-param EntryData $data_import
 	 */
-	protected function create_post_translation( $data_import, $source_post, $target_language ) {
-		// Creates an auto-draft in DB.
+	protected function create_post_translation( array $data_import, WP_Post $source_post, PLL_Language $target_language ): ?WP_Post {
 		$tr_post = get_default_post_to_edit( $source_post->post_type, true );
-		if ( ! $tr_post instanceof WP_Post ) {
-			// Failure during post creation.
-			return 0;
-		}
-
 		$this->model->post->set_language( $tr_post->ID, $target_language ); // Do it now to share slug.
 
 		$tr_post = $this->copy_source_post( $source_post, $tr_post );
 
-		$tr_post = $this->translate_content( $source_post, $tr_post, $target_language );
+		$tr_post = $this->translate_content( $data_import, $source_post, $target_language, $tr_post );
 
 		if ( ! $tr_post instanceof WP_Post ) {
-			return 0;
+			return null;
 		}
 
 		// Set post status in post data.
-		$data_import          = wp_parse_args( $data_import, array( 'post_status' => 'draft' ) );
-		$tr_post->post_status = $data_import['post_status'];
+		$data_import['fields'] = wp_parse_args( $data_import['fields'], array( 'post_status' => 'draft' ) );
+		$tr_post->post_status  = $data_import['fields']['post_status'];
 
 		$tr_post_args = $tr_post->to_array();
 
 		$tr_id = wp_update_post( wp_slash( $tr_post_args ) );
 		if ( ! $tr_id ) {
 			// Failure during post update.
-			return 0;
+			return null;
 		}
 
 		$this->save_translations_group( $source_post->ID, $tr_post->ID, $target_language->slug );
 
-		return $tr_id;
+		return get_post( $tr_id );
 	}
 
 	/**
@@ -183,49 +211,64 @@ class PLL_Translation_Post_Model implements PLL_Translation_Object_Model_Interfa
 	 * Updates an existing post translation.
 	 *
 	 * @since 3.3
+	 * @since 3.7 $data_import parameter added.
 	 *
+	 * @param array        $data_import     Import data, @see {self::translate()}.
 	 * @param WP_Post      $source_post     The source post object.
-	 * @param WP_Post      $tr_post         The translated post object.
 	 * @param PLL_Language $target_language The language to translate into.
-	 * @return int The translated post ID, 0 on failure.
+	 * @param WP_Post      $tr_post         The translated post object.
+	 * @return WP_Post|null The translated post object, `null` on failure.
+	 *
+	 * @phpstan-param EntryData $data_import
 	 */
-	protected function update_post_translation( $source_post, $tr_post, $target_language ) {
+	protected function update_post_translation( array $data_import, WP_Post $source_post, PLL_Language $target_language, WP_Post $tr_post ): ?WP_Post {
 		$this->maybe_unsync_posts( $source_post->ID, $tr_post->ID, $target_language );
-		$tr_post = $this->translate_content( $source_post, $tr_post, $target_language );
+		$tr_post = $this->translate_content( $data_import, $source_post, $target_language, $tr_post );
 
 		if ( ! $tr_post instanceof WP_Post ) {
-			return 0;
+			return null;
 		}
 
-		return wp_update_post( $tr_post );
+		return get_post(
+			wp_update_post( $tr_post )
+		);
 	}
 
 	/**
 	 * Translates all content type of a post (i.e. title, excerpt and content).
 	 *
 	 * @since 3.3
+	 * @since 3.7 $translations parameter added.
 	 *
+	 * @param array        $data_import     Import data, @see {self::translate()}.
 	 * @param WP_Post      $source_post     The source post object.
-	 * @param WP_Post      $tr_post         The translated post object.
 	 * @param PLL_Language $target_language The language to translate into.
-	 * @return WP_Post|int The translated post object populated with new data. 0 otherwise.
+	 * @param WP_Post      $tr_post         The translated post object.
+	 * @return WP_Post|null The translated post object populated with new data. Null otherwise.
 	 */
-	protected function translate_content( $source_post, $tr_post, $target_language ) {
-		$source_language = $this->model->post->get_language( $source_post->ID );
-		if ( ! $source_language instanceof PLL_Language ) {
-			// The source post has no language?!
-			return 0;
-		}
-		$tr_post->post_title   = $this->translate_content->translate_title( $source_post->post_title );
-		$tr_post->post_excerpt = $this->translate_content->translate_excerpt( $source_post->post_excerpt );
+	protected function translate_content( array $data_import, WP_Post $source_post, PLL_Language $target_language, WP_Post $tr_post ): ?WP_Post {
+		$translate_content     = new PLL_Translation_Content( $data_import['data'] );
+		$tr_post->post_title   = $translate_content->translate_title( $source_post->post_title );
+		$tr_post->post_excerpt = $translate_content->translate_excerpt( $source_post->post_excerpt );
 		$tr_post->post_content = $this->sync_content->translate_content(
-			$this->translate_content->translate_content( $source_post->post_content ),
+			$translate_content->translate_content( $source_post->post_content ),
 			$tr_post,
-			$source_language,
 			$target_language
 		);
 
-		return $tr_post;
+		/**
+		 * Filters a translated post before it is saved.
+		 *
+		 * @since 3.7
+		 *
+		 * @param WP_Post      $tr_post         The target post.
+		 * @param WP_Post      $source_post     The source post.
+		 * @param PLL_Language $target_language The language to translate into.
+		 * @param Translations $translations    The set of translations for the entry..
+		 */
+		$tr_post = apply_filters( 'pll_filter_translated_post', $tr_post, $source_post, $target_language, $data_import['data'] );
+
+		return $tr_post instanceof WP_Post ? $tr_post : null;
 	}
 
 	/**
@@ -261,24 +304,16 @@ class PLL_Translation_Post_Model implements PLL_Translation_Object_Model_Interfa
 	}
 
 	/**
-	 * Translates post parent if there is one.
+	 * Assigns the parents to posts creating during the import.
 	 *
 	 * @since 3.3
+	 * @since 3.7 Renamed from `translate_parents` and made private.
 	 *
 	 * @param int[]        $ids             Array of source post ids.
 	 * @param PLL_Language $target_language The target language.
 	 * @return void
 	 */
-	public function translate_parents( array $ids, PLL_Language $target_language ) {
-		$ids = array_filter( $ids );
-
-		if ( empty( $ids ) ) {
-			// Invalid list of post IDs.
-			return;
-		}
-
-		$ids = array_unique( $ids, SORT_NUMERIC );
-
+	private function assign_parents( array $ids, PLL_Language $target_language ) {
 		// Keep only the posts that have a parent.
 		$posts = get_posts(
 			array(

@@ -92,7 +92,7 @@ class PLL_Sync_Post_REST {
 
 				foreach ( $languages as $k => $lang ) {
 					if ( $this->sync_model->current_user_can_synchronize( $post_id, $lang ) ) {
-						$this->sync_model->copy_post( $post_id, $lang, false ); // Don't save the group inside the loop.
+						$this->sync_model->copy( $post_id, $lang, PLL_Sync_Post_Model::SYNC ); // Don't save the group inside the loop.
 					} else {
 						unset( $languages[ $k ] );
 					}
@@ -119,7 +119,7 @@ class PLL_Sync_Post_REST {
 			$synchronized_posts = array_diff( $this->sync_model->get( $post->ID ), array( $post->ID ) );
 			foreach ( array_keys( $synchronized_posts ) as $lang ) {
 				if ( $this->sync_model->current_user_can_synchronize( $post->ID, $lang ) ) {
-					$this->sync_model->copy_post( $post->ID, $lang, false );
+					$this->sync_model->copy( $post->ID, $lang, PLL_Sync_Post_Model::SYNC );
 				}
 			}
 		}
@@ -131,18 +131,18 @@ class PLL_Sync_Post_REST {
 	 *
 	 * @since 2.6
 	 *
-	 * @param array        $datas    Translations table row datas.
+	 * @param array        $data     Translations table row data.
 	 * @param int          $post_id  Post to synchronize.
 	 * @param PLL_Language $language Language to synchronize.
 	 * @return array
 	 */
-	public function translations_table( $datas, $post_id, $language ) {
-		if ( PLL_FSE_Tools::is_template_post_type( get_post_type( $post_id ) ) ) {
-			$datas[ $language->slug ]['can_synchronize'] = false;
+	public function translations_table( $data, $post_id, $language ) {
+		if ( PLL_FSE_Tools::is_template_post_type( (string) get_post_type( $post_id ) ) ) {
+			$data[ $language->slug ]['can_synchronize'] = false;
 		} else {
-			$datas[ $language->slug ]['can_synchronize'] = $this->sync_model->current_user_can_synchronize( $post_id, $language->slug );
+			$data[ $language->slug ]['can_synchronize'] = $this->sync_model->current_user_can_synchronize( $post_id, $language->slug );
 		}
 
-		return $datas;
+		return $data;
 	}
 }

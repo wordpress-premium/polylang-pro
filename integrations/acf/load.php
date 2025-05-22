@@ -3,6 +3,10 @@
  * @package Polylang-Pro
  */
 
+namespace WP_Syntex\Polylang_Pro\Integrations\ACF;
+
+use PLL_Integrations;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Don't access directly.
 }
@@ -10,12 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action(
 	'after_setup_theme',
 	function () {
-		/**
+		/*
 		 * This must be checked only after the theme is loaded (not earlier than 'after_setup_theme') because some
 		 * themes include ACF.
 		 */
-		if ( ! defined( 'ACF_VERSION' ) || version_compare( ACF_VERSION, '5.7.11', '<' ) ) {
-			// Run only for ACF >= 5.7.11.
+		if ( ! Main::can_use() ) {
 			return;
 		}
 
@@ -24,6 +27,8 @@ add_action(
 			return;
 		}
 
-		add_action( 'init', array( PLL_Integrations::instance()->acf = new PLL_ACF(), 'init' ) );
+		PLL_Integrations::instance()->acf = new Main();
+
+		add_action( 'acf/init', array( PLL_Integrations::instance()->acf, 'on_acf_init' ) );
 	}
 );

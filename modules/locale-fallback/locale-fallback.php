@@ -3,6 +3,8 @@
  * @package Polylang-Pro
  */
 
+use WP_Syntex\Polylang\Model\Languages;
+
 /**
  * Allows to load a fallback translation file if a translation doesn't exist in the current locale.
  *
@@ -74,7 +76,7 @@ class PLL_Locale_Fallback {
 		foreach ( $new_fallbacks as $fallback ) {
 			// Keep only valid locales.
 			// @TODO Display an error message.
-			if ( ! preg_match( '#^[a-z]{2,3}(?:_[A-Z]{2})?(?:_[a-z0-9]+)?$#', $fallback ) ) {
+			if ( ! preg_match( '#' . Languages::LOCALE_PATTERN . '#', $fallback ) ) {
 				continue;
 			}
 

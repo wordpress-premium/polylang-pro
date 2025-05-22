@@ -62,18 +62,21 @@ class PLL_Sync_Post_Bulk_Option extends PLL_Bulk_Translate_Option {
 
 
 	/**
-	 * Duplicates or Synchronize the given post, depending on the value of {@see PLL_Sync_Post_Bulk_Action::$synchronize}
+	 * Duplicates or Synchronize the given post, depending on the value of {@see PLL_Sync_Post_Bulk_Option::$do_synchronize}
 	 *
 	 * @since 2.7
 	 *
 	 * @param int    $object_id Identifies a post to duplicate or synchronize.
-	 * @param string $lang      A language locale.
+	 * @param string $lang      A language slug to translate into.
 	 */
 	public function translate( $object_id, $lang ) {
 		if ( false === $this->do_synchronize ) {
 			$this->sync_model->save_group( $object_id, array() );
+			$strategy = PLL_Sync_Post_Model::COPY;
+		} else {
+			$strategy = PLL_Sync_Post_Model::SYNC;
 		}
 
-		$this->sync_model->copy_post( $object_id, $lang, $this->do_synchronize );
+		$this->sync_model->copy( $object_id, $lang, $strategy, $this->do_synchronize );
 	}
 }

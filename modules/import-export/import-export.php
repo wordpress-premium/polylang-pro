@@ -70,7 +70,7 @@ class PLL_Import_Export {
 						array(
 							self::TYPE_POST            => new PLL_Import_Posts( new PLL_Translation_Post_Model( $polylang ) ),
 							self::TYPE_TERM            => new PLL_Import_Terms( new PLL_Translation_Term_Model( $polylang ) ),
-							self::STRINGS_TRANSLATIONS => new PLL_Import_Strings(),
+							self::STRINGS_TRANSLATIONS => new PLL_Import_Strings( new PLL_Translation_Strings_Model() ),
 						),
 						new PLL_File_Format_Factory()
 					) )->import_action();
@@ -140,6 +140,7 @@ class PLL_Import_Export {
 	 * @return void
 	 */
 	public function metabox_export_strings() {
+		$model = $this->model;
 		include POLYLANG_PRO_DIR . '/modules/import-export/export/view-tab-export-strings.php';
 	}
 
@@ -163,6 +164,6 @@ class PLL_Import_Export {
 	 */
 	public function admin_enqueue_style() {
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
-		wp_enqueue_style( 'pll-admin-export-import', plugins_url( '/css/build/admin-export-import' . $suffix . '.css', POLYLANG_ROOT_FILE ), array( 'colors' ), POLYLANG_VERSION );
+		wp_enqueue_style( 'pll-admin-translations-dashboard', plugins_url( '/css/build/translations-dashboard' . $suffix . '.css', POLYLANG_ROOT_FILE ), array( 'colors' ), POLYLANG_VERSION );
 	}
 }

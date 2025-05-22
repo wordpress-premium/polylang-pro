@@ -28,7 +28,7 @@ interface PLL_Import_Object_Interface {
 	public function translate( $entry, $target_language );
 
 	/**
-	 * Get update notices to display.
+	 * Returns update notices to display.
 	 *
 	 * @since 3.3
 	 *
@@ -37,7 +37,7 @@ interface PLL_Import_Object_Interface {
 	public function get_updated_notice();
 
 	/**
-	 * Get warnings notices to display.
+	 * Returns warning notices to display.
 	 *
 	 * @since 3.3
 	 *
@@ -62,4 +62,15 @@ interface PLL_Import_Object_Interface {
 	 * @return array
 	 */
 	public function get_imported_object_ids();
+
+	/**
+	 * Performs actions after importing.
+	 *
+	 * @since 3.7
+	 *
+	 * @param array        $ids             The imported entities ids.
+	 * @param PLL_Language $target_language The target language for import.
+	 * @return void
+	 */
+	public function do_after_import_process( array $ids, PLL_Language $target_language );
 }

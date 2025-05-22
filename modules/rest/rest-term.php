@@ -68,7 +68,7 @@ class PLL_REST_Term extends PLL_REST_Translated_Object {
 	 *
 	 * @since 3.2
 	 *
-	 * @param string $slug     The inputed slug of the term being saved, may be empty.
+	 * @param string $slug     The inputted slug of the term being saved, may be empty.
 	 * @param string $taxonomy The term taxonomy.
 	 * @return string
 	 */

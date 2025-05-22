@@ -101,4 +101,13 @@ interface Service_Interface {
 	 * @phpstan-param non-falsy-string $input_base_name
 	 */
 	public function get_settings( string $input_base_name ): Settings_Interface;
+
+	/**
+	 * Returns the object that holds information about the service's options.
+	 *
+	 * @since 3.7
+	 *
+	 * @return array
+	 */
+	public static function get_option_schema(): array;
 }

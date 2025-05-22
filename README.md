@@ -16,27 +16,27 @@
 
 [Click here to download Polylang Pro](https://github.com/wordpress-premium/polylang-pro/archive/refs/heads/master.zip) as a `.zip` file. Follow [SiteGround's detailed description](https://www.siteground.com/tutorials/wordpress/install-plugins/#How_to_Upload_a_WordPress_Plugin_from_a_File) to upload it to your dashboard, or do it via (S)FTP.
 
-## Usage
-
-This is the **fully activated pro version ("nulled")** of the plugin, brought to you by [wordpress-premium.net](https://www.wordpress-premium.net). We thoroughly **scanned and cleaned it of any malware** and released it to give users access to try this plugin before purchasing it or conducting technical research. If you intend to use this plugin for your website, **you must** [purchase a license](https://polylang.pro/pricing/) through the author's official website.
-
-**Note:** Using activated ("nulled") software may violate the original author's licensing terms, and you may not receive official support or updates. 
-
 ## Donate
 
 If you appreciate [WordPress Premium's](https://www.wordpress-premium.net/) service and would like to keep getting up-to-date, malware-free pro and premium plugins, please consider [leaving a tip via PayPal](https://www.paypal.com/paypalme/thaikolja) or via a [cryptocurrency of your choice](https://www.wordpress-premium.net/wallets/).
 
 🚨 **Note:** Keeping all plugins updated and malware-free takes a lot of time and effort. **If we do not receive donations, we will shut down the free repositories and only sell to buying members.**
 
+## Usage
+
+This is the **fully activated pro version ("nulled")** of the plugin, brought to you by [wordpress-premium.net](https://www.wordpress-premium.net). We thoroughly **scanned and cleaned it of any malware** and released it to give users access to try this plugin before purchasing it or conducting technical research. If you intend to use this plugin for your website, **you must** [purchase a license](https://polylang.pro/pricing/) through the author's official website.
+
+**Note:** Using activated ("nulled") software may violate the original author's licensing terms, and you may not receive official support or updates. 
+
 ## Changelog
 
-**Released:** March 11th, 2025
+**Released:** May 5th, 2025
 
-#### v3.6.7
+#### v3.7.1
 
-* **Pro:** Security: Fix private content disclosure.
-* **Fix** links wrongly removed in notices `#1627`
-* **Fix** all categories assigned when the default category is missing `#1617`
+* **Pro:** Do not display ACF fields translations settings when language location is set.
+* Pro: Fix ACF taxonomy field terms not synchronized when "Save Terms" and "load terms" settings are activated.
+* **Pro:** Fix duplicate options when using numeric keys for ACF choice fields.
 
 ---
 

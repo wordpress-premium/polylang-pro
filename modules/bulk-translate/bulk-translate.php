@@ -3,6 +3,8 @@
  * @package Polylang-Pro
  */
 
+defined( 'ABSPATH' ) || exit; // Don't access directly
+
 /**
  * A class to bulk translate posts.
  *
@@ -282,6 +284,7 @@ class PLL_Bulk_Translate {
 	 */
 	public function display_form() {
 		global $post_type;
+		$model = $this->model;
 		$bulk_translate_options = $this->options;
 		usort(
 			$bulk_translate_options,

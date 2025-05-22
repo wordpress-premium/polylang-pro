@@ -178,7 +178,7 @@ abstract class PLL_Export_Metas {
 	 *    )
 	 * @param string          $parent_key_string A string containing parent keys separated with pipes. Each pipe in key
 	 *                                           should be escaped to avoid conflicts.
-	 * @param int             $index             Index of the current meta value. Usefull when a meta has several values.
+	 * @param int             $index             Index of the current meta value. Useful when a meta has several values.
 	 * @param array|string    $source_metas      The source post metas.
 	 * @param array|string    $tr_metas          The translated post metas.
 	 * @param int             $object_id         ID of the object the meta belongs to.
@@ -190,7 +190,9 @@ abstract class PLL_Export_Metas {
 		$is_exported = false;
 
 		if ( ! empty( $fields_to_export ) ) {
-			if ( ! is_array( $source_metas ) ) {
+			if ( is_object( $source_metas ) ) {
+				$source_metas = get_object_vars( $source_metas );
+			} elseif ( ! is_array( $source_metas ) ) {
 				return false;
 			}
 
@@ -204,12 +206,20 @@ abstract class PLL_Export_Metas {
 					$key_string  = "$parent_key_string|$escaped_key";
 					$sub_field   = is_array( $field_value ) ? $field_value : array();
 
+					if ( is_array( $tr_metas ) && isset( $tr_metas[ $key ] ) ) {
+						$tr_sub_meta = $tr_metas[ $key ];
+					} elseif ( is_object( $tr_metas ) && isset( $tr_metas->$key ) ) {
+						$tr_sub_meta = $tr_metas->$key;
+					} else {
+						$tr_sub_meta = array();
+					}
+
 					$is_exported = $this->maybe_export_metas_sub_fields(
 						$sub_field,
 						$key_string,
 						$index,
 						$meta_values,
-						isset( $tr_metas[ $key ] ) ? $tr_metas[ $key ] : array(),
+						$tr_sub_meta,
 						$object_id,
 						$export,
 						$encoding
