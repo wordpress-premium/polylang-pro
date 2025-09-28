@@ -78,6 +78,7 @@ abstract class Abstract_Object implements Translatable_Entity_Interface {
 			$field,
 			array(
 				'target_language' => $lang,
+				'source_language' => PLL()->model->{$this->get_type()}->get_language( $from_id ),
 				'original_value'  => $original_value,
 			)
 		);
@@ -174,7 +175,7 @@ abstract class Abstract_Object implements Translatable_Entity_Interface {
 		$args['update'] = ! isset( $args['update'] ) || (bool) $args['update'];
 
 		foreach ( $fields as $field ) {
-			if ( empty( $field['value'] ) ) {
+			if ( empty( $field['value'] ) && ! is_string( $field['value'] ) ) {
 				continue;
 			}
 

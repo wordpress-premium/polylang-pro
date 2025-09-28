@@ -26,9 +26,10 @@ class Copy extends Abstract_Strategy {
 	 * @param mixed           $value  Custom field value of the source object.
 	 * @param array           $field  Custom field definition.
 	 * @param array           $args   {
-	 *     Array of arguments.
+	 *      Array of arguments.
 	 *
-	 *     @type PLL_Language $target_language Optional. The language object of the target object.
+	 *      @type PLL_Language $target_language Optional. The language object of the target object.
+	 *      @type PLL_Language $source_language Optional. The language object of the source object.
 	 * }
 	 * @return mixed Custom field value of the target object.
 	 */
@@ -80,7 +81,33 @@ class Copy extends Abstract_Strategy {
 				break;
 		}
 
-		return $value;
+		return $this->maybe_translate_field_default_value( $value, $field, $args );
+	}
+
+	/**
+	 * Determines if a field's value is the default value.
+	 *
+	 * @since 3.7.2
+	 *
+	 * @param mixed $value Custom field value of the source object.
+	 * @param array $field Custom field definition.
+	 * @param array $args {
+	 *      Array of arguments.
+	 *
+	 *      @type PLL_Language $source_language Optional. The language object of the source object.
+	 *      @type mixed        $original_value  Optional. The translated value of the field, if any.
+	 * }
+	 *
+	 * @return mixed Custom field value of the target object.
+	 */
+	protected function maybe_translate_field_default_value( $value, array $field, array $args = array() ) {
+		if ( ! isset( $field['pll_default_value'], $args['source_language'] ) || ! $args['source_language'] instanceof PLL_Language ) {
+			return $value;
+		}
+
+		$default_value_in_source_language = pll_translate_string( $field['pll_default_value'], $args['source_language']->slug );
+
+		return $default_value_in_source_language === $value ? $args['original_value'] : $value;
 	}
 
 	/**

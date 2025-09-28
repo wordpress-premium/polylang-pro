@@ -3720,22 +3720,22 @@ const Switcher = ({
   const openModal = e => {
     setSelectedLang(languages.get(e.target.value));
     if (isEditedPostEmpty()) {
-      confirmChange(e.target.value);
+      confirmChange(languages.get(e.target.value));
       return;
     }
     setOpen(true);
   };
   const closeModal = () => setOpen(false);
-  const confirmChange = () => {
+  const confirmChange = _selectedLang => {
     closeModal();
-    if (!selectedLang) {
+    if (!_selectedLang) {
       createErrorNotice((0,external_this_wp_i18n_.__)('Failed to save selected language', 'polylang-pro'), {
         type: 'snackbar'
       });
       return;
     }
-    const newTranslationsData = getNewTranslationsDataMap(selectedLang);
-    saveLanguageChange(selectedLang, newTranslationsData).then(() => {
+    const newTranslationsData = getNewTranslationsDataMap(_selectedLang);
+    saveLanguageChange(_selectedLang, newTranslationsData).then(() => {
       tableDispatch({
         type: 'set_table',
         table: utils_getTranslationsTable(newTranslationsData.translations_table)
@@ -3745,7 +3745,7 @@ const Switcher = ({
       });
       document.dispatchEvent(new CustomEvent('onPostLangChoice', {
         detail: {
-          lang: selectedLang
+          lang: _selectedLang
         }
       }));
     });
@@ -3786,7 +3786,7 @@ const Switcher = ({
           children: "\xA0"
         }), /*#__PURE__*/(0,jsx_runtime.jsx)(external_this_wp_components_.Button, {
           variant: "primary",
-          onClick: confirmChange,
+          onClick: () => confirmChange(selectedLang),
           type: "submit",
           children: (0,external_this_wp_i18n_.__)('Change', 'polylang-pro')
         })]
@@ -3865,7 +3865,6 @@ const PostEditorMetabox = () => {
     isAllowedPostType: isAllowedPostType,
     postType: currentPost?.type,
     children: [/*#__PURE__*/(0,jsx_runtime.jsx)(switcher, {
-      selectedLanguage: selectedLanguage,
       tableDispatch: tableDispatch
     }), /*#__PURE__*/(0,jsx_runtime.jsx)(duplicate, {
       postType: currentPostType

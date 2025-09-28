@@ -60,12 +60,10 @@ class Location_Language extends ACF_Location {
 	 *
 	 * @since 3.7.1
 	 *
-	 * @param string $selector The selector of the field group.
+	 * @param array $field_group Field group definition.
 	 * @return bool True if the field group has a language location rule, false otherwise.
 	 */
-	public static function has_language_location_rule( $selector ): bool {
-		$field_group = acf_get_field_group( $selector );
-
+	public static function has_language_location_rule( array $field_group ): bool {
 		if ( empty( $field_group ) ) {
 			return false;
 		}
@@ -83,5 +81,35 @@ class Location_Language extends ACF_Location {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Gets the ACF field group of a field (including nested fields within repeaters, flexible content, or other complex field types).
+	 *
+	 * @since 3.7.3
+	 *
+	 * @param array $field Custom field definition.
+	 *
+	 * @return array The field group array on success, an empty array on failure.
+	 */
+	public static function get_field_group_from_field( array $field ): array {
+		if ( 0 === $field['ID'] ) {
+			// New field.
+			$field_group = acf_get_field_group( 0 );
+			return ! empty( $field_group ) ? $field_group : array();
+		}
+
+		if ( empty( $field['parent'] ) ) {
+			return array();
+		}
+
+		$field_group = acf_get_field_group( $field['parent'] );
+		if ( ! empty( $field_group ) ) {
+			return $field_group;
+		}
+
+		// If not a field group, get parent field and continue.
+		$parent_field = acf_get_field( $field['parent'] );
+		return $parent_field ? self::get_field_group_from_field( $parent_field ) : array();
 	}
 }

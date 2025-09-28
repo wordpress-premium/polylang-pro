@@ -24,6 +24,11 @@ abstract class Abstract_Object_Type {
 	 * @return void
 	 */
 	public function on_acf_init(): void {
+		if ( ! defined( 'ACF_VERSION' ) || version_compare( ACF_VERSION, '6.1.0', '<' ) ) {
+			// Backward compatibility with ACF < 6.1.
+			return;
+		}
+
 		if ( ! acf_get_setting( 'enable_post_types' ) ) {
 			// The feature is deactivated.
 			return;

@@ -181,7 +181,8 @@ class Blocks implements Translatable_Entity_Interface {
 				continue;
 			}
 
-			if ( acf_block_uses_post_meta( $block ) ) {
+			// Backward compatibility with ACF < 6.3.
+			if ( function_exists( 'acf_add_block_meta_values' ) && function_exists( 'acf_block_uses_post_meta' ) && acf_block_uses_post_meta( $block ) ) {
 				$block                  = acf_add_block_meta_values( $block, $id );
 				$block['attrs']['data'] = $block['data'];
 			}
@@ -223,7 +224,8 @@ class Blocks implements Translatable_Entity_Interface {
 						$block['id']
 					);
 
-				if ( acf_block_uses_post_meta( $block ) ) {
+				// Backward compatibility with ACF < 6.3.
+				if ( function_exists( 'acf_block_uses_post_meta' ) && acf_block_uses_post_meta( $block ) ) {
 					$block = $this->prepare_block_post_meta( $block );
 				}
 			}

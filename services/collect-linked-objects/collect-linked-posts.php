@@ -156,16 +156,20 @@ class PLL_Collect_Linked_Posts {
 			case 'core/file':
 			case 'core/image':
 			case 'core/video':
-				$post_ids[] = $block['attrs']['id'];
+				if ( ! empty( $block['attrs']['id'] ) ) {
+					$post_ids[] = $block['attrs']['id'];
+				}
 				break;
 			case 'core/gallery':
 				// Backward compatibility with WP < 5.9.
-				if ( isset( $block['attrs']['ids'] ) && is_array( $block['attrs']['ids'] ) ) {
+				if ( ! empty( $block['attrs']['ids'] ) && is_array( $block['attrs']['ids'] ) ) {
 					$post_ids = array_merge( $post_ids, $block['attrs']['ids'] );
 				}
 				break;
 			case 'core/media-text':
-				$post_ids[] = $block['attrs']['mediaId'];
+				if ( ! empty( $block['attrs']['mediaId'] ) ) {
+					$post_ids[] = $block['attrs']['mediaId'];
+				}
 				break;
 			default:
 				if ( ! empty( $block['innerHTML'] ) ) {

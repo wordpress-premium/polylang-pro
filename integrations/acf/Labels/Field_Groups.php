@@ -133,6 +133,11 @@ class Field_Groups {
 	private function translate_field_labels_recursive( array $labels, array $field ) {
 		$matcher = new PLL_Format_Util();
 
+		if ( isset( $field['default_value'] ) ) {
+			// Stores the untranslated default value for later (before it 
+			$field['pll_default_value'] = $field['default_value'];
+		}
+
 		foreach ( $labels as $field_key => $sub_labels ) {
 			$field_filtered = $matcher->filter_list( $field, $field_key );
 

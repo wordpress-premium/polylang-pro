@@ -260,12 +260,18 @@ abstract class PLL_Export_Metas {
 
 		$tr_metas = (array) $tr_metas;
 		foreach ( $source_metas as $sub_field_index => $source_value ) {
+			if ( ! is_scalar( $source_value ) ) {
+				continue;
+			}
+
+			$source_value = (string) $source_value;
+
 			if ( '' === $source_value ) {
 				continue;
 			}
 
 			$escaped_key = addcslashes( (string) $sub_field_index, '\\|' );
-			$tr_values   = isset( $tr_metas[ $sub_field_index ] ) ? $tr_metas[ $sub_field_index ] : '';
+			$tr_values   = isset( $tr_metas[ $sub_field_index ] ) && is_scalar( $tr_metas[ $sub_field_index ] ) ? (string) $tr_metas[ $sub_field_index ] : '';
 			$export->add_translation_entry(
 				array(
 					'object_type' => $this->meta_type,

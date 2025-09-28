@@ -46,21 +46,22 @@ class Export extends Abstract_Strategy {
 	 * @param array           $args   {
 	 *     Array of arguments.
 	 *
-	 *     @type mixed $original_value The translated value of the field, if any.
+	 *     @type mixed $original_value The translated or default value of the field, if any.
 	 * }
 	 * @return mixed The original value, so the strategy behaves like others.
 	 */
 	protected function apply( Abstract_Object $object, $value, array $field, array $args = array() ) {
+		if ( 'translate_once' === $field['translations']
+			&& 0 < PLL()->model->{$object->get_type()}->get( $object->get_id(), $args['target_language'] ) ) {
+			// A translation exists and we're on a `translate_once` field, so return.
+			return $value;
+		}
+
 		if ( ! is_string( $value ) || empty( $value ) ) {
 			return $value;
 		}
 
 		$original_value = is_string( $args['original_value'] ) ? $args['original_value'] : '';
-
-		if ( isset( $field['translations'] ) && 'translate_once' === $field['translations'] && ! empty( $original_value ) ) {
-			// The field has already been translated once, skip the export.
-			return $value;
-		}
 
 		$this->export->add_translation_entry(
 			array(
@@ -70,7 +71,7 @@ class Export extends Abstract_Strategy {
 				'object_id'   => $object->get_id(),
 			),
 			$value,
-			$original_value
+			$original_value === $field['default_value'] ? '' : $original_value // Do not export translated default values.
 		);
 
 		return $value;

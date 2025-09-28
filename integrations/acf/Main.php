@@ -8,6 +8,7 @@ namespace WP_Syntex\Polylang_Pro\Integrations\ACF;
 use WP_Syntex\Polylang_Pro\Integrations\ACF\Labels\Field_Groups;
 use WP_Syntex\Polylang_Pro\Integrations\ACF\Labels\Post_Type;
 use WP_Syntex\Polylang_Pro\Integrations\ACF\Labels\Taxonomy;
+use WP_Syntex\Polylang_Pro\Integrations\ACF\Translation_Instructions;
 
 /**
  * Manages compatibility with Advanced Custom Fields Pro.
@@ -42,16 +43,22 @@ class Main {
 	public $taxonomies_labels;
 
 	/**
+	 * @var Translation_Instructions
+	 */
+	public $translation_instructions;
+
+	/**
 	 * Constructor
 	 *
 	 * @since 3.7
 	 */
 	public function __construct() {
-		$this->ajax                = new Ajax_Lang_Choice();
-		$this->field_settings      = new Field_Settings();
-		$this->field_groups_labels = new Field_Groups();
-		$this->post_types_labels   = new Post_Type();
-		$this->taxonomies_labels   = new Taxonomy();
+		$this->ajax                     = new Ajax_Lang_Choice();
+		$this->field_settings           = new Field_Settings();
+		$this->field_groups_labels      = new Field_Groups();
+		$this->post_types_labels        = new Post_Type();
+		$this->taxonomies_labels        = new Taxonomy();
+		$this->translation_instructions = new Translation_Instructions();
 	}
 
 	/**
@@ -67,6 +74,7 @@ class Main {
 		$this->field_groups_labels->on_acf_init();
 		$this->post_types_labels->on_acf_init();
 		$this->taxonomies_labels->on_acf_init();
+		$this->translation_instructions->on_acf_init();
 
 		Dispatcher::on_acf_init();
 
@@ -87,7 +95,7 @@ class Main {
 	 * @return bool True if the integration can be used, false otherwise.
 	 */
 	public static function can_use(): bool {
-		return defined( 'ACF_VERSION' ) && version_compare( ACF_VERSION, '5.7.11', '>=' );
+		return defined( 'ACF_VERSION' ) && version_compare( ACF_VERSION, '6.0.0', '>=' );
 	}
 
 	/**

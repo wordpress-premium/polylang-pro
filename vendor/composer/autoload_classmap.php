@@ -335,6 +335,7 @@ return array(
     'WP_Syntex\\Polylang_Pro\\Integrations\\ACF\\Strategy\\Export' => $baseDir . '/integrations/ACF/Strategy/Export.php',
     'WP_Syntex\\Polylang_Pro\\Integrations\\ACF\\Strategy\\Import' => $baseDir . '/integrations/ACF/Strategy/Import.php',
     'WP_Syntex\\Polylang_Pro\\Integrations\\ACF\\Strategy\\Synchronize' => $baseDir . '/integrations/ACF/Strategy/Synchronize.php',
+    'WP_Syntex\\Polylang_Pro\\Integrations\\ACF\\Translation_Instructions' => $baseDir . '/integrations/ACF/Translation_Instructions.php',
     'WP_Syntex\\Polylang_Pro\\Modules\\Import_Export\\Services\\Context' => $baseDir . '/services/context.php',
     'WP_Syntex\\Polylang_Pro\\Modules\\Machine_Translation\\Clients\\Client_Interface' => $baseDir . '/modules/Machine_Translation/Clients/Client_Interface.php',
     'WP_Syntex\\Polylang_Pro\\Modules\\Machine_Translation\\Clients\\Deepl' => $baseDir . '/modules/Machine_Translation/Clients/Deepl.php',

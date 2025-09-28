@@ -65,6 +65,7 @@ class PLL_Translation_Term_Model implements PLL_Translation_Data_Model_Interface
 		$tr_term_name        = $this->get_translated_term_name( $source_term, $entry['data'] );
 		$tr_term_description = $this->get_translated_term_description( $source_term, $entry['data'] );
 		$tr_term_id          = $this->model->term->get( $entry['id'], $target_language );
+		$translation_exists  = $tr_term_id > 0;
 
 		if ( $tr_term_id ) {
 			// The translation already exists.
@@ -97,7 +98,12 @@ class PLL_Translation_Term_Model implements PLL_Translation_Data_Model_Interface
 		}
 
 		( new PLL_Translation_Term_Metas( $this->sync_term_metas, $entry['data'] ) )
-			->translate( $source_term->term_id, $tr_term_id, $target_language, false );
+			->translate(
+				$source_term->term_id,
+				$tr_term_id,
+				$target_language,
+				! $translation_exists
+			);
 
 		/** @var WP_Term $tr_term */
 		$tr_term = get_term( $tr_term_id );

@@ -5,6 +5,7 @@
 
 namespace WP_Syntex\Polylang_Pro\Integrations\ACF\Strategy;
 
+use Translation_Entry;
 use Translations;
 use WP_Syntex\Polylang_Pro\Modules\Import_Export\Services\Context;
 use WP_Syntex\Polylang_Pro\Integrations\ACF\Entity\Abstract_Object;
@@ -50,7 +51,7 @@ class Import extends Copy {
 	 * @param array           $args   {
 	 *     Array of arguments.
 	 *
-	 *     @type mixed $original_value Optional. The translated value of the field, if any.
+	 *     @type mixed $original_value Optional. The translated or default value of the field, if any.
 	 * }
 	 * @return mixed Custom field value of the target object.
 	 */
@@ -71,23 +72,36 @@ class Import extends Copy {
 
 		$args['original_value'] = is_string( $args['original_value'] ) ? $args['original_value'] : '';
 
-		/*
-		 * If the field has already been translated, don't pass it to `translate()` which
-		 * would overwrite the current translated value by the source value as no translation can be found.
-		*/
-		if ( 'translate_once' === $field['translations'] && ! empty( $args['original_value'] ) ) {
-			return $args['original_value'];
-		}
-
-		$value = $this->translations->translate(
-			$value,
-			Context::to_string(
-				array(
-					Context::FIELD => 'acf',
-					Context::ID    => $this->get_field_key( $field ),
-				)
+		$entry = new Translation_Entry(
+			array(
+				'singular' => $value,
+				'context'  => Context::to_string(
+					array(
+						Context::FIELD => 'acf',
+						Context::ID    => $this->get_field_key( $field ),
+					)
+				),
 			)
 		);
+
+		/*
+		 * Use `translate_entry()` to know whether the entry is in the translation set or not.
+		 * Because `translate()` doesn't return false but the source string if the entry doesn't exist.
+		 */
+		if ( ! $this->translations->translate_entry( $entry ) ) {
+			// The entry is not in the translation set.
+			if ( 'translate_once' === $field['translations'] && ! empty( $args['original_value'] ) ) {
+				/*
+				 * If there is no entry in the translation set and the field is set to `translate_once`,
+				 * it means that it has already been translated.
+				 */
+				return $args['original_value'];
+			}
+
+			return $value;
+		}
+
+		$value = $this->translations->translate( $value, $entry->context );
 
 		return parent::execute(
 			$object,

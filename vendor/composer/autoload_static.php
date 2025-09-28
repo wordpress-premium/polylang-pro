@@ -336,6 +336,7 @@ class ComposerStaticInitf6e760fa5c7092d8f4480c7854f539ee
         'WP_Syntex\\Polylang_Pro\\Integrations\\ACF\\Strategy\\Export' => __DIR__ . '/../..' . '/integrations/ACF/Strategy/Export.php',
         'WP_Syntex\\Polylang_Pro\\Integrations\\ACF\\Strategy\\Import' => __DIR__ . '/../..' . '/integrations/ACF/Strategy/Import.php',
         'WP_Syntex\\Polylang_Pro\\Integrations\\ACF\\Strategy\\Synchronize' => __DIR__ . '/../..' . '/integrations/ACF/Strategy/Synchronize.php',
+        'WP_Syntex\\Polylang_Pro\\Integrations\\ACF\\Translation_Instructions' => __DIR__ . '/../..' . '/integrations/ACF/Translation_Instructions.php',
         'WP_Syntex\\Polylang_Pro\\Modules\\Import_Export\\Services\\Context' => __DIR__ . '/../..' . '/services/context.php',
         'WP_Syntex\\Polylang_Pro\\Modules\\Machine_Translation\\Clients\\Client_Interface' => __DIR__ . '/../..' . '/modules/Machine_Translation/Clients/Client_Interface.php',
         'WP_Syntex\\Polylang_Pro\\Modules\\Machine_Translation\\Clients\\Deepl' => __DIR__ . '/../..' . '/modules/Machine_Translation/Clients/Deepl.php',

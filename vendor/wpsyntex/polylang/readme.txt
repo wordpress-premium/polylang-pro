@@ -5,7 +5,7 @@ Tags: multilingual, translate, translation, language, localization
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 3.7.1
+Stable tag: 3.7.3
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -102,9 +102,35 @@ Wherever third party code has been used, credit has been given in the code’s c
 
 == Changelog ==
 
+= 3.7.3 (2025-06-16) =
+
+* Pro: Always display ACF translation settings for field groups formerly translated in versions older than 3.7
+* Pro: Fix translation displayed in child fields of ACF layout fields when they should not
+* Pro: Fix translation of the ACF field "Choice" when the translation is set to "Copy once" or "Synchronize"
+* Pro: Fix a PHP warning when translating some blocks
+* Pro: Fix impossibility to change the language of an empty post in the block editor
+* Fix duplicate values in options #1672
+* Fix JS error in media library (grid view) #1674
+* Fix language dropdown not present in the media modal accessible from the media library grid view #1675
+* Fix DB error introduce by WooCommerce 9.9 #1681
+
+= 3.7.2 (2025-05-27) =
+
+* Pro: Require ACF 6.0+ to activate the integration to avoid fatal errors with older versions
+* Pro: Add a new ACF field group setting to decide if translations instructions must be displayed
+* Pro: Fix a fatal error when using ACF blocks with ACF < 6.3.0
+* Pro: Fix regression preventing to translate Oembed, URL and Email ACF fields
+* Pro: Fix ACF fields not translated when they have a default value
+* Pro: Fix empty ACF fields values not copied when the field has a default value
+* Pro: Fix ACF field default values not translated when copying a post
+* Pro: Fix possible fatal error if invalid types of data are sent for machine translation
+* Pro: Fix term meta removed when a term is machine translated
+* Fix nav menu locations not saved if invalid data are stored in database #1659
+* Fix parent relationship removed when a new translated term is created without parent #1671
+
 = 3.7.1 (2025-05-05) =
 
-* Pro: Do not display ACF fileds translations settings when language location is set.
+* Pro: Do not display ACF fields translations settings when language location is set.
 * Pro: Fix ACF taxonomy field terms not synchronized when "Save Terms" and "load terms" settings are activated.
 * Pro: Fix duplicate options when using numeric keys for ACF choice fields.
 

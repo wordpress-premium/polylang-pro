@@ -63,8 +63,6 @@ class Dispatcher {
 		if ( PLL()->options['media_support'] ) {
 			add_action( 'pll_translate_media', array( static::class, 'copy_media_fields' ), 10, 3 );
 		}
-
-		add_filter( 'acf/pre_render_fields', array( static::class, 'append_translation_instructions' ) );
 	}
 
 	/**
@@ -360,83 +358,6 @@ class Dispatcher {
 	 */
 	public static function export_blocks( $export, $from ) {
 		( new Blocks( $from->ID ) )->export( $export );
-	}
-
-	/**
-	 * Appends the translation instructions to the field label using `acf/prepare_field` hook.
-	 * Hooked to `acf/pre_render_fields` only to ensure instructions are displayed in the editor fields metabox.
-	 *
-	 * @since 3.7
-	 *
-	 * @param array $fields The fields being rendered.
-	 * @return array The fields.
-	 */
-	public static function append_translation_instructions( $fields ) {
-		add_filter( 'acf/prepare_field', array( static::class, 'get_field_instructions' ) );
-
-		return $fields;
-	}
-
-	/**
-	 * Returns the instructions for the given field.
-	 *
-	 * @since 3.7
-	 *
-	 * @param array|false $field The field array or false.
-	 * @return array|false The field array or false.
-	 */
-	public static function get_field_instructions( $field ) {
-		if ( ! is_array( $field ) ) {
-			return $field;
-		}
-
-		if ( Location_Language::has_language_location_rule( $field['parent'] ) ) {
-			return $field;
-		}
-
-		$instructions = '<span style="font-size: 1.2em; vertical-align: middle;" class="dashicons dashicons-translation"></span> '
-			. self::get_field_instruction( $field );
-
-		$field['instructions'] = ! empty( $field['instructions'] ) ? $field['instructions'] . '<br>' . $instructions : $instructions;
-
-		return $field;
-	}
-
-	/**
-	 * Returns the instruction for the given field.
-	 *
-	 * @since 3.7
-	 *
-	 * @param array $field The field.
-	 * @return string The instruction.
-	 */
-	private static function get_field_instruction( array $field ): string {
-		if ( empty( $field['translations'] ) ) {
-			if ( in_array( $field['type'], array( 'group', 'repeater', 'clone', 'flexible_content' ), true ) ) {
-				$copy_strategy = new Copy();
-				if ( $copy_strategy->can_execute( $field ) ) {
-					return __( 'This field is copied.', 'polylang-pro' );
-				}
-
-				$sync_strategy = new Synchronize( $copy_strategy );
-				if ( $sync_strategy->can_execute( $field ) ) {
-					return __( 'This field is synchronized.', 'polylang-pro' );
-				}
-			}
-		} else {
-			switch ( $field['translations'] ) {
-				case 'copy_once':
-					return __( 'This field is copied once.', 'polylang-pro' );
-				case 'sync':
-					return __( 'This field is synchronized.', 'polylang-pro' );
-				case 'translate':
-					return __( 'This field is translated.', 'polylang-pro' );
-				case 'translate_once':
-					return __( 'This field is translated once.', 'polylang-pro' );
-			}
-		}
-
-		return __( 'This field is ignored.', 'polylang-pro' );
 	}
 
 	/**

@@ -3759,22 +3759,22 @@ const switcher_Switcher = ({
   const openModal = e => {
     setSelectedLang(languages.get(e.target.value));
     if (isEditedPostEmpty()) {
-      confirmChange(e.target.value);
+      confirmChange(languages.get(e.target.value));
       return;
     }
     setOpen(true);
   };
   const closeModal = () => setOpen(false);
-  const confirmChange = () => {
+  const confirmChange = _selectedLang => {
     closeModal();
-    if (!selectedLang) {
+    if (!_selectedLang) {
       createErrorNotice(__('Failed to save selected language', 'polylang-pro'), {
         type: 'snackbar'
       });
       return;
     }
-    const newTranslationsData = getNewTranslationsDataMap(selectedLang);
-    saveLanguageChange(selectedLang, newTranslationsData).then(() => {
+    const newTranslationsData = getNewTranslationsDataMap(_selectedLang);
+    saveLanguageChange(_selectedLang, newTranslationsData).then(() => {
       tableDispatch({
         type: 'set_table',
         table: getTranslationsTable(newTranslationsData.translations_table)
@@ -3784,7 +3784,7 @@ const switcher_Switcher = ({
       });
       document.dispatchEvent(new CustomEvent('onPostLangChoice', {
         detail: {
-          lang: selectedLang
+          lang: _selectedLang
         }
       }));
     });
@@ -3825,7 +3825,7 @@ const switcher_Switcher = ({
           children: "\xA0"
         }), /*#__PURE__*/_jsx(Button, {
           variant: "primary",
-          onClick: confirmChange,
+          onClick: () => confirmChange(selectedLang),
           type: "submit",
           children: __('Change', 'polylang-pro')
         })]
@@ -3884,7 +3884,6 @@ const PostEditorMetabox = () => {
     isAllowedPostType: isAllowedPostType,
     postType: currentPost?.type,
     children: [/*#__PURE__*/_jsx(Switcher, {
-      selectedLanguage: selectedLanguage,
       tableDispatch: tableDispatch
     }), /*#__PURE__*/_jsx(DuplicateButton, {
       postType: currentPostType
