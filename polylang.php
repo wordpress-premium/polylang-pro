@@ -67,7 +67,6 @@ if ( defined( 'POLYLANG_BASENAME' ) ) {
 }
 
 require __DIR__ . '/vendor/autoload.php';
-require __DIR__ . '/vendor/wpsyntex/polylang/polylang.php';
 
 if ( empty( $_GET['deactivate-polylang'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 	add_action( 'pll_init_options_for_blog', array( Options_Registry::class, 'register' ), 15 ); // After Polylang.
