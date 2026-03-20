@@ -16,6 +16,7 @@ class PLL_Divi_Builder {
 	 */
 	public function __construct() {
 		add_filter( 'pll_copy_post_metas', array( $this, 'divi_builder_copy_post_metas' ), 10, 2 );
+		add_filter( 'use_block_editor_for_post', array( $this, 'persist_draft_in_database' ), 4000 ); // After `PLL_Duplicate_Action::new_post_translation()`.
 	}
 
 	/**
@@ -45,5 +46,29 @@ class PLL_Divi_Builder {
 		);
 
 		return $sync ? $metas : array_merge( $metas, $divi_metas );
+	}
+
+	/**
+	 * Persists the draft in the database to allow duplication in Divi Builder.
+	 *
+	 * @since 3.7.5
+	 *
+	 * @global WP_Post $post The current post object.
+	 *
+	 * @param bool $is_block_editor Whether the post can be edited or not with the block editor.
+	 * @return bool
+	 */
+	public function persist_draft_in_database( $is_block_editor ) {
+		global $post;
+
+		if ( empty( $post ) ) {
+			return $is_block_editor;
+		}
+
+		if ( ( new PLL_Toggle_User_Meta( PLL_Duplicate_Action::META_NAME ) )->is_active() ) {
+			wp_update_post( $post );
+		}
+
+		return $is_block_editor;
 	}
 }

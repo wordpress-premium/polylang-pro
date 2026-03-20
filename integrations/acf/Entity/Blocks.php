@@ -163,6 +163,9 @@ class Blocks implements Translatable_Entity_Interface {
 			}
 
 			if ( empty( acf_get_block_type( $block['blockName'] ) ) ) {
+				if ( ! empty( $block['innerBlocks'] ) ) {
+					$block['innerBlocks'] = $this->apply_on_blocks( $strategy, $block['innerBlocks'], $id, $language );
+				}
 				continue;
 			}
 
@@ -201,7 +204,7 @@ class Blocks implements Translatable_Entity_Interface {
 			$values = array();
 			foreach ( acf_get_block_fields( $block['attrs'] ) as $field ) {
 				$value                    = acf_get_value( $block['id'], $field );
-				$values[ $field['name'] ] = $strategy->execute(
+				$values[ $field['key'] ] = $strategy->execute(
 					new Post( $id ),
 					$value,
 					$field,

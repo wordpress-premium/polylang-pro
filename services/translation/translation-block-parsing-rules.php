@@ -106,76 +106,79 @@ class PLL_Translation_Block_Parsing_Rules {
 	 * @phpstan-var XpathParsingRules
 	 */
 	private $parsing_rules = array(
-		'core/audio'        => array(
+		'core/accordion-heading' => array(
+			'//span[@class="wp-block-accordion-heading__toggle-title"]',
+		),
+		'core/audio'             => array(
 			'//figure/figcaption',
 		),
-		'core/button'       => array(
+		'core/button'            => array(
 			'//a',
 			'//a/@href',
 		),
-		'core/cover'        => array(
+		'core/cover'             => array(
 			'//div/p',
 		),
-		'core/cover-image'  => array(
+		'core/cover-image'       => array(
 			'//div/p',
 		),
-		'core/details'      => array(
+		'core/details'           => array(
 			'//details/summary',
 		),
-		'core/embed'        => array(
+		'core/embed'             => array(
 			'//figure/figcaption',
 		),
-		'core/file'         => array(
+		'core/file'              => array(
 			'//div/a',
 		),
-		'core/gallery'      => array(
+		'core/gallery'           => array(
 			'//figure/figcaption',
 			'//figure/img/@alt', // Backward compatibility.
 		),
-		'core/heading'      => array(
+		'core/heading'           => array(
 			'//*[self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6]',
 		),
-		'core/image'        => array(
+		'core/image'             => array(
 			'//figure/figcaption',
 			'//figure/img/@alt|//figure/a/img/@alt',
 			'//figure/img/@title|//figure/a/img/@title',
 			'//figure/a/@href',
 		),
-		'core/list'         => array(
+		'core/list'              => array(
 			'//ul/li|//ol/li',
 		),
-		'core/media-text'   => array(
+		'core/media-text'        => array(
 			'//figure/img/@alt',
 		),
-		'core/paragraph'    => array(
+		'core/paragraph'         => array(
 			'//p',
 		),
-		'core/preformatted' => array(
+		'core/preformatted'      => array(
 			'//pre',
 		),
-		'core/pullquote'    => array(
+		'core/pullquote'         => array(
 			'//blockquote/p',
 			'//blockquote/cite',
 		),
-		'core/quote'        => array(
+		'core/quote'             => array(
 			'//blockquote/p',
 			'//blockquote/cite',
 		),
-		'core/subhead'      => array(
+		'core/subhead'           => array(
 			'//p',
 		),
-		'core/table'        => array(
+		'core/table'             => array(
 			'//th',
 			'//td',
 			'//figure/figcaption',
 		),
-		'core/text-columns' => array(
+		'core/text-columns'      => array(
 			'//div[@class="wp-block-column"]',
 		),
-		'core/verse'        => array(
+		'core/verse'             => array(
 			'//pre',
 		),
-		'core/video'        => array(
+		'core/video'             => array(
 			'//figure/figcaption',
 		),
 	);
@@ -193,6 +196,7 @@ class PLL_Translation_Block_Parsing_Rules {
 		'core/column',
 		'core/columns',
 		'core/group',
+		'core/math',
 		'core/nextpage',
 		'core/separator',
 		'core/shortcode',

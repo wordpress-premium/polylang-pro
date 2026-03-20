@@ -71,10 +71,22 @@ class Main {
 	public function on_acf_init(): void {
 		$this->ajax->on_acf_init();
 		$this->field_settings->on_acf_init();
-		$this->field_groups_labels->on_acf_init();
-		$this->post_types_labels->on_acf_init();
-		$this->taxonomies_labels->on_acf_init();
 		$this->translation_instructions->on_acf_init();
+
+		/**
+		 * Filters whether ACF labels translation should be enabled.
+		 * This allows users to completely disable ACF labels translation (fields, post types, taxonomies) if they don't need it.
+		 *
+		 * @since 3.7.5
+		 *
+		 * @param bool $enabled Whether ACF labels translation is enabled. Default true.
+		 */
+		$labels_translation_enabled = apply_filters( 'pll_enable_acf_labels_translation', true );
+		if ( $labels_translation_enabled ) {
+			$this->field_groups_labels->on_acf_init();
+			$this->post_types_labels->on_acf_init();
+			$this->taxonomies_labels->on_acf_init();
+		}
 
 		Dispatcher::on_acf_init();
 

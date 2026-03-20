@@ -281,6 +281,26 @@ class PLL_Navigation_Language_Switcher_Block extends PLL_Abstract_Language_Switc
 	}
 
 	/**
+	 * Returns the arguments for the block registration.
+	 *
+	 * @since 3.7.6
+	 *
+	 * @param string $script_handle The handle of the script to enqueue.
+	 * @param array  $attributes    The attributes of the block.
+	 * @return array The arguments.
+	 */
+	protected function get_block_type_args( string $script_handle, array $attributes ): array {
+		return array_merge(
+			parent::get_block_type_args( $script_handle, $attributes ),
+			array(
+				'supports' => array(
+					'contentRole' => true, // Tells the polylang/navigation-language-switcher block to have a content role so it can be rendered as a content block in the Navigation (limited to `contentOnly` mode).
+				),
+			)
+		);
+	}
+
+	/**
 	 * Returns attributes that fit for core/navigation-link or core/navigation-submenu and specific to polylang/navigation-language-switcher.
 	 *
 	 * @since 3.6

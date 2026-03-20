@@ -214,8 +214,8 @@ abstract class PLL_Xdata_Base {
 					}
 				}
 				xhr.send();',
-				esc_js( sanitize_url( $this->ajax_url( sanitize_key( $_COOKIE[ PLL_COOKIE ] ), $args ) ) ),
-				esc_js( sanitize_url( $this->ajax_url( $lang, array( 'action' => 'pll_xdata_set' ) ) ) )
+				sanitize_url( $this->ajax_url( sanitize_key( $_COOKIE[ PLL_COOKIE ] ), $args ) ),
+				sanitize_url( $this->ajax_url( $lang, array( 'action' => 'pll_xdata_set' ) ) )
 			);
 		}
 		return '';

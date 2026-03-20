@@ -180,15 +180,10 @@ class PLL_Locale_Fallback {
 
 		$once[ "$domain|$locale" ] = true;
 
-		if ( ! empty( $path ) ) {
-			return $path;
-		}
-
 		$language = $this->model->get_language( $locale );
 		if ( empty( $language ) || empty( $language->fallbacks ) ) {
-			return false;
+			return $path;
 		}
-
 
 		foreach ( $language->fallbacks as $fallback ) {
 			if ( ! empty( $once[ "$domain|$fallback" ] ) ) { // Prevent an infinite loop if we already attempted to load this translation.

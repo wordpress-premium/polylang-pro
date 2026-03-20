@@ -138,7 +138,7 @@ class PLL_Xdata_Domain extends PLL_Xdata_Base {
 				$home_page_url = apply_filters( 'pll_redirect_home', $home_page_url );
 				if ( $home_page_url ) {
 					header( 'Content-Type: application/javascript' );
-					printf( 'window.location.replace("%s");', esc_js( sanitize_url( $home_page_url ) ) );
+					printf( 'window.location.replace("%s");', sanitize_url( $home_page_url ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					wp_die();
 				}
 			}

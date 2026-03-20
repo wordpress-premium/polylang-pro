@@ -230,7 +230,7 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 	}
 
 	/**
-	 * Check if the request is a REST API post type request for saving
+	 * Check if the request is a REST API post type request for saving.
 	 *
 	 * @since 2.7.3
 	 * @since 3.4 $post_id parameter removed.
@@ -253,8 +253,9 @@ class PLL_REST_Post extends PLL_REST_Translated_Object {
 				)
 			)
 		);
+
 		// Pattern to verify the request route.
-		$post_type_pattern = '#(' . implode( '|', array_values( $post_type_rest_bases ) ) . ')/' . $request->get_param( 'id' ) . '#';
+		$post_type_pattern = '#(' . implode( '|', array_values( $post_type_rest_bases ) ) . ')/(?P<id>[\d]+)#';
 		return preg_match( "$post_type_pattern", $request->get_route() ) && 'PUT' === $request->get_method();
 	}
 

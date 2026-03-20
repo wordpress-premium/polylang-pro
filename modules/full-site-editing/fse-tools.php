@@ -70,6 +70,7 @@ class PLL_FSE_Tools {
 
 	/**
 	 * Returns the template post object currently being edited.
+	 * Backward compatibility with WordPress < 6.8.
 	 *
 	 * @since 3.2
 	 *

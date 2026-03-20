@@ -3,9 +3,9 @@ Contributors: Chouby, manooweb, raaaahman, marianne38, sebastienserre, greglone,
 Donate link: https://polylang.pro
 Tags: multilingual, translate, translation, language, localization
 Requires at least: 6.2
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 3.7.3
+Stable tag: 3.7.6
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -76,14 +76,14 @@ Wherever third party code has been used, credit has been given in the code’s c
 1. Make sure you are using WordPress 6.2 or later and that your server is running PHP 7.2 or later (same requirement as WordPress itself).
 1. If you tried other multilingual plugins, deactivate them before activating Polylang, otherwise, you may get unexpected results!
 1. Install and activate the plugin as usual from the 'Plugins' menu in WordPress.
-1. The [setup wizard](https://polylang.pro/doc/setup-wizard/) is automatically launched to help you get started more easily with Polylang by configuring the main features.
+1. The [setup wizard](https://polylang.pro/documentation/support/getting-started/setup-wizard/) is automatically launched to help you get started more easily with Polylang by configuring the main features.
 
 == Frequently Asked Questions ==
 
 = Where to find help ? =
 
-* First time users should read [Polylang - Getting started](https://polylang.pro/doc-category/getting-started/), which explains the basics and includes a lot of screenshots.
-* Read the [documentation](https://polylang.pro/doc/). It includes a [FAQ](https://polylang.pro/doc-category/faq/) and the [documentation for developers](https://polylang.pro/doc-category/developers/).
+* First time users should read [Polylang - Getting started](https://polylang.pro/documentation/support/getting-started/), which explains the basics and includes a lot of screenshots.
+* Read the [documentation](https://polylang.pro/documentation/support/). It includes a [FAQ](https://polylang.pro/documentation/support/faq/) and the [documentation for developers](https://polylang.pro/documentation/support/developers/).
 * Search the [community support forum](https://wordpress.org/search/). You will probably find your answers here.
 * Read the sticky posts in the [community support forum](http://wordpress.org/support/plugin/polylang).
 * If you still have a problem, open a new thread in the [community support forum](http://wordpress.org/support/plugin/polylang).
@@ -91,7 +91,11 @@ Wherever third party code has been used, credit has been given in the code’s c
 
 = Is Polylang compatible with WooCommerce? =
 
-* You need [Polylang for WooCommerce](https://polylang.pro/downloads/polylang-for-woocommerce/), premium addon described above, which will make both plugins work together.
+* You need [Polylang for WooCommerce](https://polylang.pro/pricing/polylang-for-woocommerce/), premium addon described above, which will make both plugins work together.
+
+= Where do I report security bugs found in this plugin? =
+
+* Please report security bugs found in the source code of the Polylang plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/d83984d2-d748-43e3-88e2-6dd3bd2c881d). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Screenshots ==
 
@@ -101,6 +105,38 @@ Wherever third party code has been used, credit has been given in the code’s c
 4. The Edit Post screen with the Languages metabox
 
 == Changelog ==
+
+= 3.7.6 (2026-01-06) =
+
+* Pro: Add support for WP 6.9 new blocks #2790
+* Pro: Fix insertion of navigation language switcher block in WP 6.9 #2847
+* Pro: Fix current post URL in site editor for WP 6.8+ #2843
+* Pro: Fix a conflict with Sensei LMS #2845
+* Fix categories not filtered per post language in quick edit #1785
+
+= 3.7.5 (2025-11-10) =
+
+* Pro: Updated DeepL supported languages list
+* Pro: Fix a regression in cross domain login
+* Pro: Fix post object field not correctly translated
+* Pro: Fix a fatal error in EDD plugin updater when the request to the server fails
+* Pro: Fix locale fallback in WP 6.8+
+* Pro: Add `pll_enable_acf_labels_translation` filter allowing to disable the translation of ACF labels
+* Pro: Fix ACF image field not correctly translated when media translation is active
+* Pro: Fix ACF image field in repeater not copied
+* Pro: Fix ACF ajax request unexpectedly filtered by language when editing a field group
+* Pro: Fix ACF blocks not translated when included inside a non-ACF block
+* Pro: Add compatibility of the duplicate tool with Divi
+* Fix Undefined array key "terms" in canonical.php #1691
+* Fix some regressions in the WPML API used by YITH WooCommerce Wishlist #1684
+* Fix LinkedIn site title preview with Yoast SEO #1686
+* Fix HTML language attribute on login page #1601
+* Fix conflict with WP Job Manager Application #1749
+
+= 3.7.4 (2025-10-28) =
+
+* Pro: Security: Fix a ReDoS vulnerability reported by Janine Moreira.
+* Security: Fix deserialization of untrusted data reported by Phat RiO – BlueRock via Patchstack.
 
 = 3.7.3 (2025-06-16) =
 

@@ -98,7 +98,7 @@ class Import extends Copy {
 				return $args['original_value'];
 			}
 
-			return $value;
+			return parent::execute( $object, $value, $field, $args );
 		}
 
 		$value = $this->translations->translate( $value, $entry->context );

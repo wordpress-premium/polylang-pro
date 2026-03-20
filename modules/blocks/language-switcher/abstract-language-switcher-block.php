@@ -148,12 +148,7 @@ abstract class PLL_Abstract_Language_Switcher_Block {
 
 		register_block_type(
 			$this->get_block_name(),
-			array(
-				'editor_script'   => $script_handle,
-				'attributes'      => $attributes,
-				'render_callback' => array( $this, 'render' ),
-				'uses_context'    => $this->get_context(),
-			)
+			$this->get_block_type_args( $script_handle, $attributes )
 		);
 
 		// Translated strings used in JS code
@@ -207,5 +202,23 @@ abstract class PLL_Abstract_Language_Switcher_Block {
 			$attributes['hide_if_no_translation'] = 0; // Force not to hide the language for the block preview even if the option is checked.
 		}
 		return $attributes;
+	}
+
+	/**
+	 * Returns the arguments for the block registration.
+	 *
+	 * @since 3.7.6
+	 *
+	 * @param string $script_handle The handle of the script to enqueue.
+	 * @param array  $attributes    The attributes of the block.
+	 * @return array The arguments.
+	 */
+	protected function get_block_type_args( string $script_handle, array $attributes ): array {
+		return array(
+			'editor_script'   => $script_handle,
+			'attributes'      => $attributes,
+			'render_callback' => array( $this, 'render' ),
+			'uses_context'    => $this->get_context(),
+		);
 	}
 }

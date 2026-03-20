@@ -30,6 +30,7 @@ class Language_Attribute {
 	 * Do not add the 'pll_lang' attribute if the block is a legacy widget.
 	 *
 	 * @since 3.1
+	 * @since 3.7.6 Removed default value (empty string) for `pll_lang`.
 	 *
 	 * @param array $block_properties Array of parameters for registering a block type.
 	 *                                Each of them becomes a property of the block type object.
@@ -39,10 +40,7 @@ class Language_Attribute {
 		$is_block_dynamic = $this->is_block_dynamic( $block_properties );
 		$is_legacy_widget = 'core/legacy-widget' === $block_properties['name'];
 		if ( $is_block_dynamic && ! $is_legacy_widget ) {
-			$block_properties['attributes']['pll_lang'] = array(
-				'type'    => 'string',
-				'default' => '',
-			);
+			$block_properties['attributes']['pll_lang'] = array( 'type' => 'string' );
 		}
 		return $block_properties;
 	}

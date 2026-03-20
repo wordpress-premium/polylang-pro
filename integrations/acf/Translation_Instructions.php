@@ -137,11 +137,16 @@ class Translation_Instructions {
 	 *
 	 * @since 3.7
 	 * @since 3.7.2 Moved from Dispatcher.
+	 * @since 3.7.5 Changed visibility from private to public.
 	 *
 	 * @param array $field The field.
 	 * @return string The instruction.
 	 */
-	private static function get_field_instruction( array $field ): string {
+	public static function get_field_instruction( array $field ): string {
+		if ( empty( $field ) ) {
+			return '';
+		}
+
 		if ( empty( $field['translations'] ) ) {
 			if ( in_array( $field['type'], array( 'group', 'repeater', 'clone', 'flexible_content' ), true ) ) {
 				$copy_strategy = new Copy();
